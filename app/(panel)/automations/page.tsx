@@ -1,0 +1,2 @@
+import { PageHeader } from "@/src/components/ui"; import { AutomationsView } from "@/src/components/automations-view"; import { automations,sites } from "@/src/data/mock";
+export default function Automations(){return <><PageHeader eyebrow="Programación" title="Automatizaciones" description="Controla cuándo se genera y prepara cada comunicación." action={<button className="btn">Ejecutar tareas ahora</button>}/><AutomationsView initial={automations} sites={sites}/></>}

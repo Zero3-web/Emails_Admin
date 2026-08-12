@@ -1,0 +1,6 @@
+insert into sites (name,slug,description,business_type,domain,wordpress_url,primary_color,secondary_color,sender_name,sender_email,tokko_filter) values
+('Area Prime','area-prime','Oficinas y edificios corporativos','Inmobiliario corporativo','areaprime.pe','https://areaprime.pe','#2563EB','#DBEAFE','Area Prime','novedades@areaprime.pe','{}'),
+('Area Retail','area-retail','Locales comerciales y retail','Retail inmobiliario','arearetail.pe','https://arearetail.pe','#173B67','#DCE8F5','Area Retail','novedades@arearetail.pe','{}'),
+('Area Hub','area-hub','Naves y propiedades industriales','Inmobiliario industrial','areahub.pe','https://areahub.pe','#EA6A27','#FDE8D8','Area Hub','novedades@areahub.pe','{}');
+insert into site_integrations(site_id,provider) select id,p from sites cross join unnest(array['tokko','wordpress','resend']::integration_provider[]) p;
+insert into automation_settings(site_id,type,frequency,day_of_week,day_of_month,send_time,requires_approval) select id,'weekly_new_properties','weekly',5,null,'09:00',false from sites union all select id,'monthly_properties','monthly',null,1,'10:00',true from sites union all select id,'monthly_blog','monthly',null,15,'10:00',true from sites;

@@ -1,0 +1,2 @@
+import { NextResponse } from "next/server"; import { runMockTask,taskNames } from "@/trigger/tasks";
+export async function POST(_request:Request,{params}:{params:Promise<{name:string}>}){const {name}=await params;if(!taskNames.includes(name as typeof taskNames[number]))return NextResponse.json({error:"Unknown task"},{status:404});const result=await runMockTask(name as typeof taskNames[number]);return NextResponse.json({ok:true,mode:process.env.INTEGRATIONS_MODE??"mock",items:Array.isArray(result)?result.length:1})}

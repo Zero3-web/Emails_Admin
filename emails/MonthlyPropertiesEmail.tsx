@@ -1,0 +1,2 @@
+import { EmailFrame,PropertyRows,type PropertyEmailProps } from "./email-shared";
+export function MonthlyPropertiesEmail({site,properties,unsubscribeUrl}:PropertyEmailProps){return <EmailFrame site={site} title="Propiedades disponibles" unsubscribeUrl={unsubscribeUrl}><p>Una selección mensual de espacios para hacer crecer tu negocio.</p><PropertyRows site={site} properties={properties}/></EmailFrame>}
