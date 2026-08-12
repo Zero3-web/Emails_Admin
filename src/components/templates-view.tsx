@@ -1,3 +1,114 @@
-"use client"; import { useState } from "react"; import type { Site } from "@/src/domain/types";
-const templates=[{name:"Nuevas propiedades de esta semana",type:"Semanal",kind:"Propiedades"},{name:"Propiedades disponibles",type:"Mensual",kind:"Catálogo"},{name:"Novedades del mes",type:"Mensual",kind:"Blog"}];
-export function TemplatesView({sites}:{sites:Site[]}){const [id,setId]=useState(sites[0].id);const s=sites.find(x=>x.id===id)!;return <><div className="card form-card" style={{marginBottom:18,padding:14,display:"flex",alignItems:"center",justifyContent:"space-between"}}><span style={{fontSize:13}}><strong>Branding del preview</strong> <span className="muted">· Los datos se actualizan por marca</span></span><select value={id} onChange={e=>setId(e.target.value)} style={{width:180}}>{sites.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></div><div className="template-grid">{templates.map((t,i)=><article className="card template-card" key={t.name}><div className="email-thumb"><div className="email-paper"><div className="email-hero" style={{background:s.primaryColor}}><strong style={{fontSize:10}}>{s.name}</strong><h3 style={{fontSize:14,margin:"16px 0 3px"}}>{t.name}</h3><span style={{opacity:.8}}>Selección preparada para ti</span></div><div className="email-items">{[1,2,3].map(n=><div className="email-item" key={n}><div className="email-image"/><div><strong>{i===2?"Artículo destacado del mes":"Propiedad destacada"} {n}</strong><br/><span className="muted">Lima · {i===2?"5 min de lectura":"180 m² · USD 320.000"}</span><div style={{color:s.primaryColor,marginTop:5,fontWeight:700}}>{i===2?"Leer artículo →":"Ver propiedad →"}</div></div></div>)}</div><div style={{padding:12,textAlign:"center",color:"#8b9299"}}>{s.domain} · Cancelar suscripción</div></div></div><div className="template-info"><span className="badge">{t.type}</span><h3 style={{margin:"10px 0 4px",fontSize:15}}>{t.name}</h3><span className="muted" style={{fontSize:12}}>{t.kind} · React Email</span><button className="btn" style={{width:"100%",marginTop:14}}>Abrir preview</button></div></article>)}</div></>}
+"use client";
+import { useState } from "react";
+import type { Site } from "@/src/domain/types";
+const templates = [
+  {
+    name: "Nuevas propiedades de esta semana",
+    type: "Semanal",
+    kind: "Propiedades",
+  },
+  { name: "Propiedades disponibles", type: "Mensual", kind: "Catálogo" },
+  { name: "Novedades del mes", type: "Mensual", kind: "Blog" },
+];
+export function TemplatesView({ sites }: { sites: Site[] }) {
+  const [id, setId] = useState(sites[0].id);
+  const s = sites.find((x) => x.id === id)!;
+  return (
+    <>
+      <div
+        className="card form-card"
+        style={{
+          marginBottom: 18,
+          padding: 14,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <span style={{ fontSize: 13 }}>
+          <strong>Branding del preview</strong>{" "}
+          <span className="muted">· Los datos se actualizan por marca</span>
+        </span>
+        <select
+          value={id}
+          onChange={(e) => setId(e.target.value)}
+          style={{ width: 180 }}
+        >
+          {sites.map((x) => (
+            <option key={x.id} value={x.id}>
+              {x.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="template-grid">
+        {templates.map((t, i) => (
+          <article className="card template-card" key={t.name}>
+            <div className="email-thumb">
+              <div className="email-paper">
+                <div
+                  className="email-hero"
+                  style={{ background: s.primaryColor }}
+                >
+                  <strong style={{ fontSize: 10 }}>{s.name}</strong>
+                  <h3 style={{ fontSize: 14, margin: "16px 0 3px" }}>
+                    {t.name}
+                  </h3>
+                  <span style={{ opacity: 0.8 }}>
+                    Selección preparada para ti
+                  </span>
+                </div>
+                <div className="email-items">
+                  {[1, 2, 3].map((n) => (
+                    <div className="email-item" key={n}>
+                      <div className="email-image" />
+                      <div>
+                        <strong>
+                          {i === 2
+                            ? "Artículo destacado del mes"
+                            : "Propiedad destacada"}{" "}
+                          {n}
+                        </strong>
+                        <br />
+                        <span className="muted">
+                          Lima ·{" "}
+                          {i === 2
+                            ? "5 min de lectura"
+                            : "180 m² · USD 320.000"}
+                        </span>
+                        <div
+                          style={{
+                            color: s.primaryColor,
+                            marginTop: 5,
+                            fontWeight: 700,
+                          }}
+                        >
+                          {i === 2 ? "Leer artículo →" : "Ver propiedad →"}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div
+                  style={{ padding: 12, textAlign: "center", color: "#8b9299" }}
+                >
+                  {s.domain} · Cancelar suscripción
+                </div>
+              </div>
+            </div>
+            <div className="template-info">
+              <span className="badge">{t.type}</span>
+              <h3 style={{ margin: "10px 0 4px", fontSize: 15 }}>{t.name}</h3>
+              <span className="muted" style={{ fontSize: 12 }}>
+                {t.kind} · React Email
+              </span>
+              <button className="btn" style={{ width: "100%", marginTop: 14 }}>
+                Abrir preview
+              </button>
+            </div>
+          </article>
+        ))}
+      </div>
+    </>
+  );
+}

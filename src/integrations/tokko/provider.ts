@@ -1,1 +1,7 @@
-import type { Property } from "@/src/domain/types"; import type { PropertyProvider } from "./types"; export class TokkoProvider implements PropertyProvider{async getProperties():Promise<Property[]>{throw new Error("Tokko integration not configured")}}
+import type { Property } from "@/src/domain/types";
+import type { PropertyProvider } from "./types";
+export class TokkoProvider implements PropertyProvider {
+  async getProperties(): Promise<Property[]> {
+    throw new Error("Tokko integration not configured");
+  }
+}

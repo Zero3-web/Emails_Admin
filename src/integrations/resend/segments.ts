@@ -1,1 +1,1 @@
-export type ResendSegment={id:string;name:string};
+export type ResendSegment = { id: string; name: string };

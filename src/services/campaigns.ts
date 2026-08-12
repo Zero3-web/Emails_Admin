@@ -1,2 +1,24 @@
-import type { AutomationType,Campaign,Site } from "@/src/domain/types"; export const campaignTypeLabel=(type:AutomationType)=>({weekly_new_properties:"Nuevas propiedades",monthly_properties:"Catálogo mensual",monthly_blog:"Blog mensual"})[type]; export function createCampaign(site:Site,type:AutomationType):Campaign{return{id:`campaign-${site.id}-${Date.now()}`,siteId:site.id,automationType:type,name:`${campaignTypeLabel(type)} · ${site.name}`,subject:`Novedades de ${site.name}`,status:"draft",recipientCount:0,scheduledAt:null,sentAt:null}}
-export const filterBySite=<T extends {siteId:string}>(items:T[],siteId:string|"all")=>siteId==="all"?items:items.filter(i=>i.siteId===siteId);
+import type { AutomationType, Campaign, Site } from "@/src/domain/types";
+export const campaignTypeLabel = (type: AutomationType) =>
+  ({
+    weekly_new_properties: "Nuevas propiedades",
+    monthly_properties: "Catálogo mensual",
+    monthly_blog: "Blog mensual",
+  })[type];
+export function createCampaign(site: Site, type: AutomationType): Campaign {
+  return {
+    id: `campaign-${site.id}-${Date.now()}`,
+    siteId: site.id,
+    automationType: type,
+    name: `${campaignTypeLabel(type)} · ${site.name}`,
+    subject: `Novedades de ${site.name}`,
+    status: "draft",
+    recipientCount: 0,
+    scheduledAt: null,
+    sentAt: null,
+  };
+}
+export const filterBySite = <T extends { siteId: string }>(
+  items: T[],
+  siteId: string | "all",
+) => (siteId === "all" ? items : items.filter((i) => i.siteId === siteId));

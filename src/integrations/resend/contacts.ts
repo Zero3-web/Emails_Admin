@@ -1,1 +1,1 @@
-export type ResendContactConfig={segmentId?:string;topicId?:string};
+export type ResendContactConfig = { segmentId?: string; topicId?: string };

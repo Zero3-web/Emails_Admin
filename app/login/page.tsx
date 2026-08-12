@@ -1,2 +1,27 @@
-import Link from "next/link";
-export default function Login(){return <main className="login-page"><section className="login-art"><div className="brand"><span className="brand-mark" style={{background:"white",color:"#17202a"}}>AM</span><span>Area Mail</span></div><div><div className="eyebrow" style={{color:"#9fb0c2"}}>Operaciones inmobiliarias</div><h1>Un solo lugar para cada marca, campaña y automatización.</h1><p style={{color:"#aeb9c5",maxWidth:480,lineHeight:1.6}}>Administra la comunicación de Area Prime, Area Retail y Area Hub con control y consistencia.</p></div><small style={{color:"#758493"}}>Acceso exclusivo para administradores</small></section><section className="login-panel"><form className="login-box"><div className="eyebrow">Bienvenido</div><h1>Inicia sesión</h1><p className="subtitle">Usa tus credenciales administrativas.</p><div className="field"><label htmlFor="email">Correo electrónico</label><input id="email" type="email" placeholder="admin@area.pe" defaultValue="admin@area.pe"/></div><div className="field"><label htmlFor="password">Contraseña</label><input id="password" type="password" placeholder="••••••••" defaultValue="demo1234"/></div><Link className="btn primary" href="/dashboard">Ingresar al panel</Link><p style={{fontSize:11,color:"#9299a1",textAlign:"center",marginTop:18}}>Modo desarrollo · Autenticación simulada</p></form></section></main>}
+import { LoginForm } from "@/src/components/login-form";
+export default function Login() {
+  return (
+    <main className="login-page">
+      <section className="login-art">
+        <div className="brand">
+          <span className="brand-mark login-mark">AM</span>
+          <span>Area Mail</span>
+        </div>
+        <div>
+          <div className="eyebrow login-eyebrow">Operaciones inmobiliarias</div>
+          <h1>Un solo lugar para cada marca, campaña y automatización.</h1>
+          <p className="login-copy">
+            Administra la comunicación de Area Prime, Area Retail y Area Hub con
+            control y consistencia.
+          </p>
+        </div>
+        <small className="login-foot">
+          Acceso exclusivo para administradores
+        </small>
+      </section>
+      <section className="login-panel">
+        <LoginForm />
+      </section>
+    </main>
+  );
+}

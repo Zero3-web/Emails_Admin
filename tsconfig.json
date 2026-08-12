@@ -17,6 +17,15 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "app/**/*.ts", "app/**/*.tsx", "src/**/*.ts", "src/**/*.tsx", "emails/**/*.tsx", "trigger/**/*.ts", "tests/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "emails/**/*.tsx",
+    "trigger/**/*.ts",
+    "tests/**/*.ts"
+  ],
   "exclude": ["node_modules", "worker/**/*", "db/**/*", "examples/**/*"]
 }

@@ -1,1 +1,12 @@
-import type { BroadcastInput,MarketingEmailProvider } from "./types"; export class MockEmailProvider implements MarketingEmailProvider{async createBroadcast(_input:BroadcastInput){return{id:`mock-${Date.now()}`}}async sendBroadcast(_id:string){}async scheduleBroadcast(_id:string,_at:Date){}async sendTest(_input:BroadcastInput,_to:string){}async getBroadcast(id:string){return{id,status:"draft"}}}
+import type { BroadcastInput, MarketingEmailProvider } from "./types";
+export class MockEmailProvider implements MarketingEmailProvider {
+  async createBroadcast(_input: BroadcastInput) {
+    return { id: `mock-${Date.now()}` };
+  }
+  async sendBroadcast(_id: string) {}
+  async scheduleBroadcast(_id: string, _at: Date) {}
+  async sendTest(_input: BroadcastInput, _to: string) {}
+  async getBroadcast(id: string) {
+    return { id, status: "draft" };
+  }
+}

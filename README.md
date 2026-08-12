@@ -14,7 +14,7 @@ copy .env.example .env.local
 npm run dev
 ```
 
-Abre la URL local mostrada. En desarrollo, `/login` ofrece acceso simulado y no requiere credenciales. Supabase Auth queda como el límite de autenticación para el modo live; no existe registro público.
+Abre la URL local mostrada. Sin variables de Supabase, `/login` crea una sesión administrativa mock con cualquier email y contraseña no vacíos. Con Supabase configurado utiliza `signInWithPassword`, cookies HTTP-only y valida la sesión en servidor. No existe registro público.
 
 ## Variables de entorno
 
@@ -22,7 +22,7 @@ Consulta `.env.example`. Mantén `INTEGRATIONS_MODE=mock` para trabajar sin APIs
 
 ## Supabase, migrations y seed
 
-La migración inicial está en `supabase/migrations/202608120001_initial.sql` y crea todos los enums, tablas, relaciones, restricciones de duplicados e índices. `supabase/seed.sql` inserta las marcas, nueve automatizaciones y sus integraciones pendientes. Aplícalos desde Supabase CLI o SQL Editor en ese orden.
+Las migraciones crean enums, tablas, relaciones, índices, validaciones, triggers de `updated_at` y políticas RLS. `supabase/seed.sql` inserta las marcas, nueve automatizaciones, 30 propiedades, 15 posts, campañas y actividad. Aplícalos desde Supabase CLI o SQL Editor en orden.
 
 ## Modo mock y tareas
 

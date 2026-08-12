@@ -1,1 +1,7 @@
-import type { BlogPost,Site } from "@/src/domain/types"; import type { BlogProvider } from "./types"; export class WordPressProvider implements BlogProvider{async getPosts(_site:Site):Promise<BlogPost[]>{throw new Error("WordPress integration not configured")}}
+import type { BlogPost, Site } from "@/src/domain/types";
+import type { BlogProvider } from "./types";
+export class WordPressProvider implements BlogProvider {
+  async getPosts(_site: Site): Promise<BlogPost[]> {
+    throw new Error("WordPress integration not configured");
+  }
+}
