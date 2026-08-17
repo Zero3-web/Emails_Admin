@@ -1,114 +1,74 @@
 "use client";
-import { useState } from "react";
+
+import { Check, CheckCircle2, ExternalLink, FileText, Loader2, Monitor, Smartphone } from "lucide-react";
+import { useEffect, useState } from "react";
 import type { Site } from "@/src/domain/types";
-const templates = [
-  {
-    name: "Nuevas propiedades de esta semana",
-    type: "Semanal",
-    kind: "Propiedades",
-  },
-  { name: "Propiedades disponibles", type: "Mensual", kind: "Catálogo" },
-  { name: "Novedades del mes", type: "Mensual", kind: "Blog" },
+
+type TemplateType = "weekly_new_properties" | "monthly_properties" | "monthly_blog";
+type Preview = { html: string; subject: string; itemCount: number };
+const templates: Array<{ type: TemplateType; name: string; description: string; cadence: string; kind: string }> = [
+  { type: "weekly_new_properties", name: "Nuevas oficinas", description: "Una selección breve con hasta 5 incorporaciones recientes.", cadence: "Semanal", kind: "Propiedades" },
+  { type: "monthly_properties", name: "Oficinas disponibles", description: "Catálogo ampliado con hasta 10 oficinas activas.", cadence: "Mensual", kind: "Propiedades" },
+  { type: "monthly_blog", name: "Novedades del blog", description: "Resumen editorial con hasta 5 artículos recientes.", cadence: "Mensual", kind: "Artículos" },
 ];
-export function TemplatesView({ sites }: { sites: Site[] }) {
-  const [id, setId] = useState(sites[0].id);
-  const s = sites.find((x) => x.id === id)!;
+
+export function TemplatesView({ sites, initialSiteId, propertyCounts, blogCounts }: { sites: Site[]; initialSiteId: string; propertyCounts: Record<string, number>; blogCounts: Record<string, number> }) {
+  const [siteId, setSiteId] = useState(initialSiteId);
+  const [type, setType] = useState<TemplateType>("weekly_new_properties");
+  const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
+  const [preview, setPreview] = useState<Preview | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const site = sites.find((item) => item.id === siteId) ?? sites[0];
+  const activeTemplate = templates.find((item) => item.type === type)!;
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setLoading(true); setError("");
+      try {
+        const response = await fetch(`/api/templates/preview?siteId=${encodeURIComponent(siteId)}&type=${type}`, { cache: "force-cache", signal: controller.signal });
+        const result = await response.json();
+        if (!response.ok || !result.ok) throw new Error(result.error ?? "No se pudo generar la vista previa.");
+        setPreview(result);
+      } catch (cause) {
+        if (!controller.signal.aborted) setError(cause instanceof Error ? cause.message : "No se pudo generar la vista previa.");
+      } finally { if (!controller.signal.aborted) setLoading(false); }
+    }, 0);
+    return () => { window.clearTimeout(timer); controller.abort(); };
+  }, [siteId, type]);
+
   return (
-    <>
-      <div
-        className="card form-card"
-        style={{
-          marginBottom: 18,
-          padding: 14,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <span style={{ fontSize: 13 }}>
-          <strong>Branding del preview</strong>{" "}
-          <span className="muted">· Los datos se actualizan por marca</span>
-        </span>
-        <select
-          value={id}
-          onChange={(e) => setId(e.target.value)}
-          style={{ width: 180 }}
-        >
-          {sites.map((x) => (
-            <option key={x.id} value={x.id}>
-              {x.name}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className="template-grid">
-        {templates.map((t, i) => (
-          <article className="card template-card" key={t.name}>
-            <div className="email-thumb">
-              <div className="email-paper">
-                <div
-                  className="email-hero"
-                  style={{ background: s.primaryColor }}
-                >
-                  <strong style={{ fontSize: 10 }}>{s.name}</strong>
-                  <h3 style={{ fontSize: 14, margin: "16px 0 3px" }}>
-                    {t.name}
-                  </h3>
-                  <span style={{ opacity: 0.8 }}>
-                    Selección preparada para ti
-                  </span>
-                </div>
-                <div className="email-items">
-                  {[1, 2, 3].map((n) => (
-                    <div className="email-item" key={n}>
-                      <div className="email-image" />
-                      <div>
-                        <strong>
-                          {i === 2
-                            ? "Artículo destacado del mes"
-                            : "Propiedad destacada"}{" "}
-                          {n}
-                        </strong>
-                        <br />
-                        <span className="muted">
-                          Lima ·{" "}
-                          {i === 2
-                            ? "5 min de lectura"
-                            : "180 m² · USD 320.000"}
-                        </span>
-                        <div
-                          style={{
-                            color: s.primaryColor,
-                            marginTop: 5,
-                            fontWeight: 700,
-                          }}
-                        >
-                          {i === 2 ? "Leer artículo →" : "Ver propiedad →"}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div
-                  style={{ padding: 12, textAlign: "center", color: "#8b9299" }}
-                >
-                  {s.domain} · Cancelar suscripción
-                </div>
-              </div>
-            </div>
-            <div className="template-info">
-              <span className="badge">{t.type}</span>
-              <h3 style={{ margin: "10px 0 4px", fontSize: 15 }}>{t.name}</h3>
-              <span className="muted" style={{ fontSize: 12 }}>
-                {t.kind} · React Email
-              </span>
-              <button className="btn" style={{ width: "100%", marginTop: 14 }}>
-                Abrir preview
-              </button>
-            </div>
-          </article>
-        ))}
-      </div>
-    </>
+    <div className="templates-library">
+      <section className="template-setup" aria-label="Configurar vista previa">
+        <div className="template-setup-head"><div><h2>Configura la vista</h2><p>Elige una marca y un diseño para comprobar el resultado real.</p></div><span><CheckCircle2 size={14} />Contenido conectado</span></div>
+        <div className="template-brand-list" role="radiogroup" aria-label="Marca del correo">
+          {sites.map((item) => <button key={item.id} type="button" role="radio" aria-checked={siteId === item.id} className={siteId === item.id ? "active" : ""} onClick={() => setSiteId(item.id)}>
+            <i style={{ background: item.primaryColor || "#0f8f87" }}>{item.name.slice(0, 2).toUpperCase()}</i><span><strong>{item.name}</strong><small>{propertyCounts[item.id] ?? 0} propiedades · {blogCounts[item.id] ?? 0} artículos</small></span>{siteId === item.id && <Check size={14} />}
+          </button>)}
+        </div>
+        <div className="template-card-grid" role="radiogroup" aria-label="Diseño del correo">
+          {templates.map((template) => <button key={template.type} type="button" role="radio" aria-checked={type === template.type} className={`template-design-card ${type === template.type ? "active" : ""}`} onClick={() => setType(template.type)}>
+            <span className="template-miniature" aria-hidden="true"><i></i><b></b><b></b><em></em></span>
+            <span className="template-design-copy"><small>{template.cadence} · {template.kind}</small><strong>{template.name}</strong><em>{template.description}</em></span>
+            <i className="template-design-check">{type === template.type && <Check size={12} />}</i>
+          </button>)}
+        </div>
+      </section>
+
+      <section className="card template-preview-panel refined">
+        <header className="template-preview-head">
+          <div><span className="eyebrow">Vista previa real</span><h2>{activeTemplate.name}</h2><p>{preview?.subject ?? "Preparando asunto…"} · {preview?.itemCount ?? 0} {type === "monthly_blog" ? "artículos" : "propiedades"}</p></div>
+          <div className="device-switch labeled" aria-label="Tamaño de la vista previa">
+            <button type="button" className={device === "desktop" ? "active" : ""} onClick={() => setDevice("desktop")}><Monitor size={14} /><span>Desktop</span></button>
+            <button type="button" className={device === "mobile" ? "active" : ""} onClick={() => setDevice("mobile")}><Smartphone size={14} /><span>Móvil</span></button>
+          </div>
+        </header>
+        <div className={`template-stage refined ${device}`}>
+          {loading ? <div className="template-preview-loading"><Loader2 className="spin" size={20} /><span>Preparando vista previa…</span></div> : error ? <div className="template-preview-error"><FileText size={20} /><strong>No pudimos generar la vista</strong><span>{error}</span></div> : preview ? <iframe title={`Vista previa de ${site.name}`} srcDoc={preview.html} sandbox="allow-popups allow-popups-to-escape-sandbox" /> : null}
+        </div>
+        <footer className="template-preview-foot"><span>Así se verá el correo con la identidad y el contenido de {site.name}.</span><a href={type === "monthly_blog" ? `https://${site.domain}/blog/` : `/properties?site=${site.id}`} target={type === "monthly_blog" ? "_blank" : undefined} rel={type === "monthly_blog" ? "noreferrer" : undefined}>Revisar contenido <ExternalLink size={13} /></a></footer>
+      </section>
+    </div>
   );
 }

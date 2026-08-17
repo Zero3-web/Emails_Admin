@@ -1,26 +1,31 @@
 "use client";
+import { Check, Loader2 } from "lucide-react";
 import { useState } from "react";
 export function TaskButton({
   name,
   label = "Ejecutar ahora",
+  primary = false,
 }: {
   name: string;
   label?: string;
+  primary?: boolean;
 }) {
   const [state, setState] = useState<"idle" | "loading" | "success" | "error">(
     "idle",
   );
   async function run() {
     setState("loading");
-    const response = await fetch(`/api/tasks/${name}`, { method: "POST" });
-    setState(response.ok ? "success" : "error");
+    try {
+      const response = await fetch(`/api/tasks/${name}`, { method: "POST" });
+      setState(response.ok ? "success" : "error");
+    } catch { setState("error"); }
   }
   return (
-    <button className="btn" onClick={run} disabled={state === "loading"}>
+    <button className={`btn task-button ${primary ? "primary" : ""} is-${state}`} onClick={run} disabled={state === "loading"} aria-busy={state === "loading"}>
       {state === "loading"
-        ? "Ejecutando…"
+        ? <><Loader2 className="spin" size={15} />Ejecutando…</>
         : state === "success"
-          ? "Completado ✓"
+          ? <><Check size={15} />Completado</>
           : state === "error"
             ? "Reintentar"
             : label}

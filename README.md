@@ -1,12 +1,18 @@
 # Area Mail
 
-Panel central multi-sitio para administrar automatizaciones de correo de Area Prime, Area Retail y Area Hub. El MVP incluye dashboard, sitios, automatizaciones editables, campañas, previews con branding dinámico, integraciones, contactos, actividad, configuración, datos ficticios y tareas ejecutables manualmente.
+Panel privado multi-sitio para campañas, automatizaciones, audiencias e integraciones inmobiliarias.
 
-## Stack
+## Stack y límites de confianza
 
-Next.js App Router compatible con Vinext, React 19, TypeScript strict, Tailwind CSS, PostgreSQL/Supabase, plantillas React, adapters preparados para Resend/Tokko/WordPress y tareas preparadas para Trigger.dev. El despliegue está preparado mediante OpenAI Sites/Vercel-compatible Next APIs.
+- Vinext/React 19 sobre Cloudflare Workers.
+- Supabase Auth y PostgreSQL con RLS multi-tenant.
+- Credenciales administrativas únicamente en servidor.
+- Resend, Tokko y WordPress detrás de adaptadores con timeout, límite de respuesta y protección SSRF.
+- Trigger.dev para trabajos programados.
 
-## Instalación
+El panel no tiene registro público. Todas las páginas privadas validan la sesión en servidor y cada operación comprueba el rol global o el rol de la marca antes de acceder con la credencial de servicio.
+
+## Desarrollo
 
 ```bash
 npm install
@@ -14,56 +20,24 @@ copy .env.example .env.local
 npm run dev
 ```
 
-Abre la URL local mostrada. Sin variables de Supabase, `/login` crea una sesión administrativa mock con cualquier email y contraseña no vacíos. Con Supabase configurado utiliza `signInWithPassword`, cookies HTTP-only y valida la sesión en servidor. No existe registro público.
+Abre `http://localhost:3000`. Sin una configuración válida de Supabase no se concede acceso al panel.
 
-## Variables de entorno
+## Variables
 
-Consulta `.env.example`. Mantén `INTEGRATIONS_MODE=mock` para trabajar sin APIs. Nunca expongas `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `TRIGGER_SECRET_KEY` ni `TOKKO_API_KEY` al cliente.
+Consulta `.env.example`. Nunca expongas `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET`, `TRIGGER_SECRET_KEY` ni `TOKKO_API_KEY` al navegador o al repositorio. En producción configúralas como secretos del proveedor, no como archivos `.env` desplegados.
 
-## Supabase, migrations y seed
+## Base de datos
 
-Las migraciones crean enums, tablas, relaciones, índices, validaciones, triggers de `updated_at` y políticas RLS. `supabase/seed.sql` inserta las marcas, nueve automatizaciones, 30 propiedades, 15 posts, campañas y actividad. Aplícalos desde Supabase CLI o SQL Editor en orden.
+Aplica todas las migraciones de `supabase/migrations` en orden. Incluyen RLS por marca, privilegios de columna para impedir elevación de roles, índices para consultas por tenant y restricciones de automatizaciones.
 
-## Modo mock y tareas
-
-Los mocks incluyen 30 propiedades, 15 posts, campañas en cuatro estados, integraciones y actividad. Para ejecutar tareas manualmente:
-
-```bash
-curl -X POST http://localhost:3000/api/tasks/sync-properties
-curl -X POST http://localhost:3000/api/tasks/sync-blog-posts
-curl -X POST http://localhost:3000/api/tasks/generate-weekly-properties
-curl -X POST http://localhost:3000/api/tasks/generate-monthly-properties
-curl -X POST http://localhost:3000/api/tasks/generate-monthly-blog
-```
-
-Trigger.dev podrá llamar estos mismos servicios al agregar el SDK y las claves reales. Ninguna tarea mock envía correos.
-
-## Rutas
-
-`/login`, `/dashboard`, `/sites`, `/sites/[siteId]`, `/automations`, `/campaigns`, `/campaigns/[id]`, `/templates`, `/integrations`, `/contacts`, `/activity`, `/settings` y `/api/tasks/[name]`.
-
-## Estructura
-
-- `app/`: páginas, layouts y route handlers.
-- `src/domain/`: tipos de negocio.
-- `src/data/`: dataset ficticio.
-- `src/components/`: UI reutilizable.
-- `src/services/`: lógica de campañas y filtros.
-- `src/integrations/`: interfaces y adapters mock/live.
-- `emails/`: tres plantillas sin branding hardcodeado.
-- `trigger/`: catálogo y ejecución manual de tareas.
-- `supabase/`: migración y seed.
-- `tests/`: pruebas unitarias esenciales.
-
-## Scripts y calidad
+## Calidad
 
 ```bash
 npm run lint
 npm run typecheck
 npm test
 npm run build
+npm audit --omit=dev
 ```
 
-## Modo live y deployment
-
-Configura las variables del proveedor, completa los adapters reales y cambia `INTEGRATIONS_MODE=live`. Revisa `docs/INTEGRATIONS.md` antes de conectar servicios. Para Vercel, importa el repositorio, configura las variables y despliega como aplicación Next.js. Para Sites, usa la configuración `.openai/hosting.json` incluida.
+Antes de producción completa obligatoriamente [docs/PRODUCTION_SECURITY.md](docs/PRODUCTION_SECURITY.md).

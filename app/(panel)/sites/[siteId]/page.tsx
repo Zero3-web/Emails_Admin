@@ -1,14 +1,20 @@
 import { notFound } from "next/navigation";
-import { PageHeader, StatusBadge } from "@/src/components/ui";
+import { PageHeader } from "@/src/components/ui";
 import { SiteForm } from "@/src/components/site-form";
-import { siteById } from "@/src/data/mock";
+import { SiteIntegrations } from "@/src/components/site-integrations";
+import { getIntegrations, getSites } from "@/src/database/repositories";
+
 export default async function SiteDetail({
   params,
 }: {
   params: Promise<{ siteId: string }>;
 }) {
   const { siteId } = await params;
-  const site = siteById(siteId);
+  const [sites, integrations] = await Promise.all([
+    getSites(),
+    getIntegrations(),
+  ]);
+  const site = sites.find((item) => item.id === siteId);
   if (!site) notFound();
   return (
     <>
@@ -19,50 +25,16 @@ export default async function SiteDetail({
       />
       <div className="settings-grid">
         <SiteForm site={site} />
-        <aside>
-          <div className="card form-card">
-            <h2 className="section-title">Integraciones</h2>
-            {["Tokko", "WordPress", "Resend"].map((p) => (
-              <div className="status-line" key={p}>
-                <span>{p}</span>
-                <StatusBadge
-                  status={
-                    p === "WordPress" && site.id === "prime"
-                      ? "connected"
-                      : "pending"
-                  }
-                />
-              </div>
-            ))}
-            <a
-              className="btn"
-              href="/integrations"
-              style={{ width: "100%", marginTop: 12 }}
-            >
-              Configurar integraciones
-            </a>
-          </div>
-          <div className="card form-card" style={{ marginTop: 16 }}>
-            <h2 className="section-title">Clasificación Tokko</h2>
-            <p
-              className="subtitle"
-              style={{ lineHeight: 1.5, margin: "10px 0 14px" }}
-            >
-              Las reglas se configurarán cuando esté disponible la estructura
-              real de Tokko.
-            </p>
-            <pre
-              style={{
-                background: "#f6f7f8",
-                padding: 12,
-                borderRadius: 8,
-                fontSize: 12,
-              }}
-            >
-              {JSON.stringify(site.tokkoFilter, null, 2)}
-            </pre>
-          </div>
-        </aside>
+        <SiteIntegrations
+          siteId={site.id}
+          tokko={integrations.find(
+            (item) => item.siteId === site.id && item.provider === "tokko",
+          )}
+          wordpress={integrations.find(
+            (item) => item.siteId === site.id && item.provider === "wordpress",
+          )}
+          resendReady={Boolean(process.env.RESEND_API_KEY)}
+        />
       </div>
     </>
   );

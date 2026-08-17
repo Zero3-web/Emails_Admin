@@ -16,7 +16,37 @@ interface Env {
 
 interface ExecutionContext {
   waitUntil(promise: Promise<unknown>): void;
-  passThroughOnException(): void;
+}
+
+const allowedMethods = new Set(["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]);
+const contentSecurityPolicy = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'none'",
+  "form-action 'self'",
+  "script-src 'self' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: https:",
+  "font-src 'self' data:",
+  "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+  "frame-src 'self'",
+].join("; ");
+
+function secureResponse(response: Response, request: Request) {
+  const headers = new Headers(response.headers);
+  headers.set("Content-Security-Policy", contentSecurityPolicy);
+  headers.set("Cross-Origin-Opener-Policy", "same-origin");
+  headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=()");
+  headers.set("X-Content-Type-Options", "nosniff");
+  headers.set("X-Frame-Options", "DENY");
+  if (new URL(request.url).protocol === "https:") headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  const pathname = new URL(request.url).pathname;
+  if (pathname.startsWith("/api/") || pathname === "/login" || pathname.startsWith("/auth/") || pathname === "/reset-password") {
+    headers.set("Cache-Control", "no-store, max-age=0");
+  }
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 }
 
 // Image security config. SVG sources with .svg extension auto-skip the
@@ -29,18 +59,31 @@ const worker = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
+    if (!allowedMethods.has(request.method)) {
+      return secureResponse(new Response("Method Not Allowed", { status: 405, headers: { Allow: [...allowedMethods].join(", ") } }), request);
+    }
+    const declaredLength = Number(request.headers.get("content-length") ?? 0);
+    if (url.pathname.startsWith("/api/") && Number.isFinite(declaredLength) && declaredLength > 2 * 1024 * 1024) {
+      return secureResponse(new Response("Payload Too Large", { status: 413 }), request);
+    }
+
     if (url.pathname === "/_vinext/image") {
       const allowedWidths = [...DEFAULT_DEVICE_SIZES, ...DEFAULT_IMAGE_SIZES];
-      return handleImageOptimization(request, {
-        fetchAsset: (path) => env.ASSETS.fetch(new Request(new URL(path, request.url))),
+      const response = await handleImageOptimization(request, {
+        fetchAsset: (path) => {
+          const assetUrl = new URL(path, request.url);
+          if (assetUrl.origin !== url.origin) return Promise.resolve(new Response("Invalid asset URL", { status: 400 }));
+          return env.ASSETS.fetch(new Request(assetUrl));
+        },
         transformImage: async (body, { width, format, quality }) => {
           const result = await env.IMAGES.input(body).transform(width > 0 ? { width } : {}).output({ format, quality });
           return result.response();
         },
       }, allowedWidths);
+      return secureResponse(response, request);
     }
 
-    return handler.fetch(request, env, ctx);
+    return secureResponse(await handler.fetch(request, env, ctx), request);
   },
 };
 

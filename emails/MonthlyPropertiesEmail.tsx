@@ -3,6 +3,7 @@ import {
   PropertyRows,
   type PropertyEmailProps,
 } from "./email-shared";
+
 export function MonthlyPropertiesEmail({
   site,
   properties,
@@ -11,10 +12,10 @@ export function MonthlyPropertiesEmail({
   return (
     <EmailFrame
       site={site}
-      title="Propiedades disponibles"
+      title="Oficinas disponibles"
       unsubscribeUrl={unsubscribeUrl}
     >
-      <p>Una selección mensual de espacios para hacer crecer tu negocio.</p>
+      <p>Una selección mensual de oficinas para hacer crecer tu negocio.</p>
       <PropertyRows site={site} properties={properties} />
     </EmailFrame>
   );

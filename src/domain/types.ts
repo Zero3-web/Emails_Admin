@@ -45,6 +45,7 @@ export interface Property {
   publicUrl: string;
   status: string;
   publishedAt: string;
+  segment: "prime" | "retail" | "hub" | "unclassified";
 }
 export interface BlogPost {
   id: string;
@@ -67,6 +68,32 @@ export interface Campaign {
   scheduledAt: string | null;
   sentAt: string | null;
   errorMessage?: string;
+  metadata?: {
+    introduction?: string;
+    frozenAt?: string;
+    audience?: {
+      interest: ContactInterest;
+      count: number;
+      capturedAt: string;
+    };
+    approval?: {
+      approvedAt: string;
+      approvedBy: string;
+    };
+    items?: Array<{
+      id: string;
+      externalId: string;
+      itemType: "property" | "blog_post";
+      title: string;
+      excerpt?: string;
+      imageUrl: string;
+      publicUrl: string;
+      location?: string;
+      area?: number;
+      price?: number;
+      currency?: string;
+    }>;
+  };
 }
 export interface Automation {
   id: string;
@@ -89,3 +116,63 @@ export interface Integration {
   lastError: string | null;
   config: Record<string, unknown>;
 }
+export type ContactStatus =
+  | "active"
+  | "unsubscribed"
+  | "bounced"
+  | "complained"
+  | "blocked";
+export type ContactInterest = "prime" | "retail" | "hub";
+export interface Contact {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  company: string;
+  phone: string;
+  status: ContactStatus;
+  source: string;
+  consentAt: string | null;
+  consentSource: string;
+  interests: ContactInterest[];
+  siteIds: string[];
+}
+export type PlatformRole = "platform_owner" | "user";
+export type SiteRole = "site_admin" | "editor" | "approver" | "viewer";
+export interface SiteMember {
+  id: string;
+  siteId: string;
+  userId: string;
+  email: string;
+  fullName: string;
+  role: SiteRole;
+  joinedAt: string;
+}
+export interface SiteInvitation {
+  id: string;
+  siteId: string;
+  email: string;
+  role: SiteRole;
+  status: "pending" | "accepted" | "expired" | "revoked";
+  expiresAt: string;
+}
+
+export interface OutboundEmailRecord {
+  id: string;
+  resendId: string;
+  recipient: string;
+  sender: string;
+  subject: string;
+  date: string;
+  status: string;
+  siteId: string | null;
+  campaignId: string | null;
+  sentCount: number;
+  clickRate: number;
+  deliveredRate: number;
+  unsubscribedRate: number;
+  spamRate: number;
+  siteName?: string;
+  siteColor?: string;
+}
+

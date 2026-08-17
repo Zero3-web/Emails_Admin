@@ -1,18 +1,4 @@
 import { PageHeader, SiteCard } from "@/src/components/ui";
-import { sites } from "@/src/data/mock";
-export default function Sites() {
-  return (
-    <>
-      <PageHeader
-        eyebrow="Administración"
-        title="Sitios"
-        description="Configura la identidad, dominios e integraciones de cada marca."
-      />
-      <div className="sites-grid">
-        {sites.map((s) => (
-          <SiteCard key={s.id} site={s} />
-        ))}
-      </div>
-    </>
-  );
-}
+import { SiteCreateForm } from "@/src/components/site-create-form";
+import { getSites } from "@/src/database/repositories";
+export default async function Sites() { const sites = await getSites(); return <><PageHeader eyebrow="Administración" title="Sitios" description="Identidad, dominios e integraciones persistidos por marca." />{sites.length ? <div className="sites-grid">{sites.map((site) => <SiteCard key={site.id} site={site} />)}</div> : <SiteCreateForm />}</>; }

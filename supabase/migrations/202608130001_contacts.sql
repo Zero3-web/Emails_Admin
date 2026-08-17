@@ -1,0 +1,11 @@
+create type contact_status as enum ('active','unsubscribed','bounced','complained','blocked');
+create type contact_interest as enum ('prime','retail','hub');
+create table contacts (id uuid primary key default gen_random_uuid(),email text not null,email_normalized text generated always as (lower(trim(email))) stored,first_name text,last_name text,company text,phone text,status contact_status not null default 'active',source text not null default 'csv',consent_at timestamptz,consent_source text,unsubscribed_at timestamptz,created_at timestamptz not null default now(),updated_at timestamptz not null default now(),unique(email_normalized));
+create table contact_subscriptions (contact_id uuid not null references contacts on delete cascade,site_id uuid not null references sites on delete cascade,interest contact_interest not null,created_at timestamptz not null default now(),primary key(contact_id,site_id,interest));
+create index contacts_status_idx on contacts(status);
+create index contact_subscriptions_site_interest_idx on contact_subscriptions(site_id,interest);
+create trigger contacts_updated_at before update on contacts for each row execute function set_updated_at();
+alter table contacts enable row level security;
+alter table contact_subscriptions enable row level security;
+create policy admin_contacts on contacts for all to authenticated using (true) with check (true);
+create policy admin_contact_subscriptions on contact_subscriptions for all to authenticated using (true) with check (true);

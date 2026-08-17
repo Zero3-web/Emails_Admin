@@ -1,4 +1,5 @@
 "use client";
+import { Check, Loader2 } from "lucide-react";
 import { useState } from "react";
 import type { Site } from "@/src/domain/types";
 
@@ -11,24 +12,21 @@ export function SiteForm({ site }: { site: Site }) {
   async function save() {
     setSaving(true);
     setMessage("");
-    const response = await fetch(`/api/sites/${site.id}`, {
-      method: "PATCH",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(state),
-    });
-    setMessage(
-      response.ok
-        ? "Cambios guardados correctamente."
-        : "No se pudieron guardar los cambios.",
-    );
-    setSaving(false);
+    try {
+      const response = await fetch(`/api/sites/${site.id}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(state),
+      });
+      setMessage(response.ok ? "Cambios guardados correctamente." : "No se pudieron guardar los cambios.");
+    } finally { setSaving(false); }
   }
   return (
-    <div className="card form-card">
+    <div className={`card form-card ${saving ? "is-processing" : ""}`} aria-busy={saving}>
       <div className="section-head">
         <h2 className="section-title">Información general</h2>
-        <button className="btn primary" onClick={save} disabled={saving}>
-          {saving ? "Guardando…" : "Guardar cambios"}
+        <button className="btn primary" onClick={save} disabled={saving} aria-busy={saving}>
+          {saving ? <Loader2 className="spin" size={15} /> : message.startsWith("Cambios") ? <Check size={15} /> : null}{saving ? "Guardando…" : message.startsWith("Cambios") ? "Guardado" : "Guardar cambios"}
         </button>
       </div>
       <div className="form-grid">
@@ -112,7 +110,7 @@ export function SiteForm({ site }: { site: Site }) {
           className={
             message.startsWith("Cambios") ? "notice success" : "notice error"
           }
-          role="status"
+          role="status" aria-live="polite"
         >
           {message}
         </p>

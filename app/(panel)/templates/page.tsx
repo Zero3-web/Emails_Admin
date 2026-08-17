@@ -1,15 +1,69 @@
-import { PageHeader } from "@/src/components/ui";
+import { EmptyState, PageHeader } from "@/src/components/ui";
 import { TemplatesView } from "@/src/components/templates-view";
-import { sites } from "@/src/data/mock";
-export default function Templates() {
+import { ContentLibraryNav } from "@/src/components/content-library-nav";
+import {
+  getBlogPosts,
+  getProperties,
+  getSites,
+} from "@/src/database/repositories";
+
+export default async function Templates({
+  searchParams,
+}: {
+  searchParams: Promise<{ site?: string }>;
+}) {
+  const filters = await searchParams;
+  const [sites, properties, posts] = await Promise.all([
+    getSites(),
+    getProperties(),
+    getBlogPosts(),
+  ]);
+  const eligibleSites = sites.filter(
+    (site) =>
+      properties.some(
+        (property) =>
+          property.siteId === site.id && Boolean(property.publicUrl),
+      ) || posts.some((post) => post.siteId === site.id),
+  );
+  const initialSiteId = eligibleSites.some((site) => site.id === filters.site)
+    ? filters.site!
+    : eligibleSites[0]?.id;
+  const propertyCounts = Object.fromEntries(
+    eligibleSites.map((site) => [
+      site.id,
+      properties.filter(
+        (property) =>
+          property.siteId === site.id && Boolean(property.publicUrl),
+      ).length,
+    ]),
+  );
+  const blogCounts = Object.fromEntries(
+    eligibleSites.map((site) => [
+      site.id,
+      posts.filter((post) => post.siteId === site.id).length,
+    ]),
+  );
   return (
     <>
       <PageHeader
         eyebrow="Contenido"
         title="Plantillas de email"
-        description="Previsualiza cada formato con la identidad de las tres marcas."
+        description="Previsualiza correos con propiedades, artículos, branding y enlaces públicos reales."
       />
-      <TemplatesView sites={sites} />
+      <ContentLibraryNav current="templates" />
+      {initialSiteId ? (
+        <TemplatesView
+          sites={eligibleSites}
+          initialSiteId={initialSiteId}
+          propertyCounts={propertyCounts}
+          blogCounts={blogCounts}
+        />
+      ) : (
+        <EmptyState
+          title="No hay contenido apto para una plantilla"
+          description="Sincroniza Tokko o WordPress para comenzar."
+        />
+      )}
     </>
   );
 }

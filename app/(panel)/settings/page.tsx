@@ -1,59 +1,22 @@
 import { PageHeader } from "@/src/components/ui";
-export default function Settings() {
-  return (
-    <>
-      <PageHeader
-        eyebrow="Sistema"
-        title="Configuración"
-        description="Preferencias generales del panel y entorno de ejecución."
-        action={<button className="btn primary">Guardar cambios</button>}
-      />
-      <div className="settings-grid">
-        <div className="card form-card">
-          <h2 className="section-title">Preferencias generales</h2>
-          <div className="form-grid" style={{ marginTop: 18 }}>
-            <div className="field">
-              <label>Nombre del panel</label>
-              <input defaultValue="Area Mail" />
-            </div>
-            <div className="field">
-              <label>Zona horaria predeterminada</label>
-              <select>
-                <option>America/Lima</option>
-              </select>
-            </div>
-            <div className="field">
-              <label>Modo de integraciones</label>
-              <select defaultValue="mock">
-                <option value="mock">Mock (desarrollo)</option>
-                <option value="live">Live</option>
-              </select>
-            </div>
-            <div className="field">
-              <label>Aprobación predeterminada</label>
-              <select>
-                <option>Requerida</option>
-                <option>No requerida</option>
-              </select>
-            </div>
-          </div>
-        </div>
-        <aside className="card form-card">
-          <h2 className="section-title">Entorno</h2>
-          <div className="status-line">
-            <span>Aplicación</span>
-            <span className="badge success">Operativa</span>
-          </div>
-          <div className="status-line">
-            <span>Base de datos</span>
-            <span className="badge pending">Mock local</span>
-          </div>
-          <div className="status-line">
-            <span>Integraciones</span>
-            <span className="badge pending">Simuladas</span>
-          </div>
-        </aside>
-      </div>
-    </>
-  );
+import { SettingsView } from "@/src/components/settings-view";
+import { getAccessOverview, getContacts } from "@/src/database/repositories";
+import { getRuntimeSafety } from "@/src/config/runtime";
+import { requirePanelAccess } from "@/src/auth/server";
+import { redirect } from "next/navigation";
+
+export default async function Settings() {
+  if (!(await requirePanelAccess()).platformOwner) redirect("/no-access");
+  const [contacts, access] = await Promise.all([getContacts(), getAccessOverview()]);
+  const runtime = getRuntimeSafety();
+  const checks = [
+    { label: "Base de datos", detail: process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY ? "Conectada y disponible" : "Requiere completar la conexión", ready: Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY), icon: "database" as const },
+    { label: "Audiencias", detail: contacts.ready ? "Contactos y consentimientos listos" : "Falta preparar el almacenamiento de contactos", ready: contacts.ready, icon: "database" as const },
+    { label: "Permisos de equipo", detail: access.ready ? "Roles y acceso por marca activos" : "Falta activar el control por roles", ready: access.ready, icon: "database" as const },
+    { label: "Propiedades", detail: process.env.TOKKO_API_KEY ? "Sincronización disponible" : "Requiere conectar Tokko Broker", ready: Boolean(process.env.TOKKO_API_KEY), icon: "source" as const },
+    { label: "Entrega de correos", detail: process.env.RESEND_API_KEY ? "Envíos de prueba disponibles" : "Requiere conectar el servicio de correo", ready: Boolean(process.env.RESEND_API_KEY), icon: "mail" as const },
+    { label: "Artículos", detail: "Sincronización disponible por marca", ready: true, icon: "source" as const },
+    { label: "Envíos programados", detail: "Pendiente para activar automatizaciones", ready: false, icon: "runtime" as const },
+  ];
+  return <><PageHeader eyebrow="Configuración" title="Estado del sistema" description="Comprueba si la plataforma está preparada para operar con seguridad." /><SettingsView checks={checks} bulkSendingEnabled={runtime.bulkSendingEnabled}/></>;
 }

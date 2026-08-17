@@ -38,3 +38,9 @@ yarn-error.log*
 /.wrangler/
 /outputs/
 /work/
+/.audit-workers-types/
+
+# Local development and temporary Cloudflare Tunnel logs
+.area-mail-dev.log
+.area-mail-dev.err.log
+.cloudflared-tunnel.log
