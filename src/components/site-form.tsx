@@ -1,5 +1,5 @@
 "use client";
-import { Check, Loader2 } from "lucide-react";
+import { Check, ChevronDown, Loader2 } from "lucide-react";
 import { useState } from "react";
 import type { Site } from "@/src/domain/types";
 
@@ -7,9 +7,17 @@ export function SiteForm({ site }: { site: Site }) {
   const [state, setState] = useState(site);
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const change = (key: keyof Site, value: string) =>
-    setState((current) => ({ ...current, [key]: value }));
+    { setState((current) => ({ ...current, [key]: value })); setErrors((current) => ({ ...current, [key]: "" })); setMessage(""); };
   async function save() {
+    const nextErrors: Record<string, string> = {};
+    if (!state.name.trim()) nextErrors.name = "Escribe el nombre visible de la marca.";
+    if (!/^(?:https?:\/\/)?(?:[a-z0-9-]+\.)+[a-z]{2,}(?:\/.*)?$/i.test(state.domain.trim())) nextErrors.domain = "Escribe un dominio válido.";
+    if (!state.senderName.trim()) nextErrors.senderName = "Indica quién aparecerá como remitente.";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.senderEmail.trim())) nextErrors.senderEmail = "Revisa el formato del correo.";
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length) { setMessage("Revisa los campos marcados antes de guardar."); return; }
     setSaving(true);
     setMessage("");
     try {
@@ -22,9 +30,9 @@ export function SiteForm({ site }: { site: Site }) {
     } finally { setSaving(false); }
   }
   return (
-    <div className={`card form-card ${saving ? "is-processing" : ""}`} aria-busy={saving}>
+    <div className={`card form-card site-form-refined ${saving ? "is-processing" : ""}`} aria-busy={saving}>
       <div className="section-head">
-        <h2 className="section-title">Información general</h2>
+        <div><h2 className="section-title">Identidad y remitente</h2><p>Estos datos son visibles para las personas que reciben tus correos.</p></div>
         <button className="btn primary" onClick={save} disabled={saving} aria-busy={saving}>
           {saving ? <Loader2 className="spin" size={15} /> : message.startsWith("Cambios") ? <Check size={15} /> : null}{saving ? "Guardando…" : message.startsWith("Cambios") ? "Guardado" : "Guardar cambios"}
         </button>
@@ -34,13 +42,8 @@ export function SiteForm({ site }: { site: Site }) {
           id="site-name"
           label="Nombre"
           value={state.name}
+          error={errors.name}
           onChange={(v) => change("name", v)}
-        />
-        <Field
-          id="site-slug"
-          label="Slug"
-          value={state.slug}
-          onChange={(v) => change("slug", v)}
         />
         <Field
           id="site-description"
@@ -55,32 +58,18 @@ export function SiteForm({ site }: { site: Site }) {
           value={state.businessType}
           onChange={(v) => change("businessType", v)}
         />
-        <div className="field">
-          <label htmlFor="site-timezone">Timezone</label>
-          <select
-            id="site-timezone"
-            value={state.timezone}
-            onChange={(e) => change("timezone", e.target.value)}
-          >
-            <option>America/Lima</option>
-          </select>
-        </div>
         <Field
           id="site-domain"
           label="Dominio"
           value={state.domain}
+          error={errors.domain}
           onChange={(v) => change("domain", v)}
-        />
-        <Field
-          id="site-wordpress"
-          label="WordPress URL"
-          value={state.wordpressUrl}
-          onChange={(v) => change("wordpressUrl", v)}
         />
         <Field
           id="site-sender"
           label="Nombre del remitente"
           value={state.senderName}
+          error={errors.senderName}
           onChange={(v) => change("senderName", v)}
         />
         <Field
@@ -88,6 +77,7 @@ export function SiteForm({ site }: { site: Site }) {
           label="Email del remitente"
           type="email"
           value={state.senderEmail}
+          error={errors.senderEmail}
           onChange={(v) => change("senderEmail", v)}
         />
         <Field
@@ -105,12 +95,13 @@ export function SiteForm({ site }: { site: Site }) {
           onChange={(v) => change("secondaryColor", v)}
         />
       </div>
+      <details className="site-form-advanced"><summary><ChevronDown size={14}/><span><strong>Configuración avanzada</strong><small>Identificador, zona horaria y fuente editorial</small></span></summary><div className="form-grid"><Field id="site-slug" label="Identificador interno" value={state.slug} onChange={(v) => change("slug", v)}/><div className="field"><label>Zona horaria</label><div className="site-static-field">{state.timezone || "America/Lima"}</div></div><Field id="site-wordpress" label="URL de WordPress" value={state.wordpressUrl} onChange={(v) => change("wordpressUrl", v)} full/></div></details>
       {message && (
         <p
           className={
             message.startsWith("Cambios") ? "notice success" : "notice error"
           }
-          role="status" aria-live="polite"
+          role={message.startsWith("Cambios") ? "status" : "alert"} aria-live="polite"
         >
           {message}
         </p>
@@ -126,6 +117,7 @@ function Field({
   onChange,
   type = "text",
   full = false,
+  error,
 }: {
   id: string;
   label: string;
@@ -133,6 +125,7 @@ function Field({
   onChange: (value: string) => void;
   type?: string;
   full?: boolean;
+  error?: string;
 }) {
   return (
     <div className={`field ${full ? "full" : ""}`}>
@@ -141,9 +134,12 @@ function Field({
         id={id}
         type={type}
         value={value}
+        aria-invalid={Boolean(error)}
+        aria-describedby={error ? `${id}-error` : undefined}
         onChange={(event) => onChange(event.target.value)}
         required
       />
+      {error && <small className="field-error" id={`${id}-error`}>{error}</small>}
     </div>
   );
 }

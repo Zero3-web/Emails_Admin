@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Inbox } from "lucide-react";
+export { Button } from "./ui/button";
 import type {
   CampaignStatus,
   IntegrationStatus,
@@ -28,6 +29,20 @@ export function PageHeader({
     </div>
   );
 }
+export function getSiteInitials(name: string): string {
+  const clean = (name || "").trim().toLowerCase();
+  if (clean.includes("todas") || clean.includes("all")) return "AM";
+  if (clean.includes("prime")) return "AP";
+  if (clean.includes("hub")) return "AH";
+  if (clean.includes("retail")) return "AR";
+  
+  const words = (name || "").trim().split(/\s+/).filter(Boolean);
+  if (words.length > 1) {
+    return (words[0][0] + words[1][0]).toUpperCase();
+  }
+  return (words[0] || "AM").slice(0, 2).toUpperCase();
+}
+
 export function SiteMark({
   site,
   small = false,
@@ -35,16 +50,23 @@ export function SiteMark({
   site: Site;
   small?: boolean;
 }) {
-  const words = site.name.trim().split(/\s+/).filter(Boolean);
-  const initials = words.length > 1
-    ? words.slice(0, 2).map((word) => word[0]).join("")
-    : (words[0] ?? "AM").slice(0, 2);
+  const initials = getSiteInitials(site.name);
+  if (site.logoUrl) {
+    return (
+      <img
+        src={site.logoUrl}
+        alt={site.name}
+        className={small ? "mini-logo" : "site-logo"}
+        style={{ objectFit: "cover", background: "#ffffff" }}
+      />
+    );
+  }
   return (
     <span
       className={small ? "mini-logo" : "site-logo"}
-      style={{ background: site.primaryColor || "#2563EB" }}
+      style={{ background: "#ccff00", color: "#000000", fontWeight: 800 }}
     >
-      {initials.toUpperCase()}
+      {initials}
     </span>
   );
 }

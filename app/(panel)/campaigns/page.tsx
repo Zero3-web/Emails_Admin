@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { Search } from "lucide-react";
 import { CampaignComposer } from "@/src/components/campaign-composer";
+import { CampaignFilters } from "@/src/components/campaign-filters";
 import {
   EmptyState,
   PageHeader,
@@ -52,6 +52,7 @@ export default async function Campaigns({
       (!query || campaign.name.toLowerCase().includes(query)),
   );
   const siteById = new Map(sites.map((site) => [site.id, site]));
+  const hasActiveFilters = Boolean(filters.q || filters.type || filters.status);
   return (
     <>
       <PageHeader
@@ -69,43 +70,12 @@ export default async function Campaigns({
           />
         }
       />
-      <form className="card toolbar">
-        <input type="hidden" name="site" value={filters.site ?? ""} />
-        <div className="toolbar-fields">
-          <div className="toolbar-search">
-            <Search size={15} />
-            <input
-              name="q"
-              aria-label="Buscar campañas"
-              defaultValue={filters.q ?? ""}
-              placeholder="Buscar campaña…"
-            />
-          </div>
-          <select
-            name="type"
-            aria-label="Tipo"
-            defaultValue={filters.type ?? ""}
-          >
-            <option value="">Todos los tipos</option>
-            <option value="weekly_new_properties">Nuevas oficinas</option>
-            <option value="monthly_properties">Oficinas mensuales</option>
-            <option value="monthly_blog">Blog mensual</option>
-          </select>
-          <select
-            name="status"
-            aria-label="Estado"
-            defaultValue={filters.status ?? ""}
-          >
-            <option value="">Todos los estados</option>
-            <option value="draft">Borrador</option>
-            <option value="ready">Lista</option>
-            <option value="sent">Enviada</option>
-            <option value="failed">Fallida</option>
-          </select>
-          <button className="btn">Aplicar filtros</button>
-        </div>
-        <span className="result-count">{rows.length} resultados</span>
-      </form>
+      <CampaignFilters
+        initialQuery={filters.q ?? ""}
+        initialType={filters.type ?? ""}
+        initialStatus={filters.status ?? ""}
+        resultCount={rows.length}
+      />
       {rows.length ? (
         <div className="card table-wrap responsive-table">
           <table>
@@ -153,8 +123,8 @@ export default async function Campaigns({
         </div>
       ) : (
         <EmptyState
-          title="Todavía no hay campañas"
-          description="Crea el primer borrador seleccionando contenido real de Área Prime."
+          title={hasActiveFilters ? "No encontramos campañas" : "Todavía no hay campañas"}
+          description={hasActiveFilters ? "Prueba otra búsqueda o limpia los filtros aplicados." : "Crea el primer borrador seleccionando contenido real de Área Prime."}
         />
       )}
     </>

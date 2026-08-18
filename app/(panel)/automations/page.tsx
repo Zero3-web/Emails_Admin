@@ -8,5 +8,5 @@ export default async function Automations({ searchParams }: { searchParams: Prom
   const [sites, automations] = await Promise.all([getSites(), getAutomations()]);
   const visibleSites = site ? sites.filter((item) => item.id === site) : sites;
   const visibleAutomations = automations.filter((item) => visibleSites.some((siteItem) => siteItem.id === item.siteId));
-  return <><PageHeader eyebrow="Programación" title="Automatizaciones" description="Controla cuándo se genera y prepara cada comunicación real." />{visibleSites.length ? <AutomationsView initial={visibleAutomations} sites={visibleSites} /> : <EmptyState title="No hay sitios configurados" description="Registra un sitio real antes de crear una automatización." action={<Link className="btn primary" href="/sites">Configurar sitios</Link>} />}</>;
+  return <><PageHeader eyebrow="Campañas" title="Automatizaciones" description="Programa la preparación de contenido sin perder la aprobación antes del envío." />{visibleSites.length ? <AutomationsView initial={visibleAutomations} sites={visibleSites} /> : <EmptyState title="No hay marcas configuradas" description="Registra una marca antes de crear una automatización." action={<Link className="btn primary" href="/sites">Configurar marcas</Link>} />}</>;
 }

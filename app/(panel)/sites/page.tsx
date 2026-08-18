@@ -1,4 +1,10 @@
-import { PageHeader, SiteCard } from "@/src/components/ui";
-import { SiteCreateForm } from "@/src/components/site-create-form";
-import { getSites } from "@/src/database/repositories";
-export default async function Sites() { const sites = await getSites(); return <><PageHeader eyebrow="Administración" title="Sitios" description="Identidad, dominios e integraciones persistidos por marca." />{sites.length ? <div className="sites-grid">{sites.map((site) => <SiteCard key={site.id} site={site} />)}</div> : <SiteCreateForm />}</>; }
+import { BrandsView } from "@/src/components/brands-view";
+import { PageHeader } from "@/src/components/ui";
+import { getContacts, getIntegrations, getProperties, getSites } from "@/src/database/repositories";
+
+export default async function Sites() {
+  const [sites, integrations, properties, contactResult] = await Promise.all([getSites(), getIntegrations(), getProperties(), getContacts()]);
+  const propertyCounts = Object.fromEntries(sites.map((site) => [site.id, properties.filter((property) => property.siteId === site.id).length]));
+  const contactCounts = Object.fromEntries(sites.map((site) => [site.id, contactResult.contacts.filter((contact) => contact.siteIds.includes(site.id)).length]));
+  return <><PageHeader eyebrow="Configuración" title="Marcas" description="Administra la identidad, el contenido y las conexiones de cada marca."/><BrandsView sites={sites} integrations={integrations} propertyCounts={propertyCounts} contactCounts={contactCounts}/></>;
+}

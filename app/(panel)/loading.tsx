@@ -3,7 +3,7 @@ export default function PanelLoading() {
     <div className="skeleton-line eyebrow-line" />
     <div className="skeleton-line title-line" />
     <div className="skeleton-line copy-line" />
-    <div className="skeleton-card skeleton-primary" />
+    <div className="skeleton-card skeleton-hero" />
     <div className="skeleton-grid"><div className="skeleton-card"/><div className="skeleton-card"/><div className="skeleton-card"/></div>
   </div>;
 }

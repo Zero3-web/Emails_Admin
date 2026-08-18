@@ -19,7 +19,20 @@ import {
   inferSiteSegment,
 } from "@/src/services/property-classifier";
 
-const siteKey = (slug: string) => slug.replace(/^area-/, "");
+const siteKey = (slug: string) => {
+  const clean = String(slug || "").replace(/^area-/, "").toLowerCase();
+  if (clean === "areaprime" || clean === "prime") return "prime";
+  if (clean === "areahub" || clean === "hub") return "hub";
+  if (clean === "arearetail" || clean === "retail") return "retail";
+  return clean;
+};
+const slugOf = (siteId: string) => {
+  const clean = String(siteId || "").toLowerCase();
+  if (clean === "prime" || clean === "areaprime") return "area-areaprime";
+  if (clean === "hub" || clean === "areahub") return "area-areahub";
+  if (clean === "retail" || clean === "arearetail") return "area-arearetail";
+  return `area-${clean}`;
+};
 const inBatches = <T>(items: T[], size = 400) =>
   Array.from({ length: Math.ceil(items.length / size) }, (_, index) =>
     items.slice(index * size, (index + 1) * size),
@@ -177,23 +190,33 @@ export async function createCampaignDraft(input: {
   introduction: string;
   audienceInterest: ContactInterest;
   itemIds: string[];
+  customRecipients?: string[];
 }) {
   const db = requireDb();
   const { data: site, error: siteError } = await db
     .from("sites")
     .select("id,slug")
-    .eq("slug", `area-${input.siteId}`)
+    .eq("slug", slugOf(input.siteId))
     .single();
   if (siteError) throw siteError;
-  const { count: recipientCount, error: audienceError } = await db
-    .from("contact_subscriptions")
-    .select("contact_id,contacts!inner(status)", { count: "exact", head: true })
-    .eq("site_id", site.id)
-    .eq("interest", input.audienceInterest)
-    .eq("contacts.status", "active");
-  if (audienceError) throw audienceError;
-  if (!recipientCount)
-    throw new Error("No hay contactos activos con consentimiento para esta audiencia.");
+
+  let recipientCount = 0;
+  const isCustom = Array.isArray(input.customRecipients) && input.customRecipients.length > 0;
+
+  if (isCustom) {
+    recipientCount = input.customRecipients!.length;
+  } else {
+    const { count, error: audienceError } = await db
+      .from("contact_subscriptions")
+      .select("contact_id,contacts!inner(status)", { count: "exact", head: true })
+      .eq("site_id", site.id)
+      .eq("interest", input.audienceInterest)
+      .eq("contacts.status", "active");
+    if (audienceError) throw audienceError;
+    recipientCount = count || 0;
+    if (!recipientCount)
+      throw new Error("No hay contactos activos con consentimiento para esta audiencia.");
+  }
   const isBlog = input.type === "monthly_blog";
   const limit = isBlog ? 5 : input.type === "weekly_new_properties" ? 5 : 10;
   const uniqueIds = [...new Set(input.itemIds)];
@@ -258,6 +281,7 @@ export async function createCampaignDraft(input: {
           interest: input.audienceInterest,
           count: recipientCount,
           capturedAt: frozenAt,
+          customRecipients: isCustom ? input.customRecipients : undefined,
         },
         items: snapshots,
       },
@@ -402,7 +426,7 @@ export async function importContacts(input: {
   const { data: site, error: siteError } = await db
     .from("sites")
     .select("id")
-    .eq("slug", `area-${input.siteId}`)
+    .eq("slug", slugOf(input.siteId))
     .single();
   if (siteError) throw siteError;
   const valid = new Map<string, (typeof input.rows)[number]>();
@@ -497,7 +521,7 @@ export async function getProperties(): Promise<Property[]> {
           });
     return {
       id: row.id,
-      siteId: relatedSiteId(row),
+      siteId: segment === "prime" || segment === "hub" || segment === "retail" ? segment : (relatedSiteId(row) || "prime"),
       externalId: row.external_id,
       title: row.title,
       description: row.description ?? "",
@@ -566,7 +590,7 @@ export async function syncWordPressPosts(siteId: string) {
   const { data: row, error: siteError } = await db
     .from("sites")
     .select("*")
-    .eq("slug", `area-${siteId}`)
+    .eq("slug", slugOf(siteId))
     .single();
   if (siteError) throw siteError;
   const site = mapSite(row);
@@ -673,7 +697,7 @@ export async function updateSite(id: string, patch: Partial<Site>) {
   const { data: current, error: readError } = await db
     .from("sites")
     .select("*")
-    .eq("slug", `area-${id}`)
+    .eq("slug", slugOf(id))
     .single();
   if (readError) throw readError;
   const updated = { ...mapSite(current), ...patch };
@@ -740,7 +764,7 @@ export async function syncTokkoProperties(siteId: string) {
   const { data: site, error: siteError } = await db
     .from("sites")
     .select("id,slug,name,domain,tokko_filter")
-    .eq("slug", `area-${siteId}`)
+    .eq("slug", slugOf(siteId))
     .single();
   if (siteError) throw siteError;
   const { data: allSites, error: sitesError } = await db
@@ -924,7 +948,7 @@ export async function createAutomation(
   const { data: site, error: siteError } = await db
     .from("sites")
     .select("id")
-    .eq("slug", `area-${input.siteId}`)
+    .eq("slug", slugOf(input.siteId))
     .single();
   if (siteError) throw siteError;
   const { data, error } = await db
@@ -1126,5 +1150,48 @@ export async function getEmailPerformanceList(): Promise<import("@/src/domain/ty
       siteColor: siteRel?.primary_color,
     };
   });
+}
+
+export async function getCampaignRecipients(campaignId: string): Promise<string[]> {
+  const db = requireDb();
+  const { data: campaign, error: campaignError } = await db
+    .from("campaigns")
+    .select("site_id,metadata")
+    .eq("id", campaignId)
+    .single();
+  if (campaignError) throw campaignError;
+  
+  const audience = campaign.metadata?.audience;
+  if (!audience) return [];
+  
+  if (Array.isArray(audience.customRecipients) && audience.customRecipients.length > 0) {
+    return audience.customRecipients;
+  }
+  
+  const { data, error } = await db
+    .from("contact_subscriptions")
+    .select("contacts!inner(email,status)")
+    .eq("site_id", campaign.site_id)
+    .eq("interest", audience.interest)
+    .eq("contacts.status", "active");
+  if (error) throw error;
+  
+  return data.map((row: any) => row.contacts.email).filter(Boolean);
+}
+
+export async function markCampaignSent(campaignId: string, resendBroadcastId: string) {
+  const db = requireDb();
+  const { data, error } = await db
+    .from("campaigns")
+    .update({
+      status: "sent",
+      sent_at: new Date().toISOString(),
+      resend_broadcast_id: resendBroadcastId,
+    })
+    .eq("id", campaignId)
+    .select("id,status")
+    .single();
+  if (error) throw error;
+  return data;
 }
 

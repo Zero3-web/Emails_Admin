@@ -23,7 +23,7 @@ export const pageMetadata: Record<string, { title: string; subtitle: string }> =
   "/campaigns": { title: "Campañas", subtitle: "Crea, revisa y envía campañas" },
   "/automations": { title: "Automatizaciones", subtitle: "Programa tus comunicaciones" },
   "/properties": { title: "Propiedades", subtitle: "Contenido inmobiliario sincronizado" },
-  "/sites": { title: "Sitios", subtitle: "Marcas y presencia digital" },
+  "/sites": { title: "Marcas", subtitle: "Identidad, contenido y presencia digital" },
   "/integrations": { title: "Integraciones", subtitle: "Conexiones con servicios externos" },
   "/team": { title: "Equipo", subtitle: "Personas, roles y accesos" },
   "/settings": { title: "Configuración", subtitle: "Preferencias y estado del sistema" },

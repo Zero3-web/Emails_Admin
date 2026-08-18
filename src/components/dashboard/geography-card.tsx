@@ -87,7 +87,7 @@ export function GeographyCard({
         marker.bindPopup(`
           <div style="font-family: inherit; font-size: 12px; padding: 2px;">
             <strong style="color: #0f172a; display: block; font-size: 13px;">Lima, Perú</strong>
-            <span style="color: #0d9488; font-weight: 600;">${realCount} ${realCount === 1 ? "actividad registrada" : "actividades registradas"}</span>
+            <span style="color: #000000; font-weight: 600;">${realCount} ${realCount === 1 ? "actividad registrada" : "actividades registradas"}</span>
             <p style="margin: 4px 0 0; color: #64748b; font-size: 11px;">Envíos y comunicaciones activas</p>
           </div>
         `);
@@ -127,7 +127,7 @@ export function GeographyCard({
         {/* Real Location Floating Badge */}
         <div className="geo-real-badge">
           <div className="geo-real-badge-header">
-            <MapPin size={12} color="#0d9488" />
+            <MapPin size={12} color="#ccff00" />
             <span>Lima, Perú</span>
           </div>
           <strong>
@@ -222,7 +222,7 @@ function SemiCircleGauge({ percent }: { percent: number }) {
         <path
           d={`M ${cx - radius} ${cy} A ${radius} ${radius} 0 0 1 ${cx + radius} ${cy}`}
           fill="none"
-          stroke="#0d9488"
+          stroke="#ccff00"
           strokeWidth="5.5"
           strokeLinecap="round"
           strokeDasharray={circumference}
@@ -237,7 +237,7 @@ function SemiCircleGauge({ percent }: { percent: number }) {
             cy={handleY}
             r="4"
             fill="#ffffff"
-            stroke="#0d9488"
+            stroke="#ccff00"
             strokeWidth="2"
             style={{ transition: "cx 0.6s ease, cy 0.6s ease" }}
           />

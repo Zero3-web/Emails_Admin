@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { PageHeader } from "@/src/components/ui";
 import { SiteForm } from "@/src/components/site-form";
 import { SiteIntegrations } from "@/src/components/site-integrations";
@@ -19,9 +21,10 @@ export default async function SiteDetail({
   return (
     <>
       <PageHeader
-        eyebrow="Configuración del sitio"
+        eyebrow="Configuración de marca"
         title={site.name}
-        description={site.description}
+        description={site.description || "Configura la identidad, el remitente y las fuentes de contenido de esta marca."}
+        action={<Link className="btn" href="/sites"><ArrowLeft size={13}/>Volver a marcas</Link>}
       />
       <div className="settings-grid">
         <SiteForm site={site} />

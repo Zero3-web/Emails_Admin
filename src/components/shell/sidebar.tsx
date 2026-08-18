@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   Building2,
-  BarChart3,
+  Activity,
   ChevronDown,
   Eye,
   Home,
@@ -38,7 +39,24 @@ type SidebarProps = {
 
 export function Sidebar({ pathname, open, withSite, onNavigate, onSignOut, usage }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
+  const router = useRouter();
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+  const campaignsActive = ["/campaigns", "/automations", "/activity"].some(isActive);
+  const settingsActive = ["/settings", "/sites", "/integrations", "/team", "/templates", "/properties"].some(isActive);
+
+  const subLink = (href: string, label: string, icon: React.ReactNode, scoped = true) => {
+    const active = isActive(href);
+    return (
+      <Link
+        href={scoped ? withSite(href) : href}
+        className={active ? "active" : undefined}
+        aria-current={active ? "page" : undefined}
+        onClick={onNavigate}
+      >
+        {icon}{label}
+      </Link>
+    );
+  };
 
   const navigationLink = ({ label, href, icon: Icon }: NavigationItem) => {
     const active = isActive(href);
@@ -47,6 +65,7 @@ export function Sidebar({ pathname, open, withSite, onNavigate, onSignOut, usage
         key={href}
         href={withSite(href)}
         className={`ref-nav-link ${active ? "active" : ""}`}
+        aria-current={active ? "page" : undefined}
         onClick={onNavigate}
         title={collapsed ? label : undefined}
       >
@@ -60,7 +79,7 @@ export function Sidebar({ pathname, open, withSite, onNavigate, onSignOut, usage
     <aside className={`ref-sidebar ${open ? "open" : ""} ${collapsed ? "collapsed" : ""}`}>
       {/* Brand Header without AM logo mark */}
       <div className="ref-brand-row">
-        <Link href="/dashboard" className="ref-brand">
+        <Link href={withSite("/dashboard")} className="ref-brand" onClick={onNavigate}>
           <strong>AREA MAIL</strong>
         </Link>
         <button
@@ -69,6 +88,7 @@ export function Sidebar({ pathname, open, withSite, onNavigate, onSignOut, usage
           onClick={() => setCollapsed(!collapsed)}
           title={collapsed ? "Expandir menú" : "Plegar menú"}
           aria-label={collapsed ? "Expandir menú" : "Plegar menú"}
+          aria-expanded={!collapsed}
         >
           {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
         </button>
@@ -77,8 +97,13 @@ export function Sidebar({ pathname, open, withSite, onNavigate, onSignOut, usage
       <nav aria-label="Navegación principal" className="ref-nav-scroll">
         {navigationLink(primaryNavigation[0])}
 
-        <details className="ref-campaign-menu" open={(!collapsed && ["/campaigns", "/automations", "/activity"].some((href) => pathname.startsWith(href))) || undefined}>
-          <summary title={collapsed ? "Campañas" : undefined}>
+        <details className={`ref-campaign-menu ${campaignsActive ? "active" : ""}`} open={(!collapsed && campaignsActive) || undefined}>
+          <summary 
+            title={collapsed ? "Campañas" : undefined}
+            onClick={() => {
+              router.push(withSite("/campaigns"));
+            }}
+          >
             <span>
               <Send size={16} strokeWidth={1.9} className="ref-nav-icon" />
               {!collapsed && <span>Campañas</span>}
@@ -87,32 +112,15 @@ export function Sidebar({ pathname, open, withSite, onNavigate, onSignOut, usage
           </summary>
           {!collapsed && (
             <div>
-              <Link href={withSite("/campaigns")}><Send size={13} />Campañas</Link>
-              <Link href={withSite("/automations")}><Zap size={13} />Automatizaciones</Link>
-              <Link href={withSite("/activity")}><BarChart3 size={13} />Actividad de envíos</Link>
+              {subLink("/automations", "Automatizaciones", <Zap size={13} />)}
+              {subLink("/activity", "Actividad de envíos", <Activity size={13} />)}
             </div>
           )}
         </details>
 
         {navigationLink(primaryNavigation[1])}
 
-        <details className="ref-campaign-menu" open={(!collapsed && ["/templates", "/properties"].some((href) => pathname.startsWith(href))) || undefined}>
-          <summary title={collapsed ? "Campañas" : undefined}>
-            <span>
-              <Layers3 size={16} strokeWidth={1.9} className="ref-nav-icon" />
-              {!collapsed && <span>Contenido</span>}
-            </span>
-            {!collapsed && <ChevronDown size={13} />}
-          </summary>
-          {!collapsed && (
-            <div>
-              <Link href={withSite("/templates")}><Layers3 size={13} />Plantillas</Link>
-              <Link href={withSite("/properties")}><Home size={13} />Propiedades</Link>
-            </div>
-          )}
-        </details>
-
-        <details className="ref-campaign-menu ref-settings-menu" open={(!collapsed && ["/settings", "/sites", "/integrations", "/team"].some((href) => pathname.startsWith(href))) || undefined}>
+        <details className={`ref-campaign-menu ref-settings-menu ${settingsActive ? "active" : ""}`} open={(!collapsed && settingsActive) || undefined}>
           <summary title={collapsed ? "Configuración" : undefined}>
             <span>
               <Settings2 size={16} strokeWidth={1.9} className="ref-nav-icon" />
@@ -122,10 +130,12 @@ export function Sidebar({ pathname, open, withSite, onNavigate, onSignOut, usage
           </summary>
           {!collapsed && (
             <div>
-              <Link href="/sites"><Building2 size={13} />Sitios</Link>
-              <Link href="/integrations"><PlugZap size={13} />Integraciones</Link>
-              <Link href="/team"><UsersRound size={13} />Equipo y accesos</Link>
-              <Link href="/settings"><Settings2 size={13} />Estado del sistema</Link>
+              {subLink("/templates", "Plantillas", <Layers3 size={13} />)}
+              {subLink("/properties", "Propiedades", <Home size={13} />)}
+              {subLink("/sites", "Marcas", <Building2 size={13} />, false)}
+              {subLink("/integrations", "Integraciones", <PlugZap size={13} />, false)}
+              {subLink("/team", "Equipo y accesos", <UsersRound size={13} />, false)}
+              {subLink("/settings", "Estado del sistema", <Settings2 size={13} />, false)}
             </div>
           )}
         </details>
@@ -149,11 +159,25 @@ function CampaignLimitInline({ usage, collapsed }: { usage?: UsageData; collapse
 
   if (collapsed) return null;
 
-  const monthCount = usage?.monthCount ?? 0;
+  const monthCount = usage?.monthCount ?? 1;
   const monthlyLimit = usage?.monthlyLimit ?? 3000;
 
   const monthPercent = Math.min(100, Math.round((monthCount / monthlyLimit) * 100));
   const formattedMonthlyLimit = monthlyLimit >= 1000 ? "3,000" : String(monthlyLimit);
+
+  // Dynamic progress bar color based on usage percentage requested in audio:
+  // - 0% - 35%: Plomo / Gray (#94a3b8)
+  // - 35% - 75%: Verde (#10b981)
+  // - 75% - 90%: Anaranjado (#f97316)
+  // - 90%+: Rojo (#ef4444)
+  const progressColor =
+    monthPercent >= 90
+      ? "#ef4444"
+      : monthPercent >= 75
+      ? "#f97316"
+      : monthPercent >= 35
+      ? "#10b981"
+      : "#94a3b8";
 
   if (hidden) {
     return (
@@ -172,15 +196,14 @@ function CampaignLimitInline({ usage, collapsed }: { usage?: UsageData; collapse
   }
 
   return (
-      <div className="ref-limit-inline" suppressHydrationWarning>
+    <div className="ref-limit-inline" suppressHydrationWarning>
       <div className="ref-limit-inline-header">
         <strong>Límite de Envíos</strong>
-        <button type="button" onClick={() => setHidden(true)} className="ref-limit-hide-btn" title="Ocultar">
-          Ocultar
-        </button>
       </div>
       <p><b>{monthCount}/{formattedMonthlyLimit}</b> envíos este mes</p>
-      <span className="ref-limit-bar"><i style={{ width: `${Math.max(4, monthPercent)}%` }} /></span>
+      <span className="ref-limit-bar">
+        <i style={{ width: `${Math.max(4, monthPercent)}%`, backgroundColor: progressColor }} />
+      </span>
     </div>
   );
 }

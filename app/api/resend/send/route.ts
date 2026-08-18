@@ -15,7 +15,8 @@ export async function POST(request: Request) {
     const senderEmail = body.senderDomain ? assertEmail(body.senderDomain, "El remitente") : "notificaciones@areaprime.com.pe";
     const fromAddress = `Area Prime <${senderEmail}>`;
     const htmlContent = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;border:1px solid #e2e8f0;border-radius:12px;background:#fff"><h2 style="color:#0f172a">Correo de prueba</h2><p><strong>Remitente:</strong> ${escapeHtml(fromAddress)}</p><p><strong>Destinatario:</strong> ${escapeHtml(to)}</p><p><strong>Asunto:</strong> ${escapeHtml(subject)}</p><div style="background:#f8fafc;padding:18px;border-left:4px solid #3b82f6;white-space:pre-wrap">${escapeHtml(message)}</div></div>`;
-    const result = await sendResendEmail({ to, subject, html: htmlContent, text: message, from: fromAddress });
+    const siteId = body.siteId ? String(body.siteId) : undefined;
+    const result = await sendResendEmail({ to, subject, html: htmlContent, text: message, from: fromAddress, siteId });
     await recordOutboundEmail({ resendId: result.id, to, from: fromAddress, subject, status: "sent" });
     return NextResponse.json({ ok: true, id: result.id, message: "Correo enviado correctamente." });
   } catch (error) {

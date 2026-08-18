@@ -1,0 +1,83 @@
+4:35:39 p. m. [vite] (rsc) warning: client component dependency is inconsistently optimized. It's recommended to add the dependency to 'optimizeDeps.exclude'.
+  Plugin: rsc:use-client
+  File: C:/Users/PC/Desktop/EmailP/node_modules/lucide-react/dist/esm/Icon.mjs?v=395c0af5
+4:36:47 p. m. [vite] (rsc) warning: client component dependency is inconsistently optimized. It's recommended to add the dependency to 'optimizeDeps.exclude'.
+  Plugin: rsc:use-client
+  File: C:/Users/PC/Desktop/EmailP/node_modules/vinext/dist/shims/internal/app-prefetch-fetch-queue.js?v=395c0af5
+4:45:45 p. m. [vite] (client) [console.error] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <RedirectBoundary>
+      <RedirectErrorBoundary>
+        <LayoutSegmentProvider providerId="page:/dash..." segmentMap={{children:[...]}}>
+          <Slot id="page:/dash...">
+            <BfcacheSlotBoundary id="page:/dash..." content={<Context>}>
+              <Suspense fallback={<div>}>
+                <PageInvoker>
+                  <AwaitAppRenderDependencies>
+                    <DashboardView>
+                      <div className="up-dashboa...">
+                        <header>
+                        <section>
+                        <section>
+                        <div>
+                        <CampaignPerformanceTable campaigns={[...]} emails={[...]} siteById={Map}>
+                          <section className="up-card up...">
+                            <header className="aep-header...">
+                              <div>
+                              <div>
+                              <div
+                                className="aep-actions"
+-                               data-protonpass-form=""
+                              >
+                            ...
+
+[vinext] Server render error: [Error: Network connection lost.] { retryable: true }
+5:19:58 p. m. [vite] (client) [console.error] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <RedirectBoundary>
+      <RedirectErrorBoundary>
+        <LayoutSegmentProvider providerId="page:/dash..." segmentMap={{children:[...]}}>
+          <Slot id="page:/dash...">
+            <BfcacheSlotBoundary id="page:/dash..." content={<Context>}>
+              <Suspense fallback={<div>}>
+                <PageInvoker>
+                  <AwaitAppRenderDependencies>
+                    <DashboardView>
+                      <div className="up-dashboa...">
+                        <header>
+                        <section>
+                        <section>
+                        <div>
+                        <CampaignPerformanceTable campaigns={[...]} emails={[...]} siteById={Map}>
+                          <section className="up-card up...">
+                            <header className="aep-header...">
+                              <div>
+                              <div>
+                              <div
+                                className="aep-actions"
+-                               data-protonpass-form=""
+                              >
+                            ...
+

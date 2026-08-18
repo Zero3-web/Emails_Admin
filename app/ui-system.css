@@ -1,0 +1,2257 @@
+/*
+ * AREA MAIL — AUTHORITATIVE UI SYSTEM
+ * This file is intentionally imported after globals.css. It owns the visual
+ * language while the legacy sheet continues to provide layout geometry.
+ */
+
+:root {
+  --am-bg: #f7f8f6;
+  --am-surface: #ffffff;
+  --am-surface-2: #f2f4f0;
+  --am-surface-hover: #ebeee8;
+  --am-border: #dfe3dc;
+  --am-border-strong: #cbd1c7;
+  --am-ink: #1e222a;
+  --am-copy: #454b55;
+  --am-muted: #747b84;
+  --am-faint: #9ca39b;
+  --am-lime: #d3ff00;
+  --am-lime-top: #e1ff62;
+  --am-lime-hover: #c6ef00;
+  --am-lime-soft: #f4ffd5;
+  --am-lime-border: #d8ef87;
+  --am-lime-gradient: linear-gradient(180deg, #e1ff62 0%, #d3ff00 100%);
+  --am-on-lime: #171a20;
+  --am-shadow: 0 1px 2px rgba(32, 35, 43, .04);
+  --am-shadow-popover: 0 18px 44px rgba(32, 35, 43, .12);
+  --am-radius-sm: 8px;
+  --am-radius: 12px;
+  --am-font: "Inter", "Segoe UI Variable", "Segoe UI", sans-serif;
+
+  --ui-bg: var(--am-bg);
+  --ui-panel: var(--am-surface);
+  --ui-elevated: var(--am-surface);
+  --ui-soft: var(--am-surface-2);
+  --ui-hover: var(--am-surface-hover);
+  --ui-line: var(--am-border);
+  --ui-line-strong: var(--am-border-strong);
+  --ui-ink: var(--am-ink);
+  --ui-copy: var(--am-copy);
+  --ui-muted: var(--am-muted);
+  --ui-faint: var(--am-faint);
+  --ui-accent: var(--am-lime);
+  --ui-accent-hover: var(--am-lime-hover);
+  --ui-accent-soft: var(--am-lime-soft);
+  --font-sans: var(--am-font);
+  --primary: var(--am-ink);
+  --primary-hover: #30343d;
+  --ink: var(--am-ink);
+  --muted: var(--am-muted);
+  --surface: var(--am-surface);
+  --canvas: var(--am-bg);
+  --line: var(--am-border);
+  --border-soft: var(--am-border);
+}
+
+html[data-theme="dark"] {
+  --am-bg: #0e1014;
+  --am-surface: #171a20;
+  --am-surface-2: #1d2128;
+  --am-surface-hover: #252a32;
+  --am-border: #2b3038;
+  --am-border-strong: #3a414b;
+  --am-ink: #f7f8f4;
+  --am-copy: #d1d5dc;
+  --am-muted: #9ca3ad;
+  --am-faint: #747c87;
+  --am-lime: #d3ff00;
+  --am-lime-hover: #e1ff62;
+  --am-lime-soft: #252d12;
+  --am-lime-border: #4b5b19;
+  --am-on-lime: #171a20;
+  --am-shadow: none;
+  --am-shadow-popover: 0 20px 48px rgba(0, 0, 0, .42);
+  color-scheme: dark;
+}
+
+/* Foundation and type scale */
+:root html,
+:root body,
+:root button,
+:root input,
+:root select,
+:root textarea,
+:root .ref-app,
+:root .ref-app * {
+  font-family: var(--am-font) !important;
+}
+
+:root body,
+:root .ref-app {
+  color: var(--am-ink) !important;
+  background: var(--am-bg) !important;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  line-height: 1.45 !important;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+:root .ref-content h1,
+:root .minimal-page-head h1,
+:root .page-head h1 {
+  margin: 0 !important;
+  color: var(--am-ink) !important;
+  font-size: 28px !important;
+  font-weight: 700 !important;
+  line-height: 1.15 !important;
+  letter-spacing: -.035em !important;
+}
+
+:root .ref-content h2,
+:root .ref-content h3,
+:root .section-title,
+:root .card > header strong {
+  color: var(--am-ink) !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  line-height: 1.35 !important;
+  letter-spacing: -.015em !important;
+}
+
+:root .ref-content p,
+:root .ref-content small,
+:root .ref-content em,
+:root .subtitle,
+:root .minimal-page-head p,
+:root .page-head p {
+  color: var(--am-muted) !important;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  line-height: 1.5 !important;
+}
+
+:root .eyebrow,
+:root .section-kicker,
+:root .nav-group-label,
+:root [class*="eyebrow"] {
+  color: #5d6800 !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: .075em !important;
+  text-transform: uppercase !important;
+}
+
+html[data-theme="dark"] :is(.eyebrow, .section-kicker, .nav-group-label, [class*="eyebrow"]) {
+  color: var(--am-lime) !important;
+}
+
+:root :where(.dashboard-metric strong, .up-metric strong, .metric-value, [class*="metric-value"]) {
+  color: var(--am-ink) !important;
+  font-size: 27px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  letter-spacing: -.045em !important;
+  font-variant-numeric: tabular-nums lining-nums !important;
+}
+
+:root :where(td, th, .aep-date-cell, .activity-date, .tokko-price) {
+  font-variant-numeric: tabular-nums lining-nums !important;
+}
+
+/* Application shell */
+:root .ref-app,
+:root .ref-main,
+:root .ref-content {
+  color: var(--am-ink) !important;
+  background: var(--am-bg) !important;
+}
+
+:root .ref-sidebar,
+:root .ref-topbar {
+  color: var(--am-copy) !important;
+  background: var(--am-surface) !important;
+  border-color: var(--am-border) !important;
+  box-shadow: none !important;
+}
+
+:root .ref-sidebar,
+:root .ref-sidebar nav,
+:root .ref-nav-scroll {
+  overflow-x: hidden !important;
+}
+
+:root .ref-brand strong {
+  color: var(--am-ink) !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  letter-spacing: .055em !important;
+}
+
+:root .ref-nav-link,
+:root .ref-campaign-menu > summary,
+:root .ref-logout {
+  color: var(--am-copy) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  border-radius: 9px !important;
+}
+
+:root .ref-campaign-menu > div {
+  padding-left: 20px !important;
+}
+
+:root .ref-campaign-menu > div a {
+  color: var(--am-ink) !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  padding: 5px 8px !important;
+  margin-right: 10px !important;
+  border-radius: 6px !important;
+}
+
+@media (min-width: 721px) {
+  :root .ref-content .responsive-table,
+  :root .activity-table-wrap {
+    overflow-x: auto !important;
+  }
+}
+
+:root .ref-nav-link:hover,
+:root .ref-campaign-menu > summary:hover,
+:root .ref-campaign-menu > div a:hover,
+:root .ref-logout:hover {
+  color: var(--am-ink) !important;
+  background: var(--am-surface-2) !important;
+}
+
+:root .nav-link.active,
+:root .ref-nav-link.active,
+:root .aep-tab.active,
+:root .mobile-tabbar a.active,
+:root .ref-campaign-menu.active > summary {
+  color: #111827 !important;
+  background: #f3f4f6 !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  font-weight: 600 !important;
+}
+
+:root :is(.nav-link.active, .ref-nav-link.active, .aep-tab.active, .mobile-tabbar a.active, .ref-campaign-menu.active > summary) * {
+  color: #111827 !important;
+  fill: none !important;
+  stroke: currentColor !important;
+}
+
+:root .ref-campaign-menu > div a.active {
+  color: var(--am-ink) !important;
+  background: var(--am-surface-2) !important;
+  box-shadow: inset 3px 0 0 var(--am-lime) !important;
+}
+
+:root .ref-nav-icon { color: currentColor !important; stroke-width: 1.8 !important; }
+:root .ref-sidebar-footer,
+:root .ref-limit-inline { border-color: var(--am-border) !important; }
+:root .ref-limit-inline-header strong { color: var(--am-ink) !important; font-size: 12px !important; font-weight: 700 !important; }
+:root .ref-limit-inline p { color: var(--am-muted) !important; font-size: 11px !important; }
+:root .ref-limit-inline p b { color: var(--am-ink) !important; font-weight: 700 !important; }
+:root .ref-limit-bar { background: var(--am-surface-2) !important; }
+:root .ref-limit-bar i { box-shadow: none !important; }
+
+:root .theme-toggle-btn,
+:root .ref-collapse-btn,
+:root .ref-mobile-menu {
+  color: var(--am-copy) !important;
+  background: var(--am-surface) !important;
+  border: 1px solid var(--am-border) !important;
+  box-shadow: none !important;
+}
+
+:root .ref-brand-avatar,
+:root .ref-brand-option-mark,
+:root .avatar,
+:root .member-avatar,
+:root .campaign-cell > span,
+:root .automation-summary > span {
+  color: var(--am-on-lime) !important;
+  background: var(--am-lime-soft) !important;
+  border-color: var(--am-lime-border) !important;
+  font-weight: 800 !important;
+  box-shadow: none !important;
+}
+
+:root .ref-brand-popover {
+  color: var(--am-ink) !important;
+  background: var(--am-surface) !important;
+  border-color: var(--am-border) !important;
+  box-shadow: var(--am-shadow-popover) !important;
+}
+:root .ref-brand-popover > button { color: var(--am-copy) !important; }
+:root .ref-brand-popover > button:hover,
+:root .ref-brand-popover > button[aria-selected="true"] { background: var(--am-surface-2) !important; }
+:root .ref-brand-popover i { background: var(--am-lime) !important; }
+
+/* Surfaces */
+:root .ref-content :is(
+  .card, .up-card, .up-metric, .up-performance, .campaign-composer,
+  .campaign-pick, .campaign-template-option, .campaign-brand-options > button,
+  .campaign-audience, .campaign-audience-options > button, .integration-tools,
+  .role-guide, .panel-state-card, .library-property-card, .content-preview-modal,
+  .contacts-confirm, .campaign-item-preview, .brand-create-modal
+) {
+  color: var(--am-ink) !important;
+  background: var(--am-surface) !important;
+  border-color: var(--am-border) !important;
+  border-radius: var(--am-radius) !important;
+  box-shadow: var(--am-shadow) !important;
+}
+
+:root .ref-content :is(.card, .up-card, .up-metric, .up-performance) > header {
+  border-color: var(--am-border) !important;
+}
+
+:root .dashboard-metric {
+  min-height: 104px !important;
+  align-items: center !important;
+}
+
+:root .dashboard-metric > div > span {
+  color: var(--am-copy) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+
+:root .dashboard-metric > div > small {
+  color: var(--am-muted) !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+}
+
+:root .dashboard-metric-icon,
+:root .dashboard-next-icon,
+:root [class*="overview-icon"],
+:root [class*="summary-icon"],
+:root .campaign-audience-icon,
+:root .automation-flow-icon,
+:root .resend-icon,
+:root .contacts-drop-icon,
+:root .contacts-empty-icon,
+:root .empty-icon,
+:root .panel-state-icon,
+:root .onboarding-icon,
+:root .environment-icon {
+  color: var(--am-on-lime) !important;
+  background: var(--am-lime-soft) !important;
+  border: 1px solid var(--am-lime-border) !important;
+  box-shadow: none !important;
+}
+
+:root :is(.dashboard-metric-icon, .dashboard-next-icon, [class*="overview-icon"], [class*="summary-icon"], .campaign-audience-icon, .automation-flow-icon) * {
+  color: currentColor !important;
+  stroke: currentColor !important;
+}
+
+:root .dashboard-next-step,
+:root .dashboard-next-step.ready {
+  color: var(--am-ink) !important;
+  background: var(--am-lime-soft) !important;
+  border: 1px solid var(--am-lime-border) !important;
+  border-radius: var(--am-radius) !important;
+  box-shadow: none !important;
+}
+
+:root .dashboard-next-step :is(span, p) { color: #5d6800 !important; }
+:root .dashboard-next-step h2 { color: var(--am-ink) !important; font-size: 15px !important; font-weight: 750 !important; }
+html[data-theme="dark"] .dashboard-next-step :is(span, p) { color: #c7dc72 !important; }
+
+/* Buttons and controls */
+html body .btn,
+html body button.btn,
+html body a.btn,
+html body .btn-secondary,
+html body .aep-export-btn,
+html body .theme-toggle-btn,
+html body .icon-btn {
+  min-height: 38px !important;
+  padding: 8px 14px !important;
+  color: var(--am-copy) !important;
+  background: var(--am-surface) !important;
+  border: 1px solid var(--am-border-strong) !important;
+  border-radius: var(--am-radius-sm) !important;
+  box-shadow: none !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  letter-spacing: -.01em !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+}
+html body :is(.btn, button.btn, a.btn, .btn-secondary, .aep-export-btn, .icon-btn) svg {
+  display: block !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  flex-shrink: 0 !important;
+}
+
+html body :is(.btn, button.btn, a.btn, .btn-secondary, .aep-export-btn, .theme-toggle-btn, .icon-btn) * {
+  color: inherit !important;
+  fill: none !important;
+  stroke: currentColor !important;
+}
+
+html body :is(.btn, button.btn, a.btn, .btn-secondary, .aep-export-btn, .icon-btn):hover:not(:disabled) {
+  color: var(--am-ink) !important;
+  background: var(--am-surface-2) !important;
+  border-color: var(--am-border-strong) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+:root .btn.primary,
+:root .btn-primary,
+:root .up-primary,
+:root button.primary,
+:root a.primary,
+:root a.btn.primary,
+:root a.up-primary,
+:root .ref-create-nav,
+:root .up-export,
+:root .dashboard-next-step .btn {
+  min-height: 40px !important;
+  padding: 9px 16px !important;
+  color: #ffffff !important;
+  background: #20232b !important;
+  border: 1px solid #20232b !important;
+  border-radius: var(--am-radius-sm) !important;
+  box-shadow: none !important;
+  font-size: 12px !important;
+  font-weight: 750 !important;
+}
+
+:root :is(.btn.primary, .btn-primary, .up-primary, button.primary, a.primary, a.btn.primary, a.up-primary, .ref-create-nav, .up-export, .dashboard-next-step .btn) * {
+  color: #ffffff !important;
+  fill: currentColor !important;
+  stroke: currentColor !important;
+}
+
+:root :is(.btn.primary, .btn-primary, .up-primary, button.primary, a.primary, a.btn.primary, a.up-primary, .ref-create-nav, .up-export, .dashboard-next-step .btn):hover:not(:disabled) {
+  color: var(--am-on-lime) !important;
+  background: var(--am-lime) !important;
+  border-color: var(--am-lime) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+:root :is(.btn.primary, .btn-primary, .up-primary, button.primary, a.primary, a.btn.primary, a.up-primary, .ref-create-nav, .up-export, .dashboard-next-step .btn):hover:not(:disabled) * { color: var(--am-on-lime) !important; }
+
+html[data-theme="dark"] :is(.btn.primary, .btn-primary, .up-primary, button.primary, a.primary, a.btn.primary, a.up-primary, .ref-create-nav, .up-export, .dashboard-next-step .btn) {
+  color: var(--am-on-lime) !important;
+  background: var(--am-lime) !important;
+  border-color: var(--am-lime) !important;
+}
+html[data-theme="dark"] :is(.btn.primary, .btn-primary, .up-primary, button.primary, a.primary, a.btn.primary, a.up-primary, .ref-create-nav, .up-export, .dashboard-next-step .btn) * { color: var(--am-on-lime) !important; }
+
+:root .btn.danger,
+:root .contacts-suppress {
+  color: var(--am-ink) !important;
+  background: var(--am-surface) !important;
+  border-color: var(--am-border-strong) !important;
+}
+
+/* Forms */
+:root :is(input, select, textarea, .campaign-content-search, .contacts-search, .content-search, .activity-search, .aep-search) {
+  min-height: 40px !important;
+  color: var(--am-ink) !important;
+  background: var(--am-surface) !important;
+  border-color: var(--am-border) !important;
+  border-radius: var(--am-radius-sm) !important;
+  box-shadow: none !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+
+:root :is(input, textarea)::placeholder { color: var(--am-faint) !important; opacity: 1 !important; }
+:root :is(input, select, textarea):focus,
+:root :is(.campaign-content-search, .contacts-search, .content-search, .activity-search, .aep-search):focus-within {
+  border-color: #91a800 !important;
+  box-shadow: 0 0 0 3px rgba(193, 229, 16, .22) !important;
+  outline: none !important;
+}
+:root .field label,
+:root .field > span,
+:root fieldset legend,
+:root .campaign-field-label {
+  color: var(--am-copy) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+/* Tables and campaign lists */
+html body .ref-content table,
+html body .aep-table,
+html body .activity-table,
+html body .contacts-table {
+  color: var(--am-copy) !important;
+  background: var(--am-surface) !important;
+  border-color: var(--am-border) !important;
+  font-size: 13px !important;
+}
+
+html body .activity-table th:nth-child(1),
+html body .activity-table td:nth-child(1) {
+  width: 210px !important;
+}
+html body .activity-table th:nth-child(2),
+html body .activity-table td:nth-child(2) {
+  width: 220px !important;
+}
+html body .activity-table th:nth-child(4),
+html body .activity-table td:nth-child(4) {
+  width: 140px !important;
+  text-align: right !important;
+}
+html body .activity-table th:nth-child(5),
+html body .activity-table td:nth-child(5) {
+  width: 180px !important;
+  text-align: right !important;
+}
+html body .activity-refresh-row,
+html body .activity-status {
+  display: inline-flex !important;
+}
+:root .ref-content table thead,
+:root .ref-content table th {
+  color: var(--am-muted) !important;
+  background: var(--am-surface-2) !important;
+  border-color: var(--am-border) !important;
+  font-size: 11px !important;
+  font-weight: 750 !important;
+  letter-spacing: .035em !important;
+  text-transform: uppercase !important;
+}
+:root .ref-content table td,
+:root .ref-content table tr {
+  color: var(--am-copy) !important;
+  border-color: var(--am-border) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+:root .ref-content table tbody tr:hover { background: var(--am-surface-2) !important; }
+:root .dashboard-campaign-name,
+:root .campaign-cell strong,
+:root .brand-cell strong,
+:root .contacts-person strong {
+  color: var(--am-ink) !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  letter-spacing: -.01em !important;
+}
+
+/* Tabs, filters, options and selected states */
+:root :is(.campaign-steps button, .aep-tab, .activity-status-filters button, .contacts-filter-menu button, .content-filter-menu button) {
+  color: var(--am-muted) !important;
+  font-size: 12px !important;
+  font-weight: 650 !important;
+}
+html body .campaign-steps {
+  grid-template-columns: repeat(4, 1fr) !important;
+}
+html body .campaign-steps button.active { color: var(--am-ink) !important; border-color: var(--am-ink) !important; background: transparent !important; }
+html body .campaign-steps button.active span,
+html body .campaign-steps button.complete span { color: var(--am-surface) !important; background: var(--am-ink) !important; }
+
+html body :root :is(
+  .campaign-brand-options > button.active, .campaign-template-option.active,
+  .campaign-pick.active, .campaign-audience-options > button.active,
+  .automation-brand-options button.active, .automation-type-options button.active,
+  .automation-weekdays button.active, .automation-segmented button.active,
+  .contacts-site-options button.active, .contacts-interest-options button.active,
+  .template-design-check.active
+) {
+  color: var(--am-ink) !important;
+  background: var(--am-surface-2) !important;
+  border-color: var(--am-border-strong) !important;
+  box-shadow: 0 0 0 1px var(--am-border-strong) !important;
+}
+html body :root :is(
+  .campaign-brand-options > button.active,
+  .campaign-template-option.active,
+  .campaign-audience-options > button.active,
+  .automation-brand-options button.active,
+  .automation-type-options button.active
+) strong {
+  color: var(--am-ink) !important;
+}
+
+html body :root :is(.campaign-template-check, .campaign-check, .campaign-radio > span, .contacts-radio > span) {
+  color: var(--am-surface) !important;
+  background: var(--am-ink) !important;
+  border-color: var(--am-ink) !important;
+}
+
+/* Status language: graphite + lime only */
+:root :is(.badge.sent, .badge.success, .badge.connected, .badge.ready, .badge.active, .up-state.sent, .aep-badge.sent, .settings-service-state.connected) {
+  color: var(--am-on-lime) !important;
+  background: var(--am-lime-soft) !important;
+  border-color: var(--am-lime-border) !important;
+  font-weight: 750 !important;
+}
+:root :is(.badge.scheduled, .badge.pending, .badge.draft, .badge.disabled, .badge.inactive, .up-state.draft, .aep-badge) {
+  color: var(--am-copy) !important;
+  background: var(--am-surface-2) !important;
+  border-color: var(--am-border) !important;
+  font-weight: 650 !important;
+}
+:root :is(.badge.failed, .badge.error, .badge.warning, .up-state.failed, .notice.error, .contacts-feedback.error) {
+  color: var(--am-ink) !important;
+  background: var(--am-surface-2) !important;
+  border-color: var(--am-ink) !important;
+  font-weight: 700 !important;
+}
+:root :is(.dashboard-readiness-list .pending > span, .dashboard-readiness-list .complete > span, .activity-overview-icon.positive, .settings-overview-icon.positive) {
+  color: var(--am-on-lime) !important;
+  background: var(--am-lime-soft) !important;
+  border-color: var(--am-lime-border) !important;
+}
+:root .dashboard-readiness-list a { color: #5d6800 !important; font-weight: 750 !important; }
+html[data-theme="dark"] .dashboard-readiness-list a { color: var(--am-lime) !important; }
+
+/* Links and progress */
+:root .ref-content a:not(.btn):not(.up-primary) { color: #5d6800 !important; }
+:root .ref-content a:not(.btn):not(.up-primary):hover { color: var(--am-ink) !important; }
+html[data-theme="dark"] .ref-content a:not(.btn):not(.up-primary) { color: var(--am-lime) !important; }
+:root :is(.up-stack i, .geo-gauge path, progress::-webkit-progress-value) { background: var(--am-lime) !important; box-shadow: none !important; }
+
+/* Dialogs and overlays */
+:root :is(.contacts-modal-backdrop, .brand-modal-backdrop, .campaign-preview-backdrop, .content-preview-backdrop) { background: rgba(16, 18, 22, .62) !important; backdrop-filter: blur(4px) !important; }
+:root :is(.contacts-confirm, .brand-create-modal, .campaign-item-preview, .content-preview-modal) { color: var(--am-ink) !important; background: var(--am-surface) !important; border-color: var(--am-border) !important; box-shadow: var(--am-shadow-popover) !important; }
+
+/* Dark mode cleanup: override legacy hard-coded light surfaces */
+html[data-theme="dark"] :is(body, .ref-app, .ref-main, .ref-content) { color: var(--am-ink) !important; background: var(--am-bg) !important; }
+html[data-theme="dark"] :is(.ref-sidebar, .ref-topbar) { color: var(--am-copy) !important; background: var(--am-surface) !important; border-color: var(--am-border) !important; }
+html[data-theme="dark"] .ref-content :is(
+  .card, .up-card, .up-metric, .up-performance, .campaign-composer,
+  .campaign-pick, .campaign-template-option, .campaign-brand-options > button,
+  .campaign-audience, .campaign-audience-options > button, .integration-tools,
+  .role-guide, .panel-state-card, .library-property-card, .content-preview-modal,
+  .contacts-confirm, .campaign-item-preview, .brand-create-modal
+) { color: var(--am-ink) !important; background: var(--am-surface) !important; border-color: var(--am-border) !important; }
+html[data-theme="dark"] :is(input, select, textarea, .campaign-content-search, .contacts-search, .content-search, .activity-search, .aep-search) { color: var(--am-ink) !important; background: var(--am-surface-2) !important; border-color: var(--am-border-strong) !important; }
+html[data-theme="dark"] .ref-content table { color: var(--am-copy) !important; background: var(--am-surface) !important; }
+html[data-theme="dark"] .ref-content table thead,
+html[data-theme="dark"] .ref-content table th { color: var(--am-muted) !important; background: var(--am-surface-2) !important; border-color: var(--am-border) !important; }
+html[data-theme="dark"] .ref-content table td,
+html[data-theme="dark"] .ref-content table tr { color: var(--am-copy) !important; border-color: var(--am-border) !important; }
+html[data-theme="dark"] :is(.template-stage, .campaign-item-preview-media, .content-preview-image) { background: #11141a !important; }
+html[data-theme="dark"] :is(.campaign-composer-head, .campaign-composer-foot, .campaign-steps, .dashboard-readiness-list > div) { border-color: var(--am-border) !important; }
+
+:root :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid #9eb900 !important;
+  outline-offset: 2px !important;
+}
+html[data-theme="dark"] :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible { outline-color: var(--am-lime) !important; }
+
+/* Legacy residue reset — no violet, orange or unrelated success green. */
+:root .ref-campaign-menu > div a.active::before { background: var(--am-ink) !important; }
+:root .ref-campaign-menu > div a.active svg { color: var(--am-ink) !important; }
+:root .campaign-filter-panel + .table-wrap tbody tr:hover td:first-child,
+:root .automation-brand-list > section > div > article.enabled { box-shadow: inset 3px 0 var(--am-ink) !important; }
+
+:root :is(.filter-menu, .contacts-filter-menu, .content-filter-menu) > summary {
+  color: var(--am-copy) !important;
+  background: var(--am-surface) !important;
+  border-color: var(--am-border) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+:root :is(.filter-menu, .contacts-filter-menu, .content-filter-menu)[open] > summary {
+  color: var(--am-ink) !important;
+  border-color: #91a800 !important;
+  box-shadow: 0 0 0 3px rgba(193, 229, 16, .22) !important;
+}
+:root :is(.filter-menu, .contacts-filter-menu, .content-filter-menu) > div {
+  color: var(--am-copy) !important;
+  background: var(--am-surface) !important;
+  border-color: var(--am-border) !important;
+  box-shadow: var(--am-shadow-popover) !important;
+}
+:root :is(.filter-menu, .contacts-filter-menu, .content-filter-menu) > div button {
+  color: var(--am-copy) !important;
+  background: transparent !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+:root :is(.filter-menu, .contacts-filter-menu, .content-filter-menu) > div button:hover,
+:root :is(.filter-menu, .contacts-filter-menu) > div button[aria-selected="true"],
+:root .content-filter-menu > div button[aria-pressed="true"] {
+  color: var(--am-ink) !important;
+  background: var(--am-lime-soft) !important;
+}
+
+:root :is(
+  .contacts-summary-icon.positive, .contacts-summary-icon.safe, .content-summary-icon.positive,
+  .settings-overview-icon.positive, .brand-overview-icon.positive, .team-overview-icon.positive,
+  .automation-overview-icon.positive, .activity-overview-icon.positive, .integration-provider-icon,
+  .settings-status-list > article.ready .settings-service-icon, .team-empty-banner > span,
+  .automation-empty-refined > span, .activity-empty > span, .activity-loading > span,
+  .content-empty > span, .dashboard-activity-empty > span, .contacts-person > span,
+  .dashboard-email-person > span, .activity-recipient i, .mini-logo
+) {
+  color: var(--am-on-lime) !important;
+  background: var(--am-lime-soft) !important;
+  border-color: var(--am-lime-border) !important;
+}
+
+:root :is(
+  .contacts-clear-filters, .content-clear, .activity-clear, .campaign-filter-clear,
+  .contacts-file-selected, .contacts-file-selected button, .campaign-filter-panel + .table-wrap a:hover,
+  .content-library-nav a.active, .system-priority.ready small, .integration-site-card > header > a,
+  .automation-edit:hover, .activity-refresh-row:hover, .dashboard-activity-empty a
+) { color: #5d6800 !important; }
+
+:root :is(
+  .contacts-import-note, .contacts-feedback.success, .activity-result-line small,
+  .system-priority.ready > span, .brand-overview > button, .automation-overview > button,
+  .automation-approval-card.active, .activity-status-filters button.active,
+  .content-library-nav a.active
+) {
+  color: var(--am-ink) !important;
+  background: var(--am-lime-soft) !important;
+  border-color: var(--am-lime-border) !important;
+}
+
+:root :is(.template-brand-list > button.active, .template-design-card.active, .contacts-site-options > button.active, .contacts-interest-options > button.active, .automation-brand-options > button.active, .automation-type-options > button.active) {
+  color: var(--am-ink) !important;
+  background: var(--am-lime-soft) !important;
+  border-color: var(--am-lime-border) !important;
+  box-shadow: 0 0 0 1px var(--am-lime-border) !important;
+}
+:root .template-miniature i { background: var(--am-lime) !important; }
+
+:root .dashboard-email-status,
+:root .dashboard-email-status.sent,
+:root .dashboard-email-status.delivered,
+:root .aep-rate,
+:root .aep-rate.success,
+:root .aep-rate.warning {
+  color: var(--am-on-lime) !important;
+  background: var(--am-lime-soft) !important;
+  border-color: var(--am-lime-border) !important;
+  font-size: 11px !important;
+  font-weight: 750 !important;
+}
+:root .dashboard-email-person > span { font-size: 11px !important; font-weight: 800 !important; }
+:root .dashboard-email-person strong,
+:root .dashboard-subject { color: var(--am-ink) !important; font-size: 12px !important; font-weight: 650 !important; }
+
+/* No operational text below 11px. */
+:root .ref-limit-hide-btn,
+:root .ref-brand-popover > p,
+:root .ref-brand-popover small,
+:root .ref-brand-option-mark,
+:root .dashboard-next-step > div > span,
+:root .dashboard-performance > header span,
+:root .dashboard-readiness > header span,
+:root .up-chart-period,
+:root .dashboard-readiness-list strong,
+:root .dashboard-readiness-list small,
+:root .dashboard-readiness-list a,
+:root .dashboard-activity-title span,
+:root .dashboard-activity .aep-badge,
+:root .campaign-filter-result,
+:root .campaign-filter-result strong,
+:root .mini-logo,
+:root .badge,
+:root .content-clear,
+:root .activity-clear,
+:root .activity-result-line small,
+:root .template-setup-head > span,
+:root .integration-site-card > header > a,
+:root .brand-overview > button strong,
+:root .automation-overview > button strong,
+:root .activity-recipient i {
+  font-size: 11px !important;
+}
+
+html[data-theme="dark"] :is(.filter-menu, .contacts-filter-menu, .content-filter-menu) > summary,
+html[data-theme="dark"] :is(.filter-menu, .contacts-filter-menu, .content-filter-menu) > div {
+  color: var(--am-copy) !important;
+  background: var(--am-surface-2) !important;
+  border-color: var(--am-border-strong) !important;
+}
+html[data-theme="dark"] :is(.filter-menu, .contacts-filter-menu, .content-filter-menu) > div button { color: var(--am-copy) !important; }
+html[data-theme="dark"] :is(.filter-menu, .contacts-filter-menu) > div button[aria-selected="true"],
+html[data-theme="dark"] .content-filter-menu > div button[aria-pressed="true"] { color: var(--am-ink) !important; background: var(--am-lime-soft) !important; }
+
+html[data-theme="dark"] :is(.dashboard-metric-icon.attention, .dashboard-readiness-list > div.pending > span, .dashboard-readiness-list > div.complete > span, .dashboard-readiness-list > div.neutral > span) {
+  color: var(--am-on-lime) !important;
+  background: var(--am-lime-soft) !important;
+  border-color: var(--am-lime-border) !important;
+}
+html[data-theme="dark"] :is(.ref-brand-avatar, .ref-brand-option-mark) {
+  color: var(--am-on-lime) !important;
+  background: var(--am-lime) !important;
+  border-color: var(--am-lime) !important;
+}
+html[data-theme="dark"] :is(.ref-nav-link.active, .ref-campaign-menu.active > summary) {
+  color: #f9fafb !important;
+  background: #1e232a !important;
+  border-color: transparent !important;
+}
+html[data-theme="dark"] :is(.ref-nav-link.active, .ref-campaign-menu.active > summary) * { color: #f9fafb !important; fill: none !important; stroke: currentColor !important; }
+
+/* Final palette cleanup found during full visual walkthrough. */
+:root .skip-link {
+  color: var(--am-on-lime) !important;
+  background: var(--am-lime-gradient) !important;
+  border-color: var(--am-lime) !important;
+}
+:root .template-design-check {
+  color: var(--am-on-lime) !important;
+  background: var(--am-lime-gradient) !important;
+  border-color: var(--am-lime) !important;
+}
+:root .template-design-check * { color: var(--am-on-lime) !important; stroke: currentColor !important; }
+:root .template-miniature :is(b, em) { background: #d9dee2 !important; }
+:root .template-miniature b:nth-of-type(2) { background: #c7cdd2 !important; }
+:root .template-miniature i { background: var(--am-lime-gradient) !important; }
+:root .automation-empty-refined li svg,
+:root .automation-empty-refined li svg * { color: #596800 !important; stroke: currentColor !important; }
+
+html[data-theme="dark"] :is(
+  .dashboard-metric-icon.attention,
+  .dashboard-readiness-list > div.pending > span,
+  .dashboard-readiness-list > div.complete > span,
+  .dashboard-readiness-list > div.neutral > span
+) {
+  color: var(--am-on-lime) !important;
+  background: var(--am-lime-gradient) !important;
+  border-color: var(--am-lime) !important;
+}
+html[data-theme="dark"] :is(
+  .dashboard-metric-icon.attention,
+  .dashboard-readiness-list > div.pending > span,
+  .dashboard-readiness-list > div.complete > span,
+  .dashboard-readiness-list > div.neutral > span
+) * { color: var(--am-on-lime) !important; stroke: currentColor !important; }
+
+/* Templates */
+:root .template-setup-head > span {
+  color: var(--am-ink) !important;
+  background: var(--am-lime-soft) !important;
+  border: 1px solid var(--am-lime-border) !important;
+  font-size: 11px !important;
+  font-weight: 750 !important;
+}
+:root .template-brand-list > button {
+  color: var(--am-copy) !important;
+  background: var(--am-surface) !important;
+  border-color: var(--am-border) !important;
+}
+:root .template-brand-list > button i,
+:root .template-brand-list > button strong,
+:root .template-design-copy strong,
+:root .content-library-nav strong { font-size: 12px !important; font-weight: 700 !important; }
+:root .template-brand-list > button i { color: var(--am-on-lime) !important; background: var(--am-lime) !important; }
+:root .template-design-card { color: var(--am-copy) !important; background: var(--am-surface) !important; border-color: var(--am-border) !important; }
+:root .template-design-copy :is(small, em) { font-size: 11px !important; }
+:root .device-switch button,
+:root .device-switch button span,
+:root .template-preview-foot,
+:root .template-preview-foot > span,
+:root .template-preview-foot a {
+  color: var(--am-muted) !important;
+  font-size: 11px !important;
+  font-weight: 650 !important;
+}
+:root .device-switch button.active { color: var(--am-on-lime) !important; background: var(--am-lime) !important; }
+:root .device-switch button.active * { color: var(--am-on-lime) !important; }
+:root .template-preview-foot a { color: #5d6800 !important; }
+:root .template-preview-skeleton span { font-size: 11px !important; }
+html[data-theme="dark"] .template-preview-foot a { color: var(--am-lime) !important; }
+
+/* Settings and system health */
+:root .system-priority,
+:root .environment-banner {
+  color: var(--am-ink) !important;
+  background: var(--am-lime-soft) !important;
+  border-color: var(--am-lime-border) !important;
+}
+:root .system-priority > span,
+:root .settings-overview-icon.attention,
+:root .settings-service-icon {
+  color: var(--am-on-lime) !important;
+  background: var(--am-lime-soft) !important;
+  border-color: var(--am-lime-border) !important;
+}
+:root .settings-status-card > header > span,
+:root .settings-status-list strong,
+:root .settings-service-state,
+:root .settings-service-state *,
+:root .environment-banner strong {
+  color: var(--am-ink) !important;
+  font-size: 11px !important;
+  font-weight: 750 !important;
+}
+:root .settings-status-list p,
+:root .environment-banner p { font-size: 12px !important; }
+:root .settings-service-state {
+  min-height: 26px !important;
+  padding: 4px 8px !important;
+  background: var(--am-lime-soft) !important;
+  border: 1px solid var(--am-lime-border) !important;
+  border-radius: 999px !important;
+}
+:root .settings-status-list > article.pending .settings-service-state {
+  color: var(--am-copy) !important;
+  background: var(--am-surface-2) !important;
+  border-color: var(--am-border-strong) !important;
+}
+:root .settings-status-list > article.pending .settings-service-state * { color: var(--am-copy) !important; }
+html[data-theme="dark"] :is(.system-priority, .environment-banner) { color: var(--am-ink) !important; background: var(--am-lime-soft) !important; border-color: var(--am-lime-border) !important; }
+
+/* Inventory */
+:root .content-summary article > div > span,
+:root .content-library-panel > header > span,
+:root .library-property-body :is(strong, small, p, div > span),
+:root .library-property-media > i,
+:root .library-property-brand > span,
+:root .content-pagination,
+:root .content-pagination * {
+  font-size: 11px !important;
+}
+:root .library-property-body strong { color: var(--am-ink) !important; font-size: 12px !important; font-weight: 700 !important; }
+:root .library-property-media > i {
+  color: var(--am-on-lime) !important;
+  background: rgba(215, 255, 34, .9) !important;
+  border-color: var(--am-lime) !important;
+  font-style: normal !important;
+  font-weight: 750 !important;
+}
+:root .library-property-brand > span { color: var(--am-on-lime) !important; background: var(--am-lime) !important; font-weight: 800 !important; }
+:root .content-pagination { color: var(--am-muted) !important; }
+:root .content-pagination button { color: var(--am-copy) !important; background: var(--am-surface) !important; border-color: var(--am-border) !important; }
+
+/* Automations, integrations and team */
+:root .automation-empty-refined li,
+:root .automation-empty-refined li *,
+:root .automation-flow-main :is(strong, small),
+:root .automation-flow-fact :is(strong, small),
+:root .automation-state,
+:root .integration-site-card :is(strong, span),
+:root .integration-tools :is(strong, span),
+:root .team-empty-banner strong,
+:root .team-access-panel > header > span,
+:root .team-brand > header > strong,
+:root .team-brand-empty strong,
+:root .role-guide summary strong,
+:root .role-grid strong,
+:root .role-grid small {
+  font-size: 11px !important;
+}
+:root .automation-empty-refined li { color: var(--am-copy) !important; font-weight: 650 !important; }
+:root .team-empty-banner,
+:root .team-brand-empty { color: var(--am-copy) !important; background: var(--am-surface-2) !important; border-color: var(--am-border) !important; }
+:root .team-brand > header > span { color: var(--am-on-lime) !important; background: var(--am-lime) !important; font-size: 11px !important; font-weight: 800 !important; }
+:root .role-grid > article > span { color: var(--am-on-lime) !important; background: var(--am-lime-soft) !important; border-color: var(--am-lime-border) !important; }
+:root .role-grid > article > svg { color: #5d6800 !important; }
+html[data-theme="dark"] .role-grid > article > svg { color: var(--am-lime) !important; }
+
+@media (max-width: 720px) {
+  :root .ref-content h1,
+  :root .minimal-page-head h1,
+  :root .page-head h1 { font-size: 24px !important; }
+  :root .dashboard-metric strong,
+  :root .up-metric strong { font-size: 24px !important; }
+}
+
+/* ========================================================================
+   VISUAL COMPOSITION PASS — hierarchy, density and exact reference palette
+   ======================================================================== */
+@media (min-width: 1100px) {
+  :root .ref-content { padding: 28px 34px 48px !important; }
+  :root .ref-page-transition { width: 100% !important; max-width: 1480px !important; margin-inline: auto !important; }
+}
+
+:root .minimal-page-head,
+:root .page-head {
+  min-height: 56px !important;
+  margin-bottom: 16px !important;
+}
+:root .ref-content h1,
+:root .minimal-page-head h1,
+:root .page-head h1 {
+  font-size: 27px !important;
+  font-weight: 700 !important;
+  letter-spacing: -.032em !important;
+}
+:root .minimal-page-head p,
+:root .page-head p { margin-top: 4px !important; font-size: 13px !important; font-weight: 400 !important; }
+
+:root .ref-content :is(.card, .up-card, .up-metric, .up-performance) {
+  border-radius: 10px !important;
+  border-color: var(--am-border) !important;
+  box-shadow: 0 1px 2px rgba(30, 34, 42, .025) !important;
+}
+
+:root .dashboard-metric { min-height: 106px !important; padding: 18px 16px !important; }
+:root .dashboard-metric > div > span { font-size: 12px !important; font-weight: 500 !important; }
+:root .dashboard-metric > div > small { font-size: 11px !important; font-weight: 400 !important; }
+:root :where(.dashboard-metric strong, .up-metric strong, .metric-value, [class*="metric-value"]) {
+  font-size: 26px !important;
+  font-weight: 700 !important;
+  letter-spacing: -.04em !important;
+}
+
+:root .dashboard-metric-icon,
+:root .dashboard-next-icon,
+:root [class*="overview-icon"],
+:root [class*="summary-icon"],
+:root .campaign-audience-icon,
+:root .automation-flow-icon,
+:root .resend-icon,
+:root .contacts-drop-icon,
+:root .contacts-empty-icon,
+:root .empty-icon,
+:root .panel-state-icon,
+:root .onboarding-icon,
+:root .environment-icon {
+  color: var(--am-on-lime) !important;
+  background: var(--am-lime-gradient) !important;
+  border-color: #c8ef00 !important;
+}
+
+:root .dashboard-next-step,
+:root .dashboard-next-step.ready,
+:root .system-priority,
+:root .environment-banner {
+  color: var(--am-ink) !important;
+  background: var(--am-surface) !important;
+  border: 1px solid var(--am-border) !important;
+  border-left: 4px solid var(--am-lime) !important;
+  box-shadow: none !important;
+}
+:root .dashboard-next-step :is(span, p),
+:root .system-priority :is(small, p) { color: var(--am-muted) !important; }
+:root .dashboard-next-step > div > span,
+:root .system-priority small { color: #596800 !important; }
+
+:root .nav-link.active,
+:root .ref-nav-link.active,
+:root .aep-tab.active,
+:root .mobile-tabbar a.active,
+:root .ref-campaign-menu.active > summary {
+  background: #f3f4f6 !important;
+  border-color: transparent !important;
+}
+
+:root :is(
+  .campaign-brand-options > button.active, .campaign-template-option.active,
+  .campaign-pick.active, .campaign-audience-options > button.active,
+  .automation-brand-options button.active, .automation-type-options button.active,
+  .automation-weekdays button.active, .automation-segmented button.active,
+  .contacts-site-options button.active, .contacts-interest-options button.active,
+  .template-brand-list > button.active, .template-design-card.active,
+  .content-library-nav a.active
+) {
+  color: var(--am-ink) !important;
+  background: var(--am-surface) !important;
+  border-color: var(--am-lime) !important;
+  box-shadow: inset 0 0 0 1px var(--am-lime) !important;
+}
+
+:root .device-switch button.active,
+:root .campaign-steps button.active span,
+:root .campaign-steps button.complete span,
+:root :is(.campaign-template-check, .campaign-check, .campaign-radio > span, .contacts-radio > span),
+:root .library-property-brand > span,
+:root .team-brand > header > span,
+:root .template-brand-list > button i {
+  color: var(--am-on-lime) !important;
+  background: var(--am-lime-gradient) !important;
+  border-color: var(--am-lime) !important;
+}
+
+:root :is(.badge.sent, .badge.success, .badge.connected, .badge.ready, .badge.active, .up-state.sent, .aep-badge.sent, .settings-service-state.connected),
+:root :is(.dashboard-email-status, .dashboard-email-status.sent, .dashboard-email-status.delivered, .aep-rate, .aep-rate.success) {
+  color: var(--am-on-lime) !important;
+  background: var(--am-lime-soft) !important;
+  border: 1px solid var(--am-lime-border) !important;
+}
+
+:root .ref-limit-inline p b {
+  color: var(--am-ink) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+:root .ref-limit-bar i { box-shadow: none !important; }
+
+:root .ref-content table th { font-weight: 600 !important; }
+:root .ref-content table td { font-weight: 400 !important; }
+:root :is(.dashboard-campaign-name, .campaign-cell strong, .brand-cell strong, .contacts-person strong, .library-property-body strong) {
+  font-weight: 600 !important;
+}
+
+html[data-theme="dark"] :is(.dashboard-next-step, .dashboard-next-step.ready, .system-priority, .environment-banner) {
+  color: var(--am-ink) !important;
+  background: var(--am-surface) !important;
+  border-color: var(--am-border) !important;
+  border-left-color: var(--am-lime) !important;
+}
+html[data-theme="dark"] :is(.ref-nav-link.active, .ref-campaign-menu.active > summary) {
+  color: #f9fafb !important;
+  background: #1e232a !important;
+  border-color: transparent !important;
+}
+html[data-theme="dark"] :is(.ref-nav-link.active, .ref-campaign-menu.active > summary) * { color: #f9fafb !important; fill: none !important; stroke: currentColor !important; }
+
+/* ==========================================
+   ABSOLUTE MASTER OVERRIDES FOR SIDEBAR & CTAS
+   ========================================== */
+:root .nav-link.active,
+:root .ref-nav-link.active,
+:root .aep-tab.active,
+:root .mobile-tabbar a.active,
+:root .ref-campaign-menu.active > summary,
+:root .ref-campaign-menu.active {
+  color: #111827 !important;
+  background-color: #f3f4f6 !important;
+  background: #f3f4f6 !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  font-weight: 600 !important;
+}
+
+html[data-theme="dark"] :root .nav-link.active,
+html[data-theme="dark"] :root .ref-nav-link.active,
+html[data-theme="dark"] :root .aep-tab.active,
+html[data-theme="dark"] :root .mobile-tabbar a.active,
+html[data-theme="dark"] :root .ref-campaign-menu.active > summary,
+html[data-theme="dark"] :root .ref-campaign-menu.active,
+html[data-theme="dark"] :is(.ref-nav-link.active, .ref-campaign-menu.active > summary) {
+  color: #f9fafb !important;
+  background-color: #1e232a !important;
+  background: #1e232a !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+:root :is(.nav-link.active, .ref-nav-link.active, .aep-tab.active, .mobile-tabbar a.active, .ref-campaign-menu.active > summary) * {
+  color: inherit !important;
+  fill: none !important;
+  stroke: currentColor !important;
+  stroke-width: 1.75 !important;
+}
+
+/* Limit bar dynamic style support */
+:root .ref-limit-bar i {
+  box-shadow: none !important;
+}
+
+/* Primary CTAs: Solid phosphorescent lime #d2ff00 with bold black text, NO GLOW */
+:root :is(.btn.primary, .btn-primary, .up-primary, button.primary, a.primary, a.btn.primary, a.up-primary, .ref-create-nav, .up-export, .dashboard-next-step .btn) {
+  background-color: #d2ff00 !important;
+  background: #d2ff00 !important;
+  color: #000000 !important;
+  border-color: #d2ff00 !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+:root :is(.btn.primary, .btn-primary, .up-primary, button.primary, a.primary, a.btn.primary, a.up-primary, .ref-create-nav, .up-export, .dashboard-next-step .btn) * {
+  color: #000000 !important;
+  fill: none !important;
+  stroke: #000000 !important;
+}
+
+:root :is(.btn.primary, .btn-primary, .up-primary, button.primary, a.primary, a.btn.primary, a.up-primary, .ref-create-nav, .up-export, .dashboard-next-step .btn):hover {
+  background-color: #c6ef00 !important;
+  background: #c6ef00 !important;
+  color: #000000 !important;
+  border-color: #c6ef00 !important;
+  box-shadow: none !important;
+}
+
+/* ==========================================
+   TOPBAR, THEME TOGGLE & BRAND SELECTOR CLEANUP
+   ========================================== */
+:root .ref-topbar,
+html[data-theme="dark"] .ref-topbar {
+  background: transparent !important;
+  border: 0 !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+  height: 52px !important;
+  padding: 0 24px !important;
+}
+
+:root .ref-top-right {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+html body .theme-toggle-btn {
+  width: 34px !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 8px !important;
+  border: 1px solid #e5e7eb !important;
+  background: #ffffff !important;
+  color: #4b5563 !important;
+  box-shadow: none !important;
+  cursor: pointer !important;
+  transition: all 150ms ease !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+}
+html body .theme-toggle-btn svg {
+  margin: 0 !important;
+  padding: 0 !important;
+  flex-shrink: 0 !important;
+}
+
+html body .theme-toggle-btn:hover {
+  background: #f3f4f6 !important;
+  border-color: #d1d5db !important;
+  color: #111827 !important;
+}
+
+html[data-theme="dark"] body .theme-toggle-btn {
+  background: #1e232a !important;
+  border-color: #374151 !important;
+  color: #9ca3af !important;
+}
+
+html[data-theme="dark"] body .theme-toggle-btn:hover {
+  background: #2b323b !important;
+  border-color: #4b5563 !important;
+  color: #f9fafb !important;
+}
+
+:root .ref-brand-menu {
+  position: relative !important;
+}
+
+:root .ref-brand-menu > summary {
+  min-height: 34px !important;
+  height: 34px !important;
+  padding: 3px 10px 3px 4px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  color: #111827 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  box-shadow: none !important;
+  cursor: pointer !important;
+  transition: all 150ms ease !important;
+}
+
+:root .ref-brand-menu > summary:hover,
+:root .ref-brand-menu[open] > summary {
+  border-color: #d1d5db !important;
+  background: #f9fafb !important;
+}
+
+html[data-theme="dark"] :root .ref-brand-menu > summary {
+  background: #1e232a !important;
+  border-color: #374151 !important;
+  color: #f9fafb !important;
+}
+
+html[data-theme="dark"] :root .ref-brand-menu > summary:hover,
+html[data-theme="dark"] :root .ref-brand-menu[open] > summary {
+  background: #2b323b !important;
+  border-color: #4b5563 !important;
+}
+
+:root .ref-brand-avatar {
+  width: 24px !important;
+  height: 24px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 6px !important;
+  background: #111827 !important;
+  color: #ffffff !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="dark"] :root .ref-brand-avatar {
+  background: #374151 !important;
+  color: #ffffff !important;
+}
+
+:root .ref-brand-popover {
+  position: absolute !important;
+  top: calc(100% + 6px) !important;
+  right: 0 !important;
+  width: 240px !important;
+  padding: 6px !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 10px !important;
+  background: #ffffff !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.04) !important;
+  z-index: 300 !important;
+}
+
+html[data-theme="dark"] :root .ref-brand-popover {
+  background: #1e232a !important;
+  border-color: #374151 !important;
+  color: #f9fafb !important;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5) !important;
+}
+
+:root .ref-brand-popover > p {
+  margin: 4px 8px 6px !important;
+  color: #6b7280 !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+}
+
+:root .ref-brand-popover > button {
+  width: 100% !important;
+  min-height: 42px !important;
+  display: grid !important;
+  grid-template-columns: 28px 1fr 14px !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 6px 8px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: #111827 !important;
+  text-align: left !important;
+  cursor: pointer !important;
+  transition: background-color 120ms ease !important;
+}
+
+:root .ref-brand-popover > button:hover,
+:root .ref-brand-popover > button[aria-selected="true"] {
+  background: #f3f4f6 !important;
+}
+
+html[data-theme="dark"] :root .ref-brand-popover > button {
+  color: #f9fafb !important;
+}
+
+html[data-theme="dark"] :root .ref-brand-popover > button:hover,
+html[data-theme="dark"] :root .ref-brand-popover > button[aria-selected="true"] {
+  background: #2b323b !important;
+}
+
+:root .ref-brand-option-mark {
+  width: 28px !important;
+  height: 28px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 6px !important;
+  background: #f3f4f6 !important;
+  color: #111827 !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="dark"] :root .ref-brand-option-mark {
+  background: #374151 !important;
+  color: #ffffff !important;
+}
+
+:root .ref-brand-popover i {
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 50% !important;
+  background: #111827 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="dark"] :root .ref-brand-popover i {
+  background: #10b981 !important;
+}
+
+/* ==========================================
+   DASHBOARD BOTTOM COMPACT METRICS
+   ========================================== */
+:root .dashboard-workspace {
+  min-height: calc(100vh - 120px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+}
+
+:root .dashboard-metrics {
+  margin-top: auto !important;
+  padding-top: 40px !important;
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+}
+
+@media (max-width: 900px) {
+  :root .dashboard-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+/* Hard normalization: legacy selectors used higher specificity plus !important. */
+html body .ref-app :where(*) {
+  font-size: var(--type-body) !important;
+  font-weight: var(--weight-regular) !important;
+  line-height: 1.4 !important;
+  letter-spacing: 0 !important;
+}
+
+html body .ref-app :where(h1, .page-head h1, .minimal-page-head h1, .dashboard-head h1) {
+  font-size: var(--type-title) !important;
+  font-weight: var(--weight-semibold) !important;
+  line-height: 1.2 !important;
+  letter-spacing: -.025em !important;
+}
+
+html body .ref-app :where(h2, h3, .section-title, .card > header strong, [class*="panel"] > header strong) {
+  font-size: var(--type-section) !important;
+  font-weight: var(--weight-semibold) !important;
+  line-height: 1.25 !important;
+  letter-spacing: -.01em !important;
+}
+
+html body .ref-app :where(
+  p,
+  small,
+  em,
+  label,
+  .subtitle,
+  .field-label,
+  [class*="field-label"],
+  [class*="description"],
+  [class*="helper"],
+  [class*="caption"]
+) {
+  font-size: var(--type-sm) !important;
+  font-weight: var(--weight-regular) !important;
+  line-height: 1.5 !important;
+}
+
+html body .ref-app :where(a, button, input, select, textarea, summary, .btn, .ref-brand-current) {
+  font-size: var(--type-body) !important;
+  font-weight: var(--weight-medium) !important;
+  line-height: 1.4 !important;
+}
+
+html body .ref-app :where(table, table td, .campaign-card-row, .activity-result-line, .dashboard-email-row) {
+  font-size: 13px !important;
+  font-weight: var(--weight-regular) !important;
+}
+
+html body .ref-app :where(
+  table th,
+  .eyebrow,
+  .section-kicker,
+  .nav-group-label,
+  [class*="eyebrow"],
+  [class*="badge"],
+  [class*="status"],
+  [class*="state"]
+) {
+  font-size: var(--type-xs) !important;
+  font-weight: var(--weight-medium) !important;
+  line-height: 1.4 !important;
+  letter-spacing: .04em !important;
+}
+
+html body .ref-app :where(strong, b, .active, [aria-current="page"], [aria-selected="true"]) {
+  font-weight: var(--weight-semibold) !important;
+}
+
+html body .ref-app :where(
+  .dashboard-metric > div > strong,
+  .contacts-summary article strong,
+  .content-summary article strong,
+  .up-metric strong,
+  .metric-value,
+  [class*="metric-value"],
+  [class*="overview"] > strong
+) {
+  font-size: 24px !important;
+  font-weight: var(--weight-semibold) !important;
+  line-height: 1.2 !important;
+  letter-spacing: -.025em !important;
+}
+
+@media (max-width: 720px) {
+  html body .ref-app :where(h1, .page-head h1, .minimal-page-head h1, .dashboard-head h1) {
+    font-size: 24px !important;
+  }
+
+  html body .ref-app :where(
+    .dashboard-metric > div > strong,
+    .contacts-summary article strong,
+    .content-summary article strong,
+    .up-metric strong,
+    .metric-value,
+    [class*="metric-value"]
+  ) {
+    font-size: 22px !important;
+  }
+}
+
+:root .dashboard-metric {
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 10px 14px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 10px !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+  transition: all 120ms ease !important;
+}
+
+:root .dashboard-metric:hover {
+  border-color: #d1d5db !important;
+  background: #f9fafb !important;
+}
+
+html[data-theme="dark"] :root .dashboard-metric {
+  background: #1e232a !important;
+  border-color: #374151 !important;
+  color: #f9fafb !important;
+}
+
+html[data-theme="dark"] :root .dashboard-metric:hover {
+  background: #2b323b !important;
+  border-color: #4b5563 !important;
+}
+
+:root .dashboard-metric-icon {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  border-radius: 8px !important;
+  display: grid !important;
+  place-items: center !important;
+  background: #f3f4f6 !important;
+  color: #111827 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="dark"] :root .dashboard-metric-icon {
+  background: #374151 !important;
+  color: #f9fafb !important;
+}
+
+:root .dashboard-metric > div {
+  display: grid !important;
+  gap: 1px !important;
+  min-width: 0 !important;
+}
+
+:root .dashboard-metric > div > span {
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  color: #6b7280 !important;
+}
+
+html[data-theme="dark"] :root .dashboard-metric > div > span {
+  color: #9ca3af !important;
+}
+
+:root .dashboard-metric > div > strong {
+  font-size: 18px !important;
+  line-height: 22px !important;
+  font-weight: 700 !important;
+  color: #111827 !important;
+  margin: 0 !important;
+}
+
+html[data-theme="dark"] :root .dashboard-metric > div > strong {
+  color: #f9fafb !important;
+}
+
+:root .dashboard-metric > div > small {
+  font-size: 9px !important;
+  color: #9ca3af !important;
+}
+
+html[data-theme="dark"] :root .dashboard-metric > div > small {
+  color: #6b7280 !important;
+}
+
+/* ========================================================================
+   RESPONSIVE SYSTEM — mobile first corrections for the current product UI
+   ======================================================================== */
+@media (max-width: 720px) {
+  :root html,
+  :root body,
+  :root .ref-app,
+  :root .ref-main { width: 100% !important; max-width: 100% !important; overflow-x: hidden !important; }
+
+  :root .ref-main { grid-template-rows: 58px minmax(0, 1fr) !important; }
+  :root .ref-topbar { height: 58px !important; padding: 0 12px !important; }
+  :root .ref-mobile-menu {
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+    display: grid !important;
+    place-items: center !important;
+    color: var(--am-ink) !important;
+    background: var(--am-surface) !important;
+    border: 1px solid var(--am-border) !important;
+    border-radius: 9px !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+  }
+  :root .theme-toggle-btn { width: 42px !important; height: 42px !important; min-width: 42px !important; padding: 0 !important; }
+  :root .ref-brand-menu > summary { min-height: 42px !important; max-width: 205px !important; padding-right: 10px !important; }
+  :root .ref-brand-current { max-width: 120px !important; }
+  :root .ref-brand-popover { position: fixed !important; top: 64px !important; right: 12px !important; width: min(300px, calc(100vw - 24px)) !important; }
+
+  :root .ref-sidebar {
+    z-index: 50 !important;
+    width: min(290px, 86vw) !important;
+    padding-inline: 14px !important;
+    box-shadow: 18px 0 50px rgba(15, 18, 23, .18) !important;
+  }
+  :root .ref-mobile-backdrop { z-index: 45 !important; backdrop-filter: blur(3px) !important; }
+  :root .ref-nav-link,
+  :root .ref-campaign-menu > summary,
+  :root .ref-campaign-menu > div a,
+  :root .ref-logout { min-height: 44px !important; font-size: 14px !important; }
+
+  :root .ref-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 14px 12px 28px !important;
+    overflow-x: hidden !important;
+    scrollbar-gutter: auto !important;
+  }
+  :root .ref-page-transition,
+  :root .ref-page-transition > * { width: 100% !important; max-width: 100% !important; min-width: 0 !important; }
+
+  :root .page-head,
+  :root .minimal-page-head {
+    min-height: 0 !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    align-items: start !important;
+    gap: 12px !important;
+    margin-bottom: 16px !important;
+  }
+  :root .page-head h1,
+  :root .minimal-page-head h1,
+  :root .ref-content h1 { font-size: 25px !important; line-height: 1.12 !important; }
+  :root .page-head p,
+  :root .minimal-page-head p { max-width: none !important; font-size: 13px !important; }
+  :root .page-head > :is(a, button, .btn, div:last-child),
+  :root .minimal-page-head > :is(a, button, .btn, .up-primary) { width: 100% !important; justify-content: center !important; }
+  :root .page-head .btn,
+  :root .minimal-page-head .up-primary { min-height: 44px !important; }
+
+  /* Dashboard */
+  :root .dashboard-workspace {
+    min-height: 0 !important;
+    height: auto !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    justify-content: initial !important;
+    align-content: start !important;
+    gap: 14px !important;
+  }
+  :root .dashboard-head { order: 1 !important; }
+  :root .dashboard-metrics {
+    order: 2 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+  :root .dashboard-metric {
+    min-width: 0 !important;
+    min-height: 108px !important;
+    padding: 12px !important;
+    display: grid !important;
+    grid-template-columns: 34px minmax(0, 1fr) !important;
+    align-content: center !important;
+    gap: 9px !important;
+  }
+  :root .dashboard-metric-icon { width: 34px !important; height: 34px !important; min-width: 34px !important; }
+  :root .dashboard-metric > div > span { font-size: 11px !important; line-height: 1.25 !important; }
+  :root .dashboard-metric > div > strong { font-size: 22px !important; line-height: 1.1 !important; }
+  :root .dashboard-metric > div > small {
+    display: block !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    font-size: 10px !important;
+    line-height: 1.25 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  /* Filters */
+  :root .campaign-filter-panel { display: grid !important; grid-template-columns: 1fr !important; margin-bottom: 12px !important; overflow: visible !important; }
+  :root .campaign-filter-controls { display: grid !important; grid-template-columns: 1fr !important; gap: 9px !important; padding: 10px !important; }
+  :root .campaign-filter-search { width: 100% !important; min-width: 0 !important; min-height: 44px !important; }
+  :root .campaign-filter-menus,
+  :root .contacts-filter-group,
+  :root .content-filter-group {
+    width: 100% !important;
+    min-width: 0 !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+  :root .campaign-filter-menus > svg,
+  :root .contacts-filter-group > svg { display: none !important; }
+  :root :is(.filter-menu, .contacts-filter-menu, .content-filter-menu),
+  :root :is(.filter-menu, .contacts-filter-menu, .content-filter-menu) > summary { width: 100% !important; min-width: 0 !important; }
+  :root :is(.filter-menu, .contacts-filter-menu, .content-filter-menu) > summary { min-height: 44px !important; }
+  :root :is(.filter-menu, .contacts-filter-menu, .content-filter-menu) > div {
+    position: fixed !important;
+    z-index: 110 !important;
+    top: auto !important;
+    right: 12px !important;
+    bottom: 12px !important;
+    left: 12px !important;
+    width: auto !important;
+    max-height: 55vh !important;
+    overflow-y: auto !important;
+  }
+  :root .campaign-filter-result {
+    min-height: 40px !important;
+    border-top: 1px solid var(--am-border) !important;
+    border-left: 0 !important;
+  }
+
+  /* Campaign rows become cards instead of a horizontal desktop table. */
+  :root .table-wrap.responsive-table { border: 0 !important; background: transparent !important; overflow: visible !important; box-shadow: none !important; }
+  :root .responsive-table table,
+  :root .responsive-table tbody { display: block !important; width: 100% !important; min-width: 0 !important; }
+  :root .responsive-table thead { display: none !important; }
+  :root .responsive-table tbody { padding: 0 !important; }
+  :root .responsive-table tr {
+    width: 100% !important;
+    display: grid !important;
+    gap: 10px !important;
+    margin: 0 0 10px !important;
+    padding: 14px !important;
+    border: 1px solid var(--am-border) !important;
+    border-radius: 12px !important;
+    background: var(--am-surface) !important;
+  }
+  :root .responsive-table td {
+    width: 100% !important;
+    min-width: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 16px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    text-align: right !important;
+    white-space: normal !important;
+  }
+  :root .responsive-table td::before {
+    content: attr(data-label) !important;
+    flex: none !important;
+    color: var(--am-muted) !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    letter-spacing: .04em !important;
+    text-transform: uppercase !important;
+  }
+  :root .responsive-table td > * { min-width: 0 !important; max-width: 62% !important; }
+
+  /* Contacts */
+  :root .contacts-page-action { margin: 0 0 14px !important; }
+  :root .contacts-page-action .btn { width: 100% !important; min-height: 44px !important; }
+  :root .contacts-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+  :root .contacts-summary > article { min-height: 108px !important; padding: 12px !important; gap: 9px !important; }
+  :root .contacts-summary > article > div { min-width: 0 !important; }
+  :root .contacts-summary > article small { max-width: 100% !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
+  :root .contacts-panel { overflow: hidden !important; }
+  :root .contacts-panel-head { align-items: flex-start !important; }
+  :root .contacts-toolbar { display: grid !important; grid-template-columns: 1fr !important; gap: 9px !important; padding: 10px !important; }
+  :root .contacts-search { width: 100% !important; min-width: 0 !important; }
+  :root .contacts-empty { min-height: 300px !important; padding: 30px 18px !important; }
+
+  /* Content library and properties */
+  :root .content-library-nav { width: 100% !important; margin-bottom: 10px !important; }
+  :root .content-library-nav a { min-height: 58px !important; padding: 10px !important; }
+  :root .content-summary { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 8px !important; }
+  :root .content-summary > article {
+    min-width: 0 !important;
+    min-height: 104px !important;
+    display: grid !important;
+    grid-template-columns: 34px minmax(0, 1fr) !important;
+    align-content: center !important;
+    gap: 8px !important;
+    padding: 10px !important;
+  }
+  :root .content-summary > article > div { min-width: 0 !important; }
+  :root .content-summary article > div > span { line-height: 1.25 !important; }
+  :root .content-library-panel { overflow: hidden !important; }
+  :root .content-library-panel > header { align-items: flex-start !important; }
+  :root .content-toolbar { display: grid !important; grid-template-columns: 1fr !important; gap: 9px !important; padding: 10px !important; }
+  :root .content-search { width: 100% !important; min-width: 0 !important; }
+  :root .library-property-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    padding: 10px !important;
+  }
+  :root .library-property-card { min-width: 0 !important; overflow: hidden !important; }
+  :root .library-property-media { height: 132px !important; }
+  :root .library-property-body { padding: 10px !important; }
+  :root .library-property-body > button strong { display: -webkit-box !important; overflow: hidden !important; -webkit-box-orient: vertical !important; -webkit-line-clamp: 2 !important; white-space: normal !important; }
+
+  /* Templates */
+  :root .template-setup { padding: 12px !important; overflow: hidden !important; }
+  :root .template-setup-head { align-items: flex-start !important; gap: 10px !important; }
+  :root .template-setup-head > span { flex: none !important; }
+  :root .template-brand-list { grid-template-columns: 1fr !important; }
+  :root .template-card-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
+  :root .template-design-card { width: 100% !important; min-width: 0 !important; min-height: 112px !important; }
+  :root .template-preview-head {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    padding: 14px !important;
+  }
+  :root .device-switch.labeled { width: 100% !important; min-height: 44px !important; }
+  :root .template-stage { width: 100% !important; min-height: 520px !important; padding: 16px 10px !important; overflow: auto !important; }
+  :root .template-stage iframe { min-width: 320px !important; max-width: 100% !important; }
+  :root .template-preview-skeleton { width: calc(100% - 20px) !important; padding: 18px !important; }
+  :root .template-preview-foot { display: grid !important; gap: 8px !important; }
+
+  /* Dialogs and forms */
+  :root :is(.automation-modal, .contacts-import, .campaign-item-preview, .content-preview-modal, .brand-create-modal) {
+    width: calc(100vw - 20px) !important;
+    max-width: none !important;
+    max-height: calc(100dvh - 20px) !important;
+    margin: 10px !important;
+    border-radius: 14px !important;
+  }
+  :root :is(.form-grid, .campaign-form-grid, .automation-schedule-grid, .role-grid, .settings-overview, .team-overview) { grid-template-columns: 1fr !important; }
+  :root :is(button, a, summary, input, select) { touch-action: manipulation; }
+}
+
+@media (max-width: 420px) {
+  :root .contacts-filter-group,
+  :root .content-filter-group { grid-template-columns: 1fr !important; }
+  :root .content-summary { grid-template-columns: 1fr !important; }
+  :root .content-summary > article { min-height: 74px !important; }
+  :root .library-property-grid { grid-template-columns: 1fr !important; }
+  :root .library-property-media { height: 190px !important; }
+}
+
+@media (min-width: 721px) and (max-width: 1099px) {
+  :root .ref-content { padding: 22px 22px 36px !important; }
+  :root .ref-page-transition { max-width: 100% !important; }
+  :root .dashboard-workspace { min-height: 0 !important; justify-content: initial !important; }
+  :root .dashboard-metrics { margin-top: 0 !important; padding-top: 0 !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  :root .contacts-summary { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  :root .library-property-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  :root .template-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  :root .campaign-filter-controls { grid-template-columns: minmax(220px, 1fr) !important; }
+  :root .campaign-filter-menus { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+
+/* Keep the sending-limit indicator inside the graphite + fluorescent-lime system. */
+:root .ref-limit-bar {
+  background: var(--am-surface-2) !important;
+}
+
+:root .ref-limit-bar i {
+  background-color: var(--am-lime) !important;
+  background-image: var(--am-lime-gradient) !important;
+  box-shadow: none !important;
+}
+
+/* Dark theme overrides must target descendants directly (not `html ... :root`). */
+html[data-theme="dark"] .ref-brand-menu > summary,
+html[data-theme="dark"] .theme-toggle-btn,
+html[data-theme="dark"] .ref-collapse-btn {
+  color: var(--am-copy) !important;
+  background: var(--am-surface-1) !important;
+  border-color: var(--am-border) !important;
+}
+
+html[data-theme="dark"] .dashboard-metric > div > strong {
+  color: var(--am-heading) !important;
+}
+
+html[data-theme="dark"] .dashboard-metric > div > span {
+  color: var(--am-copy-muted) !important;
+}
+
+html[data-theme="dark"] .dashboard-metric > div > small {
+  color: var(--am-copy-soft) !important;
+}
+
+:root .dashboard-metric-icon,
+html[data-theme="dark"] .dashboard-metric-icon {
+  color: var(--am-graphite) !important;
+  background-color: var(--am-lime) !important;
+  background-image: var(--am-lime-gradient) !important;
+  border-color: transparent !important;
+}
+
+/*
+ * TYPOGRAPHY CONTRACT
+ * One family, three real weights and six reusable sizes. This block sits last
+ * so legacy component rules cannot reintroduce interpolated weights or tiny UI.
+ */
+:root {
+  --type-xs: 11px;
+  --type-sm: 12px;
+  --type-body: 14px;
+  --type-section: 16px;
+  --type-subtitle: 20px;
+  --type-title: 28px;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+}
+
+:root :where(body, button, input, select, textarea, .ref-app, .ref-app *) {
+  font-family: var(--am-font) !important;
+  font-synthesis: none !important;
+}
+
+:root :where(body, .ref-app, .ref-content) {
+  font-size: var(--type-body) !important;
+  font-weight: var(--weight-regular) !important;
+  line-height: 1.4 !important;
+  letter-spacing: 0 !important;
+}
+
+:root :where(.ref-content h1, .page-head h1, .minimal-page-head h1, .dashboard-head h1) {
+  font-size: var(--type-title) !important;
+  font-weight: var(--weight-semibold) !important;
+  line-height: 1.2 !important;
+  letter-spacing: -.025em !important;
+}
+
+:root :where(.ref-content h2, .ref-content h3, .section-title, .card > header strong, [class*="panel"] > header h2) {
+  font-size: var(--type-section) !important;
+  font-weight: var(--weight-semibold) !important;
+  line-height: 1.25 !important;
+  letter-spacing: -.01em !important;
+}
+
+:root :where(.ref-content p, .ref-content em, .subtitle, .page-head p, .minimal-page-head p) {
+  font-size: var(--type-sm) !important;
+  font-weight: var(--weight-regular) !important;
+  line-height: 1.5 !important;
+  letter-spacing: 0 !important;
+}
+
+:root :where(
+  .ref-sidebar a,
+  .ref-sidebar button,
+  .ref-topbar,
+  .ref-brand-current,
+  .ref-content button,
+  .ref-content input,
+  .ref-content select,
+  .ref-content textarea,
+  .ref-content summary,
+  .btn
+) {
+  font-size: var(--type-body) !important;
+  font-weight: var(--weight-medium) !important;
+  line-height: 1.4 !important;
+  letter-spacing: 0 !important;
+}
+
+:root :where(
+  .ref-content small,
+  .ref-content label,
+  .field-label,
+  [class*="field-label"],
+  [class*="description"],
+  [class*="helper"],
+  [class*="caption"]
+) {
+  font-size: var(--type-sm) !important;
+  font-weight: var(--weight-regular) !important;
+  line-height: 1.5 !important;
+  letter-spacing: 0 !important;
+}
+
+:root :where(
+  table,
+  table td,
+  .campaign-card-row,
+  .activity-result-line,
+  .dashboard-email-row
+) {
+  font-size: 13px !important;
+  font-weight: var(--weight-regular) !important;
+  line-height: 1.4 !important;
+  letter-spacing: 0 !important;
+}
+
+:root :where(
+  table th,
+  .eyebrow,
+  .section-kicker,
+  .nav-group-label,
+  [class*="eyebrow"],
+  [class*="badge"],
+  [class*="status"],
+  [class*="state"]
+) {
+  font-size: var(--type-xs) !important;
+  font-weight: var(--weight-medium) !important;
+  line-height: 1.4 !important;
+  letter-spacing: .04em !important;
+}
+
+:root :where(
+  .dashboard-metric > div > strong,
+  .contacts-summary article strong,
+  .content-summary article strong,
+  .up-metric strong,
+  .metric-value,
+  [class*="metric-value"],
+  [class*="overview"] > strong
+) {
+  font-size: 24px !important;
+  font-weight: var(--weight-semibold) !important;
+  line-height: 1.2 !important;
+  letter-spacing: -.025em !important;
+  font-variant-numeric: tabular-nums lining-nums !important;
+}
+
+:root :where(
+  strong,
+  b,
+  .active,
+  [aria-current="page"],
+  [aria-selected="true"]
+) {
+  font-weight: var(--weight-semibold) !important;
+}
+
+@media (max-width: 720px) {
+  :root :where(.ref-content h1, .page-head h1, .minimal-page-head h1, .dashboard-head h1) {
+    font-size: 24px !important;
+  }
+
+  :root :where(
+    .dashboard-metric > div > strong,
+    .contacts-summary article strong,
+    .content-summary article strong,
+    .up-metric strong,
+    .metric-value,
+    [class*="metric-value"]
+  ) {
+    font-size: 22px !important;
+  }
+}
+
+/* Final computed-type enforcement (must remain the last typography layer). */
+html body .ref-app * {
+  font-size: var(--type-body) !important;
+  font-weight: var(--weight-regular) !important;
+  line-height: 1.4 !important;
+  letter-spacing: 0 !important;
+}
+
+html body .ref-app :is(h1, .page-head h1, .minimal-page-head h1, .dashboard-head h1) {
+  font-size: var(--type-title) !important;
+  font-weight: var(--weight-semibold) !important;
+  line-height: 1.2 !important;
+  letter-spacing: -.025em !important;
+}
+
+html body .ref-app :is(h2, h3, .section-title, .card > header strong, [class*="panel"] > header strong) {
+  font-size: var(--type-section) !important;
+  font-weight: var(--weight-semibold) !important;
+  line-height: 1.25 !important;
+  letter-spacing: -.01em !important;
+}
+
+html body .ref-app :is(p, small, em, label, .subtitle, .field-label, [class*="description"], [class*="helper"], [class*="caption"]) {
+  font-size: var(--type-sm) !important;
+  font-weight: var(--weight-regular) !important;
+  line-height: 1.5 !important;
+}
+
+html body .ref-app :is(a, button, input, select, textarea, summary, .btn, .ref-brand-current) {
+  font-size: var(--type-body) !important;
+  font-weight: var(--weight-medium) !important;
+}
+
+html body .ref-app :is(table, table td, .campaign-card-row, .activity-result-line, .dashboard-email-row) {
+  font-size: 13px !important;
+  font-weight: var(--weight-regular) !important;
+}
+
+html body .ref-app :is(table th, .eyebrow, .section-kicker, .nav-group-label, [class*="eyebrow"], [class*="badge"], [class*="status"], [class*="state"]) {
+  font-size: var(--type-xs) !important;
+  font-weight: var(--weight-medium) !important;
+  letter-spacing: .04em !important;
+}
+
+html body .ref-app :is(strong, b, .active, [aria-current="page"], [aria-selected="true"]) {
+  font-weight: var(--weight-semibold) !important;
+}
+
+html body .ref-app :is(.dashboard-metric > div > strong, .contacts-summary article strong, .content-summary article strong, .up-metric strong, .metric-value, [class*="metric-value"], [class*="overview"] > strong) {
+  font-size: 24px !important;
+  font-weight: var(--weight-semibold) !important;
+  line-height: 1.2 !important;
+  letter-spacing: -.025em !important;
+  font-variant-numeric: tabular-nums lining-nums !important;
+}
+
+@media (max-width: 720px) {
+  html body .ref-app :is(h1, .page-head h1, .minimal-page-head h1, .dashboard-head h1) { font-size: 24px !important; }
+  html body .ref-app :is(.dashboard-metric > div > strong, .contacts-summary article strong, .content-summary article strong, .up-metric strong, .metric-value, [class*="metric-value"]) { font-size: 22px !important; }
+}
+
+/* Portaled controls live outside `.ref-app`, but follow the same contract. */
+html:root body :is(.ref-brand-avatar, .ref-brand-option-mark, .brand-mark-large, .brand-mark, .team-brand > header > span) {
+  font-size: var(--type-xs) !important;
+  font-weight: var(--weight-semibold) !important;
+}
+
+html:root body :is(.btn.primary, .primary.btn, button.primary, a.primary) {
+  font-size: var(--type-body) !important;
+  font-weight: var(--weight-semibold) !important;
+  letter-spacing: 0 !important;
+}
+
+html:root body :is(.template-setup-head > span, .device-switch span, .template-preview-foot > span) {
+  font-size: var(--type-xs) !important;
+  font-weight: var(--weight-medium) !important;
+  letter-spacing: 0 !important;
+}
+
+/* Centering dashboard components */
+html body .dashboard-head {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  position: relative !important;
+  margin-bottom: 32px !important;
+}
+
+@media (min-width: 769px) {
+  html body .dashboard-head .up-primary {
+    position: absolute !important;
+    right: 0 !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+  }
+}
+
+html body .dashboard-shortcuts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 24px auto !important;
+  max-width: 960px !important;
+  width: 100% !important;
+}
+
+@media (max-width: 768px) {
+  html body .dashboard-shortcuts {
+    grid-template-columns: 1fr;
+  }
+}
+
+html body .shortcut-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  border: 1px solid var(--am-border) !important;
+  border-radius: var(--am-radius) !important;
+  background: var(--am-surface) !important;
+  text-decoration: none !important;
+  transition: all 180ms ease !important;
+  box-shadow: var(--am-shadow) !important;
+}
+
+html body .shortcut-card:hover {
+  background: var(--am-surface-2) !important;
+  border-color: var(--am-border-strong) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04) !important;
+}
+
+html body .shortcut-icon {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: var(--am-surface-2) !important;
+  color: var(--am-ink) !important;
+  transition: all 180ms ease !important;
+}
+
+html body .shortcut-card:hover .shortcut-icon {
+  background: var(--am-surface) !important;
+  color: var(--am-ink) !important;
+}
+
+html body .shortcut-card h3 {
+  margin: 0 0 4px 0 !important;
+  color: var(--am-ink) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+}
+
+html body .shortcut-card p {
+  margin: 0 !important;
+  color: var(--am-muted) !important;
+  font-size: 11px !important;
+  line-height: 1.4 !important;
+}
+
+/* Animated Sidebar Collapse */
+:root .ref-app {
+  transition: grid-template-columns 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+:root .ref-app:has(.ref-sidebar.collapsed) {
+  grid-template-columns: 64px minmax(0, 1fr) !important;
+}
+:root .ref-sidebar {
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color var(--motion-fast) ease !important;
+}
+
+/* Micro-interaction pop animation for brand avatar change */
+@keyframes ref-avatar-pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}

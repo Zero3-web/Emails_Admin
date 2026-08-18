@@ -10,5 +10,6 @@ export const campaignStages: Array<{ id: CampaignStage; label: string }> = [
 ];
 export function getCampaignProgress(recipientCount: number, status: CampaignStatus) {
   const approved = ["ready", "scheduled", "sending", "sent"].includes(status);
-  return { content: true, audience: recipientCount > 0, approval: approved, test: false, send: status === "sent" };
+  const sent = status === "sent";
+  return { content: true, audience: recipientCount > 0, approval: approved, test: sent, send: sent };
 }

@@ -1,0 +1,82 @@
+
+> area-mail-automation@0.1.0 dev
+> vinext dev
+
+
+  vinext dev  (Vite 8.2.1)
+
+Using secrets defined in .env
+Using secrets defined in .env.local
+  ➜  Local:   http://localhost:3000/
+  ➜  Debug:   http://localhost:3000/__debug
+ GET /automations 307 in 726ms
+ GET /login 200 in 1.9s (compile: 1787002532.8s, render: 1.9s)
+ GET /automations 200 in 1.5s (compile: 1787002533.8s, render: 482ms)
+ GET /automations 200 in 1.6s (compile: 1787002534.1s, render: 137ms)
+ GET /activity 200 in 1.7s (compile: 1787002534.2s, render: 160ms)
+ GET /api/resend/emails 200 in 1.8s
+ GET /activity 200 in 1.6s (compile: 1787002534.2s, render: 136ms)
+ GET /api/resend/emails 200 in 1.3s
+ GET /activity 200 in 1.7s (compile: 1787002534.3s, render: 132ms)
+ GET /api/resend/emails 200 in 1.7s
+ GET /automations 200 in 1.4s (compile: 1787002533.8s, render: 126ms)
+ GET /automations 307 in 382ms
+ GET /login 200 in 166ms (compile: 1787002532.8s, render: 125ms)
+ GET /dashboard 200 in 2.5s (compile: 1787002534.5s, render: 129ms)
+ GET /campaigns 200 in 1.8s (compile: 1787002533.5s, render: 122ms)
+ GET /contacts 200 in 1.3s (compile: 1787002533.7s, render: 128ms)
+ GET /properties 200 in 1.9s (compile: 1787002533.7s, render: 118ms)
+ GET /templates 200 in 1.8s (compile: 1787002533.6s, render: 120ms)
+ GET /integrations 200 in 1.4s (compile: 1787002533.8s, render: 154ms)
+ GET /api/tokko/properties?limit=6 200 in 1.4s
+ GET /contacts 200 in 1.3s (compile: 1787002533.8s, render: 122ms)
+ GET /campaigns 200 in 2.0s (compile: 1787002533.7s, render: 131ms)
+ GET /properties 200 in 1.8s (compile: 1787002533.7s, render: 114ms)
+ GET /templates 200 in 1.6s (compile: 1787002533.5s, render: 117ms)
+ GET /dashboard 200 in 1.4s (compile: 1787002533.6s, render: 121ms)
+ GET /dashboard?_rsc 200 in 1.7s (compile: 1787002534.0s, render: 0ms)
+ GET /dashboard 200 in 1.3s (compile: 1787002533.5s, render: 156ms)
+ GET /campaigns?_rsc 200 in 1.9s (compile: 1787002533.8s, render: 0ms)
+ GET /automations?_rsc 200 in 1.3s (compile: 1787002533.8s, render: 0ms)
+ GET /activity?_rsc 200 in 1.1s (compile: 1787002533.8s, render: 0ms)
+ GET /api/resend/emails 200 in 1.2s
+ GET /templates?_rsc 200 in 1.8s (compile: 1787002533.8s, render: 0ms)
+ GET /api/templates/preview?siteId=areaprime&type=weekly_new_properties 200 in 1.9s
+ GET /contacts 200 in 2.4s (compile: 1787002534.6s, render: 119ms)
+ GET /campaigns 200 in 1.9s (compile: 1787002533.8s, render: 137ms)
+ GET /campaigns?status=draft&_rsc 200 in 1.8s (compile: 1787002533.7s, render: 0ms)
+ GET /campaigns?status=draft&q=sin+coincidencia&_rsc 200 in 1.9s (compile: 1787002533.8s, render: 0ms)
+ GET /campaigns?status=draft&_rsc 200 in 1.9s (compile: 1787002533.9s, render: 0ms)
+ GET /campaigns?status=draft 200 in 2.3s (compile: 1787002534.2s, render: 124ms)
+ GET /campaigns?_rsc 200 in 1.6s (compile: 1787002533.5s, render: 0ms)
+ GET /contacts 200 in 1.7s (compile: 1787002534.1s, render: 126ms)
+ GET /campaigns?q=sin-coincidencias 200 in 1.9s (compile: 1787002533.8s, render: 122ms)
+ GET /campaigns 200 in 1.6s (compile: 1787002533.5s, render: 180ms)
+ GET /campaigns 307 in 297ms
+ GET /login 200 in 150ms (compile: 1787002532.8s, render: 110ms)
+ GET /dashboard 200 in 2.1s (compile: 1787002534.3s, render: 122ms)
+ GET /dashboard 200 in 2.6s (compile: 1787002534.8s, render: 121ms)
+ GET /dashboard 200 in 2.9s (compile: 1787002534.7s, render: 151ms)
+ GET /dashboard?_rsc 200 in 1.7s (compile: 1787002533.9s, render: 0ms)
+ GET /dashboard 307 in 34ms
+ GET /login 200 in 233ms (compile: 1787002532.8s, render: 155ms)
+ GET /properties 200 in 2.1s (compile: 1787002534.0s, render: 124ms)
+ GET /templates 200 in 1.9s (compile: 1787002533.8s, render: 123ms)
+ GET /api/templates/preview?siteId=areaprime&type=weekly_new_properties 200 in 2.3s
+ GET /properties 200 in 2.7s (compile: 1787002534.6s, render: 161ms)
+ GET /templates 200 in 2.0s (compile: 1787002533.8s, render: 121ms)
+ GET /api/templates/preview?siteId=areaprime&type=weekly_new_properties 200 in 1.9s
+ GET /api/templates/preview?siteId=areaprime&type=monthly_properties 200 in 2.1s
+ GET /properties 200 in 2.3s (compile: 1787002534.1s, render: 118ms)
+ GET /properties 307 in 281ms
+ GET /login 200 in 164ms (compile: 1787002532.8s, render: 126ms)
+ GET /properties 200 in 2.8s (compile: 1787002534.7s, render: 206ms)
+ GET /properties?_rsc 200 in 1.9s (compile: 1787002533.8s, render: 0ms)
+ GET /campaigns 200 in 2.8s (compile: 1787002534.7s, render: 129ms)
+ GET /campaigns 200 in 2.6s (compile: 1787002534.5s, render: 141ms)
+ GET /dashboard 200 in 1.4s (compile: 1787002533.6s, render: 135ms)
+ GET /campaigns 200 in 2.5s (compile: 1787002534.4s, render: 161ms)
+ GET /campaigns 200 in 2.7s (compile: 1787002534.6s, render: 135ms)
+ GET /dashboard 200 in 2.0s (compile: 1787002534.2s, render: 148ms)
+ GET /dashboard 200 in 2.0s (compile: 1787002534.1s, render: 133ms)
+ GET /dashboard 200 in 1.8s (compile: 1787002534.1s, render: 150ms)

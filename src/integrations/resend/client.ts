@@ -1,11 +1,24 @@
 import { readLimitedJson } from "@/src/security/outbound";
 
-export function requireResendKey() {
-  const key = process.env.RESEND_API_KEY;
-  if (!key || key === "re_tu_api_key_aqui") {
+export function requireResendKey(siteId?: string) {
+  if (siteId) {
+    const cleanId = siteId.toLowerCase().replace(/^area-?/, "").replace(/[^a-z0-9]/g, "");
+    const candidates = [
+      `RESEND_API_KEY_AREA_${cleanId.toUpperCase()}`,
+      `RESEND_API_KEY_${cleanId.toUpperCase()}`,
+      `RESEND_API_KEY-${siteId.toLowerCase()}`,
+    ];
+    for (const name of candidates) {
+      const val = process.env[name];
+      if (val && val !== "re_tu_api_key_aqui") return val;
+    }
+  }
+
+  const defaultKey = process.env.RESEND_API_KEY || process.env.RESEND_API_KEY_AREA_PRIME;
+  if (!defaultKey || defaultKey === "re_tu_api_key_aqui") {
     throw new Error("Resend integration not configured. Configura RESEND_API_KEY en .env o .env.local");
   }
-  return key;
+  return defaultKey;
 }
 
 export type SendEmailParams = {
@@ -14,6 +27,7 @@ export type SendEmailParams = {
   html?: string;
   text?: string;
   from?: string;
+  siteId?: string;
 };
 
 export async function sendResendEmail({
@@ -22,9 +36,11 @@ export async function sendResendEmail({
   html,
   text,
   from,
+  siteId,
 }: SendEmailParams) {
-  const apiKey = requireResendKey();
+  const apiKey = requireResendKey(siteId);
   const sender = from || "Area Prime <notificaciones@areaprime.com.pe>";
+
 
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -53,8 +69,8 @@ export async function sendResendEmail({
   return { id: data.id };
 }
 
-export async function getResendEmailStatus(id: string) {
-  const apiKey = requireResendKey();
+export async function getResendEmailStatus(id: string, siteId?: string) {
+  const apiKey = requireResendKey(siteId);
 
   const response = await fetch(`https://api.resend.com/emails/${id}`, {
     method: "GET",

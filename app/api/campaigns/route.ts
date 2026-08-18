@@ -23,10 +23,13 @@ export async function POST(request: Request) {
       throw new HttpError("Los elementos seleccionados no son válidos.");
     }
     const itemIds = [...new Set(input.itemIds as string[])];
+    const customRecipients = Array.isArray(input.customRecipients)
+      ? input.customRecipients.filter((email: unknown) => typeof email === "string" && email.includes("@"))
+      : undefined;
     assertSiteRole(await requireApiAccess(), siteId, ["site_admin", "editor"]);
     return NextResponse.json({
       ok: true,
-      ...(await createCampaignDraft({ siteId, type, name, subject, introduction, audienceInterest, itemIds })),
+      ...(await createCampaignDraft({ siteId, type, name, subject, introduction, audienceInterest, itemIds, customRecipients })),
     }, { status: 201 });
   } catch (error) {
     return apiErrorResponse(error, "No se pudo crear la campaña.");
