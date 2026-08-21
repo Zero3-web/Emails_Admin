@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./ui-system.css";
+import "./mobile-ui.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://area-mail.openai.site"),

@@ -1,23 +1,37 @@
 "use client";
 import { Check, ChevronDown, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import type { Site } from "@/src/domain/types";
 
 export function SiteForm({ site }: { site: Site }) {
+  const router = useRouter();
   const [state, setState] = useState(site);
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const change = (key: keyof Site, value: string) =>
-    { setState((current) => ({ ...current, [key]: value })); setErrors((current) => ({ ...current, [key]: "" })); setMessage(""); };
+
+  const change = (key: keyof Site, value: string) => {
+    setState((current) => ({ ...current, [key]: value }));
+    setErrors((current) => ({ ...current, [key]: "" }));
+    setMessage("");
+  };
+
   async function save() {
     const nextErrors: Record<string, string> = {};
     if (!state.name.trim()) nextErrors.name = "Escribe el nombre visible de la marca.";
-    if (!/^(?:https?:\/\/)?(?:[a-z0-9-]+\.)+[a-z]{2,}(?:\/.*)?$/i.test(state.domain.trim())) nextErrors.domain = "Escribe un dominio válido.";
+    if (!/^(?:https?:\/\/)?(?:[a-z0-9-]+\.)+[a-z]{2,}(?:\/.*)?$/i.test(state.domain.trim()))
+      nextErrors.domain = "Escribe un dominio válido.";
     if (!state.senderName.trim()) nextErrors.senderName = "Indica quién aparecerá como remitente.";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.senderEmail.trim())) nextErrors.senderEmail = "Revisa el formato del correo.";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.senderEmail.trim()))
+      nextErrors.senderEmail = "Revisa el formato del correo.";
+
     setErrors(nextErrors);
-    if (Object.keys(nextErrors).length) { setMessage("Revisa los campos marcados antes de guardar."); return; }
+    if (Object.keys(nextErrors).length) {
+      setMessage("Revisa los campos marcados antes de guardar.");
+      return;
+    }
+
     setSaving(true);
     setMessage("");
     try {
@@ -26,17 +40,46 @@ export function SiteForm({ site }: { site: Site }) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify(state),
       });
-      setMessage(response.ok ? "Cambios guardados correctamente." : "No se pudieron guardar los cambios.");
-    } finally { setSaving(false); }
+
+      const data = await response.json();
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error ?? "No se pudieron guardar los cambios.");
+      }
+
+      if (data.site) {
+        setState(data.site);
+      }
+      setMessage("Cambios guardados correctamente.");
+      router.refresh();
+    } catch (cause) {
+      setMessage(
+        cause instanceof Error ? cause.message : "No se pudieron guardar los cambios.",
+      );
+    } finally {
+      setSaving(false);
+    }
   }
+
   return (
-    <div className={`card form-card site-form-refined ${saving ? "is-processing" : ""}`} aria-busy={saving}>
+    <div
+      className={`card form-card site-form-refined ${saving ? "is-processing" : ""}`}
+      aria-busy={saving}
+    >
       <div className="section-head">
-        <div><h2 className="section-title">Identidad y remitente</h2><p>Estos datos son visibles para las personas que reciben tus correos.</p></div>
+        <div>
+          <h2 className="section-title">Identidad y remitente</h2>
+          <p>Estos datos son visibles para las personas que reciben tus correos.</p>
+        </div>
         <button className="btn primary" onClick={save} disabled={saving} aria-busy={saving}>
-          {saving ? <Loader2 className="spin" size={15} /> : message.startsWith("Cambios") ? <Check size={15} /> : null}{saving ? "Guardando…" : message.startsWith("Cambios") ? "Guardado" : "Guardar cambios"}
+          {saving ? (
+            <Loader2 className="spin" size={15} />
+          ) : message.startsWith("Cambios") ? (
+            <Check size={15} />
+          ) : null}
+          {saving ? "Guardando…" : message.startsWith("Cambios") ? "Guardado" : "Guardar cambios"}
         </button>
       </div>
+
       <div className="form-grid">
         <Field
           id="site-name"
@@ -95,13 +138,43 @@ export function SiteForm({ site }: { site: Site }) {
           onChange={(v) => change("secondaryColor", v)}
         />
       </div>
-      <details className="site-form-advanced"><summary><ChevronDown size={14}/><span><strong>Configuración avanzada</strong><small>Identificador, zona horaria y fuente editorial</small></span></summary><div className="form-grid"><Field id="site-slug" label="Identificador interno" value={state.slug} onChange={(v) => change("slug", v)}/><div className="field"><label>Zona horaria</label><div className="site-static-field">{state.timezone || "America/Lima"}</div></div><Field id="site-wordpress" label="URL de WordPress" value={state.wordpressUrl} onChange={(v) => change("wordpressUrl", v)} full/></div></details>
+
+      <details className="site-form-advanced">
+        <summary>
+          <ChevronDown size={14} />
+          <span>
+            <strong>Configuración avanzada</strong>
+            <small>Identificador, zona horaria y fuente editorial</small>
+          </span>
+        </summary>
+        <div className="form-grid">
+          <Field
+            id="site-slug"
+            label="Identificador interno"
+            value={state.slug}
+            onChange={(v) => change("slug", v)}
+          />
+          <div className="field">
+            <label>Zona horaria</label>
+            <div className="site-static-field">{state.timezone || "America/Lima"}</div>
+          </div>
+          <Field
+            id="site-wordpress"
+            label="URL de WordPress"
+            value={state.wordpressUrl}
+            onChange={(v) => change("wordpressUrl", v)}
+            full
+          />
+        </div>
+      </details>
+
       {message && (
         <p
           className={
             message.startsWith("Cambios") ? "notice success" : "notice error"
           }
-          role={message.startsWith("Cambios") ? "status" : "alert"} aria-live="polite"
+          role={message.startsWith("Cambios") ? "status" : "alert"}
+          aria-live="polite"
         >
           {message}
         </p>

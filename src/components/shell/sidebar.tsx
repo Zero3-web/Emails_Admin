@@ -112,8 +112,8 @@ export function Sidebar({ pathname, open, withSite, onNavigate, onSignOut, usage
           </summary>
           {!collapsed && (
             <div>
-              {subLink("/automations", "Automatizaciones", <Zap size={13} />)}
-              {subLink("/activity", "Actividad de envíos", <Activity size={13} />)}
+              {subLink("/automations", "Automatizaciones", <Zap size={14} strokeWidth={1.5} />)}
+              {subLink("/activity", "Actividad de envíos", <Activity size={14} strokeWidth={1.5} />)}
             </div>
           )}
         </details>
@@ -130,12 +130,12 @@ export function Sidebar({ pathname, open, withSite, onNavigate, onSignOut, usage
           </summary>
           {!collapsed && (
             <div>
-              {subLink("/templates", "Plantillas", <Layers3 size={13} />)}
-              {subLink("/properties", "Propiedades", <Home size={13} />)}
-              {subLink("/sites", "Marcas", <Building2 size={13} />, false)}
-              {subLink("/integrations", "Integraciones", <PlugZap size={13} />, false)}
-              {subLink("/team", "Equipo y accesos", <UsersRound size={13} />, false)}
-              {subLink("/settings", "Estado del sistema", <Settings2 size={13} />, false)}
+              {subLink("/templates", "Plantillas", <Layers3 size={14} strokeWidth={1.5} />)}
+              {subLink("/properties", "Propiedades", <Home size={14} strokeWidth={1.5} />)}
+              {subLink("/sites", "Marcas", <Building2 size={14} strokeWidth={1.5} />, false)}
+              {subLink("/integrations", "Integraciones", <PlugZap size={14} strokeWidth={1.5} />, false)}
+              {subLink("/team", "Equipo y accesos", <UsersRound size={14} strokeWidth={1.5} />, false)}
+              {subLink("/settings", "Estado del sistema", <Settings2 size={14} strokeWidth={1.5} />, false)}
             </div>
           )}
         </details>

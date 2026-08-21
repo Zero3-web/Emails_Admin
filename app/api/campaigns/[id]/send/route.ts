@@ -42,6 +42,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     // Send emails in parallel or sequence
     const sender = `${site.senderName || site.name} <${site.senderEmail}>`;
     let sentCount = 0;
+    let lastError = "";
     
     for (const to of recipients) {
       try {
@@ -64,11 +65,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         sentCount++;
       } catch (err) {
         console.error(`Error sending email to ${to}:`, err);
+        lastError = err instanceof Error ? err.message : String(err);
       }
     }
 
     if (sentCount === 0) {
-      throw new Error("No se pudo enviar la campaña a ningún destinatario.");
+      throw new HttpError(lastError || "No se pudo enviar la campaña a ningún destinatario.");
     }
 
     // Mark as sent in DB

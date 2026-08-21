@@ -50,7 +50,7 @@ export function CampaignPerformanceTable({ campaigns, emails = [], siteById }: {
           <button id="dashboard-tab-campaigns" type="button" role="tab" aria-controls="dashboard-panel-campaigns" aria-selected={tab === "campaigns"} className={`aep-tab ${tab === "campaigns" ? "active" : ""}`} onClick={() => { setTab("campaigns"); setQuery(""); }}>Campañas <span className="aep-badge">{campaigns.length}</span></button>
         </div>
         <div className="aep-actions">
-          <label className="aep-search"><Search size={14} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={`Buscar ${tab === "emails" ? "correos" : "campañas"}`} aria-label="Buscar actividad" />{query && <button type="button" onClick={() => setQuery("")} aria-label="Limpiar búsqueda"><X size={13} /></button>}</label>
+          <label className="aep-search"><Search size={14} /><input className="search-input" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={`Buscar ${tab === "emails" ? "correos" : "campañas"}`} aria-label="Buscar actividad" />{query && <button type="button" onClick={() => setQuery("")} aria-label="Limpiar búsqueda"><X size={13} /></button>}</label>
           <button type="button" className="aep-export-btn" onClick={exportRows} disabled={!hasRows}><Download size={14} /><span>Exportar</span></button>
         </div>
       </header>

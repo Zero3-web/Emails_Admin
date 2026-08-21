@@ -38,7 +38,7 @@ export function DashboardView({
         </div>
       </header>
 
-      <section className="dashboard-shortcuts" aria-label="Accesos rápidos">
+      <section className={`dashboard-shortcuts ${showComposer ? "is-modal-open" : ""}`} aria-label="Accesos rápidos">
         <button
           type="button"
           onClick={() => setShowComposer(true)}

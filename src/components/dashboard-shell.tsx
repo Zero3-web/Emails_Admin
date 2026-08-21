@@ -7,6 +7,7 @@ import type { Site } from "@/src/domain/types";
 import { createSupabaseBrowser } from "@/src/database/supabase/browser";
 import { Sidebar } from "./shell/sidebar";
 import { Topbar } from "./shell/topbar";
+import { MobileChrome } from "./mobile/mobile-chrome";
 
 type DashboardShellProps = {
   children: React.ReactNode;
@@ -21,6 +22,7 @@ export function DashboardShell({ children, sites, user, usage }: DashboardShellP
   const router = useRouter();
   const params = useSearchParams();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
   const selectedSite = params?.get?.("site") ?? "all";
   const withSite = (href: string) => `${href}${selectedSite !== "all" ? `?site=${selectedSite}` : ""}`;
 
@@ -71,6 +73,17 @@ export function DashboardShell({ children, sites, user, usage }: DashboardShellP
       {mobileOpen && <button className="ref-mobile-backdrop" aria-label="Cerrar menú" onClick={() => setMobileOpen(false)} />}
       <main className="ref-main" suppressHydrationWarning>
         <Topbar sites={sites} selectedSite={selectedSite} userInitial={(user.name || user.email).slice(0, 1).toUpperCase()} onMenuOpen={() => setMobileOpen(true)} onSiteChange={changeSite} />
+        <MobileChrome
+          pathname={pathname}
+          sites={sites}
+          selectedSite={selectedSite}
+          userInitial={(user.name || user.email).slice(0, 1).toUpperCase()}
+          moreOpen={mobileMoreOpen}
+          withSite={withSite}
+          onMoreChange={setMobileMoreOpen}
+          onSiteChange={changeSite}
+          onSignOut={() => void signOut()}
+        />
         <div className="ref-content" id="main-content" tabIndex={-1}><div className="ref-page-transition" key={pathname}>{children}</div></div>
       </main>
 
