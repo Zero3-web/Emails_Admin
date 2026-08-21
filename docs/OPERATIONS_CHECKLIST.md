@@ -20,13 +20,13 @@ Esta lista complementa los controles incluidos en el código. No se debe habilit
 - [ ] Activar copias de seguridad/PITR y probar una restauración.
 - [ ] Mantener la service-role key solo en secretos de servidor; nunca en el navegador, repositorio o ticket.
 
-## Cloudflare y despliegue
+## Vercel y despliegue
 
-- [ ] Desplegar con un dominio propio; un enlace `trycloudflare.com` no es un entorno estable.
-- [ ] Guardar secretos con Cloudflare Secrets/Wrangler, no mediante archivos `.env` desplegados.
-- [ ] Activar Managed WAF Rules y bot protection.
+- [ ] Desplegar con un dominio propio y registrar ese dominio en los callbacks de Supabase y Resend.
+- [ ] Guardar secretos en Vercel Environment Variables; `.env` y `.env.local` deben quedar excluidos por `.vercelignore`.
+- [ ] Activar Vercel Firewall/WAF y protección contra bots según el plan contratado.
 - [ ] Aplicar rate limits: login/recuperación 5 por minuto/IP; APIs mutables 60 por minuto/IP; sincronizaciones y tareas 5 por minuto/IP; webhook Resend 120 por minuto/IP.
-- [ ] Proteger `/api/tasks/*` con Cloudflare Access si se mantiene como ejecución manual.
+- [ ] Mantener `/api/tasks/*` limitado a `platform_owner` y aplicar un rate limit distribuido adicional.
 - [ ] Configurar alertas para 401/403/413/429/5xx, fallos de webhook, fallos de sincronización y latencia de proveedores.
 
 ## Envíos y cumplimiento
@@ -35,6 +35,7 @@ Esta lista complementa los controles incluidos en el código. No se debe habilit
 - [ ] Configurar SPF, DKIM y DMARC del dominio remitente.
 - [ ] Mantener un enlace de baja y el flujo de supresión antes de activar campañas masivas.
 - [ ] Mantener `ENABLE_BULK_SEND=false` hasta ejecutar una campaña piloto aprobada.
+- [ ] Desplegar Trigger.dev, verificar `send-campaign` y confirmar la tarea programada `automation-scheduler` en `America/Lima`.
 
 ## Calidad recurrente
 

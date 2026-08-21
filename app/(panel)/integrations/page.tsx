@@ -25,8 +25,16 @@ const formatSync = (value: string | null) => {
 export default async function Integrations() {
   if (!(await requirePanelAccess()).platformOwner) redirect("/no-access");
   const [integrations, sites] = await Promise.all([getIntegrations(), getSites()]);
-  const resendReady = Boolean(process.env.RESEND_API_KEY);
-  const resendTrackingReady = Boolean(process.env.RESEND_WEBHOOK_SECRET);
+  const resendReady = Boolean(
+    (process.env.RESEND_API_KEY_AREA_PRIME || process.env.RESEND_API_KEY_PRIME || process.env.RESEND_API_KEY) &&
+    (process.env.RESEND_API_KEY_AREA_HUB || process.env.RESEND_API_KEY_HUB) &&
+    (process.env.RESEND_API_KEY_AREA_RETAIL || process.env.RESEND_API_KEY_RETAIL),
+  );
+  const resendTrackingReady = Boolean(
+    (process.env.RESEND_WEBHOOK_SECRET_AREA_PRIME || process.env.RESEND_WEBHOOK_SECRET) &&
+      process.env.RESEND_WEBHOOK_SECRET_AREA_HUB &&
+      process.env.RESEND_WEBHOOK_SECRET_AREA_RETAIL,
+  );
   const supabaseReady = isSupabaseConfigured();
   const connected = integrations.filter((item) => item.status === "connected").length;
   const attention = integrations.filter((item) => item.status === "error" || item.status === "pending").length + (resendReady && resendTrackingReady ? 0 : 1);

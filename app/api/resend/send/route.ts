@@ -3,10 +3,12 @@ import { sendResendEmail } from "@/src/integrations/resend/client";
 import { recordOutboundEmail } from "@/src/database/repositories";
 import { assertPlatformOwner, requireApiAccess } from "@/src/auth/server";
 import { apiErrorResponse, assertEmail, assertSameOrigin, escapeHtml, readJsonObject, requiredString, singleLineString } from "@/src/security/http";
+import { enforceRateLimit } from "@/src/security/rate-limit";
 
 export async function POST(request: Request) {
   try {
     assertSameOrigin(request);
+    await enforceRateLimit(request, "test-email", 10, 60);
     assertPlatformOwner(await requireApiAccess());
     const body = await readJsonObject(request, 32 * 1024);
     const to = assertEmail(body.to, "El destinatario");

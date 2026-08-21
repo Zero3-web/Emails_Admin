@@ -1,24 +1,33 @@
 "use client";
 
-import { AlertCircle, CalendarDays, CheckCircle2, Clock3, Mail, RefreshCw, Search, Send, UsersRound, X } from "lucide-react";
+import { AlertCircle, CalendarDays, Check, CheckCircle2, Clock3, Eye, Mail, MousePointer, RefreshCw, Search, Send, UsersRound, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useDialogA11y } from "@/src/hooks/use-dialog-a11y";
 
 type SentEmailItem = { id: string; to: string; subject: string; from: string; date: string; status: string; errorMessage?: string };
 
-const statusMeta: Record<string, { label: string; tone: string }> = {
-  sent: { label: "Enviado", tone: "sent" },
-  delivered: { label: "Entregado", tone: "delivered" },
-  bounced: { label: "Rebotado", tone: "failed" },
-  failed: { label: "Fallido", tone: "failed" },
-  queued: { label: "En cola", tone: "pending" },
-  opened: { label: "Abierto", tone: "delivered" },
-  clicked: { label: "Con clic", tone: "delivered" },
-  complained: { label: "Reportado", tone: "failed" },
-  delivery_delayed: { label: "Demorado", tone: "pending" },
+const statusMeta: Record<string, { label: string; tone: "grey" | "red" }> = {
+  sent: { label: "Enviado", tone: "grey" },
+  delivered: { label: "Entregado", tone: "grey" },
+  opened: { label: "Abierto", tone: "grey" },
+  clicked: { label: "Con clic", tone: "grey" },
+  queued: { label: "En cola", tone: "grey" },
+  delivery_delayed: { label: "Demorado", tone: "grey" },
+  bounced: { label: "Rebotado", tone: "red" },
+  failed: { label: "Fallido", tone: "red" },
+  suppressed: { label: "Bloqueado", tone: "red" },
+  blocked: { label: "Bloqueado", tone: "red" },
+  complained: { label: "Reportado", tone: "red" },
 };
 
-const normalizeStatus = (status: string) => status.replace(/^email\./, "").replaceAll(".", "_");
+const normalizeStatus = (status: string) => {
+  const clean = String(status || "").replace(/^email\./, "").replaceAll(".", "_").toLowerCase();
+  if (clean.includes("suppress")) return "suppressed";
+  if (clean.includes("bounce")) return "bounced";
+  if (clean.includes("fail")) return "failed";
+  if (clean.includes("block")) return "blocked";
+  return clean;
+};
 const formatDate = (value: string) => {
   const date = new Date(value);
   return Number.isNaN(date.getTime())
@@ -127,12 +136,84 @@ export function SentEmailsHistory() {
 
   if (loading)
     return (
-      <div className="activity-loading" aria-label="Cargando actividad">
-        <span>
-          <RefreshCw className="spin" size={18} />
-        </span>
-        <strong>Actualizando actividad…</strong>
-        <small>Estamos consultando el estado más reciente de los envíos.</small>
+      <div className="activity-workspace" aria-label="Cargando actividad">
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+          @keyframes skeletonPulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 0.3; }
+            100% { opacity: 0.6; }
+          }
+          .skeleton-pulse {
+            animation: skeletonPulse 1.4s ease-in-out infinite;
+          }
+        `,
+          }}
+        />
+        {/* Skeleton Overview Metrics */}
+        <section className="activity-overview">
+          {[1, 2, 3, 4].map((index) => (
+            <article key={index} style={{ opacity: 0.75 }}>
+              <div
+                className="skeleton-pulse"
+                style={{ width: 36, height: 36, borderRadius: 8, background: "var(--ui-border, #e2e8f0)" }}
+              />
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, flex: 1 }}>
+                <div
+                  className="skeleton-pulse"
+                  style={{ width: 44, height: 18, borderRadius: 4, background: "var(--ui-border, #e2e8f0)" }}
+                />
+                <div
+                  className="skeleton-pulse"
+                  style={{ width: 110, height: 12, borderRadius: 4, background: "var(--ui-border, #e2e8f0)" }}
+                />
+              </div>
+            </article>
+          ))}
+        </section>
+
+        {/* Skeleton Table Panel */}
+        <section className="card activity-panel" style={{ padding: "20px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+            <div>
+              <div
+                className="skeleton-pulse"
+                style={{ width: 170, height: 22, borderRadius: 6, background: "var(--ui-border, #e2e8f0)", marginBottom: 8 }}
+              />
+              <div
+                className="skeleton-pulse"
+                style={{ width: 280, height: 12, borderRadius: 4, background: "var(--ui-border, #e2e8f0)" }}
+              />
+            </div>
+            <div
+              className="skeleton-pulse"
+              style={{ width: 90, height: 32, borderRadius: 8, background: "var(--ui-border, #e2e8f0)" }}
+            />
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {[1, 2, 3, 4, 5, 6].map((row) => (
+              <div
+                key={row}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "130px 1fr 1fr 90px",
+                  gap: 16,
+                  padding: "14px 16px",
+                  borderRadius: 8,
+                  background: "var(--surface-subtle, #f8fafc)",
+                  alignItems: "center",
+                }}
+              >
+                <div className="skeleton-pulse" style={{ width: 100, height: 12, borderRadius: 4, background: "var(--ui-border, #e2e8f0)" }} />
+                <div className="skeleton-pulse" style={{ width: 160, height: 12, borderRadius: 4, background: "var(--ui-border, #e2e8f0)" }} />
+                <div className="skeleton-pulse" style={{ width: 220, height: 12, borderRadius: 4, background: "var(--ui-border, #e2e8f0)" }} />
+                <div className="skeleton-pulse" style={{ width: 65, height: 20, borderRadius: 10, background: "var(--ui-border, #e2e8f0)", justifySelf: "end" }} />
+              </div>
+            ))}
+          </div>
+        </section>
       </div>
     );
   if (loadError)
@@ -154,7 +235,7 @@ export function SentEmailsHistory() {
 
   const currentStatusState = selectedItem ? normalizeStatus(detailData?.status ?? selectedItem.status) : "sent";
   const isDeliveredState = ["delivered", "opened", "clicked"].includes(currentStatusState);
-  const isBouncedState = ["bounced", "failed", "complained"].includes(currentStatusState);
+  const isBouncedState = ["bounced", "failed", "complained", "suppressed", "blocked"].includes(currentStatusState);
 
   return (
     <div className="activity-workspace">
@@ -324,15 +405,12 @@ export function SentEmailsHistory() {
                         </span>
                       </td>
                       <td>
-                        <span className={`activity-status ${meta.tone}`}>
-                          {meta.tone === "delivered" ? (
-                            <CheckCircle2 size={11} />
-                          ) : meta.tone === "failed" || meta.tone === "bounced" ? (
-                            <AlertCircle size={11} />
-                          ) : (
-                            <Send size={11} />
-                          )}{" "}
-                          {meta.label}
+                        <span
+                          className={`activity-status-icon ${meta.tone}`}
+                          title={`Estado: ${meta.label}`}
+                          aria-label={`Estado: ${meta.label}`}
+                        >
+                          <Send size={14} />
                         </span>
                       </td>
                     </tr>
@@ -467,7 +545,7 @@ export function SentEmailsHistory() {
                 </div>
               </div>
 
-              {/* EVENTOS DEL ENVÍO TIMELINE (Spanish + Theme Responsive) */}
+              {/* EVENTOS DEL ENVÍO TIMELINE */}
               <div>
                 <small style={{ fontSize: "11px", color: "var(--muted, #64748b)", fontWeight: 700, letterSpacing: "0.5px", textTransform: "uppercase", display: "block", marginBottom: "8px" }}>
                   EVENTOS DEL ENVÍO
@@ -543,7 +621,7 @@ export function SentEmailsHistory() {
                           borderRadius: "12px",
                         }}
                       >
-                        Rebotado
+                        {currentStatusState === "suppressed" || currentStatusState === "blocked" ? "Bloqueado" : "Rebotado"}
                       </span>
                       <span style={{ fontSize: "10px", color: "var(--muted, #64748b)" }}>{formatDate(selectedItem.date)}</span>
                     </div>

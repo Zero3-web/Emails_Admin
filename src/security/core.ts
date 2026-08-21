@@ -1,4 +1,4 @@
-type ErrorStatus = 400 | 401 | 403 | 404 | 409 | 413 | 415 | 422 | 429 | 500;
+type ErrorStatus = 400 | 401 | 403 | 404 | 409 | 413 | 415 | 422 | 429 | 500 | 503;
 
 export class HttpError extends Error {
   constructor(message: string, public readonly status: ErrorStatus = 400) {

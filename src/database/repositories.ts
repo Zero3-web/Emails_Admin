@@ -10,6 +10,14 @@ import type {
   SiteMember,
 } from "@/src/domain/types";
 import { cache } from "react";
+
+export type ResendUsage = {
+  todayCount?: number;
+  dailyLimit?: number;
+  monthCount?: number;
+  monthlyLimit?: number;
+  bySite?: Record<string, { todayCount: number; dailyLimit: number; monthCount: number; monthlyLimit: number }>;
+};
 import { createSupabaseAdmin } from "./supabase/server";
 import { TokkoProvider } from "@/src/integrations/tokko/provider";
 import { WordPressProvider } from "@/src/integrations/wordpress/provider";
@@ -191,6 +199,7 @@ export async function createCampaignDraft(input: {
   audienceInterest: ContactInterest;
   itemIds: string[];
   customRecipients?: string[];
+  automation?: { id: string; scheduledFor: string; requiresApproval: boolean };
 }) {
   const db = requireDb();
   const { data: site, error: siteError } = await db
@@ -444,6 +453,18 @@ export async function suppressContact(contactId: string) {
     .single();
   if (error) throw error;
   return data;
+}
+
+export async function suppressContactsBulk(contactIds: string[]) {
+  if (!contactIds.length) return [];
+  const db = requireDb();
+  const { data, error } = await db
+    .from("contacts")
+    .update({ status: "unsubscribed", unsubscribed_at: new Date().toISOString() })
+    .in("id", contactIds)
+    .select("id,email,status,unsubscribed_at");
+  if (error) throw error;
+  return data ?? [];
 }
 
 export async function importContacts(input: {
@@ -1101,6 +1122,8 @@ export async function getOutboundEmails() {
     status: row.status,
     errorMessage: row.metadata?.error_message,
     html: row.metadata?.html,
+    siteId: row.site_id,
+    events: row.status === "delivered" || row.status === "sent" ? ["email.delivered"] : [],
   }));
 }
 
@@ -1236,3 +1259,4 @@ export async function markCampaignSent(campaignId: string, resendBroadcastId: st
   if (error) throw error;
   return data;
 }
+

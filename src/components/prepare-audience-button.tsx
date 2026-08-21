@@ -4,7 +4,7 @@ import { Check, FileSpreadsheet, Loader2, Upload, UsersRound, X } from "lucide-r
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useDialogA11y } from "@/src/hooks/use-dialog-a11y";
-import { parseContactCsv, type ContactCsvRow } from "@/src/lib/contacts/csv";
+import { parseContactFile, type ContactCsvRow } from "@/src/lib/contacts/csv";
 import type { ContactInterest } from "@/src/domain/types";
 
 export function PrepareAudienceButton({ campaignId, siteId, interest, label = "Preparar audiencia" }: { campaignId: string; siteId: string; interest: ContactInterest; label?: string }) {
@@ -13,7 +13,7 @@ export function PrepareAudienceButton({ campaignId, siteId, interest, label = "P
   const [open, setOpen] = useState(false);
   const [rows, setRows] = useState<ContactCsvRow[]>([]);
   const [fileName, setFileName] = useState("");
-  const [source, setSource] = useState("");
+  const [source, setSource] = useState("Formulario web de la marca");
   const [confirmed, setConfirmed] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -23,7 +23,7 @@ export function PrepareAudienceButton({ campaignId, siteId, interest, label = "P
     if (!file) return;
     setError("");
     try {
-      const parsed = parseContactCsv(await file.text());
+      const parsed = await parseContactFile(file);
       if (parsed.length > 5000) throw new Error("El archivo supera el máximo de 5,000 filas.");
       setRows(parsed);
       setFileName(file.name);
@@ -70,9 +70,9 @@ export function PrepareAudienceButton({ campaignId, siteId, interest, label = "P
       <div ref={dialogRef} className="audience-quick-dialog" role="dialog" aria-modal="true" aria-labelledby="audience-quick-title" tabIndex={-1}>
         <header><span><UsersRound size={18}/></span><div><small>Campaña</small><h2 id="audience-quick-title">Preparar audiencia</h2><p>Importa contactos autorizados sin salir de la campaña.</p></div><button type="button" aria-label="Cerrar" onClick={() => setOpen(false)} disabled={saving}><X size={18}/></button></header>
         <div className="audience-quick-body">
-          <input ref={inputRef} hidden type="file" accept=".csv,text/csv" onChange={(event) => void choose(event.target.files?.[0])}/>
+          <input ref={inputRef} hidden type="file" accept=".xlsx,.xls,.csv,.tsv,.ods,.txt,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" onChange={(event) => void choose(event.target.files?.[0])}/>
           <button type="button" className="audience-quick-file" onClick={() => inputRef.current?.click()}>
-            <FileSpreadsheet size={22}/><span><strong>{fileName || "Selecciona un archivo CSV"}</strong><small>{rows.length ? `${rows.length.toLocaleString("es-PE")} contactos detectados` : "Correo obligatorio · máximo 5,000 filas"}</small></span><em>{rows.length ? "Cambiar" : "Elegir archivo"}</em>
+            <FileSpreadsheet size={22}/><span><strong>{fileName || "Selecciona un archivo Excel o CSV"}</strong><small>{rows.length ? `${rows.length.toLocaleString("es-PE")} contactos detectados` : "Correo obligatorio · máximo 5,000 filas"}</small></span><em>{rows.length ? "Cambiar" : "Elegir archivo"}</em>
           </button>
           <label className="field"><span>Origen del consentimiento</span><input value={source} onChange={(event) => setSource(event.target.value)} placeholder="Ej. formulario web de la marca"/></label>
           <label className={`audience-quick-consent ${confirmed ? "checked" : ""}`}><input type="checkbox" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)}/><span>{confirmed && <Check size={12}/>}</span><div><strong>Confirmo que tengo autorización</strong><small>Estos contactos aceptaron recibir comunicaciones.</small></div></label>
@@ -83,3 +83,4 @@ export function PrepareAudienceButton({ campaignId, siteId, interest, label = "P
     </div>}
   </>;
 }
+

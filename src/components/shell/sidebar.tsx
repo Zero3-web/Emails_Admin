@@ -1,15 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
-  BarChart3,
   Building2,
   Activity,
   ChevronDown,
   ChevronUp,
-  Eye,
   Home,
   Layers3,
   LogOut,
@@ -28,6 +25,7 @@ type UsageData = {
   dailyLimit: number;
   monthCount: number;
   monthlyLimit: number;
+  bySite?: Record<string, { todayCount: number; dailyLimit: number; monthCount: number; monthlyLimit: number }>;
 };
 
 type SidebarProps = {
@@ -37,12 +35,12 @@ type SidebarProps = {
   onNavigate: () => void;
   onSignOut: () => void;
   usage?: UsageData;
+  selectedSite?: string;
   platformOwner?: boolean;
 };
 
-export function Sidebar({ pathname, open, withSite, onNavigate, onSignOut, usage, platformOwner }: SidebarProps) {
+export function Sidebar({ pathname, open, withSite, onNavigate, onSignOut, usage, selectedSite = "all", platformOwner }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
-  const router = useRouter();
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
   const campaignsActive = ["/campaigns", "/automations", "/activity", "/analytics"].some(isActive);
   const settingsActive = ["/settings", "/sites", "/integrations", "/team", "/templates", "/properties"].some(isActive);
@@ -145,7 +143,7 @@ export function Sidebar({ pathname, open, withSite, onNavigate, onSignOut, usage
 
       {/* Footer Area: Límite de Envíos ABOVE Cerrar Sesión (as requested in audio) */}
       <div className="ref-sidebar-footer">
-        <CampaignLimitInline usage={usage} collapsed={collapsed} />
+        <CampaignLimitInline usage={selectedSite === "all" ? usage : usage?.bySite?.[selectedSite]} collapsed={collapsed} />
 
         <button className="ref-logout" onClick={onSignOut} title={collapsed ? "Cerrar sesión" : undefined}>
           <LogOut size={16} strokeWidth={1.9} className="ref-nav-icon" />
@@ -161,14 +159,14 @@ function CampaignLimitInline({ usage, collapsed }: { usage?: UsageData; collapse
 
   if (collapsed) return null;
 
-  const monthCount = usage?.monthCount ?? 7;
-  const monthlyLimit = usage?.monthlyLimit ?? 3000;
-  const monthPercent = Math.min(100, Math.round((monthCount / monthlyLimit) * 100));
-  const formattedMonthlyLimit = monthlyLimit >= 1000 ? "3,000" : String(monthlyLimit);
+  const monthCount = usage?.monthCount ?? 0;
+  const monthlyLimit = usage?.monthlyLimit ?? 0;
+  const monthPercent = monthlyLimit ? Math.min(100, Math.round((monthCount / monthlyLimit) * 100)) : 0;
+  const formattedMonthlyLimit = monthlyLimit.toLocaleString("es-PE");
 
-  const todayCount = usage?.todayCount ?? 7;
-  const dailyLimit = usage?.dailyLimit ?? 100;
-  const dailyPercent = Math.min(100, Math.round((todayCount / dailyLimit) * 100));
+  const todayCount = usage?.todayCount ?? 0;
+  const dailyLimit = usage?.dailyLimit ?? 0;
+  const dailyPercent = dailyLimit ? Math.min(100, Math.round((todayCount / dailyLimit) * 100)) : 0;
 
   const getProgressColor = (percent: number) =>
     percent >= 90

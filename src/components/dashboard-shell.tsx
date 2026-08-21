@@ -14,7 +14,7 @@ type DashboardShellProps = {
   sites: Site[];
   runtime: { environment: "development" | "production"; bulkSendingEnabled: boolean };
   user: { email: string; name: string; platformOwner: boolean };
-  usage?: { todayCount: number; dailyLimit: number; monthCount: number; monthlyLimit: number };
+  usage?: { todayCount: number; dailyLimit: number; monthCount: number; monthlyLimit: number; bySite?: Record<string, { todayCount: number; dailyLimit: number; monthCount: number; monthlyLimit: number }> };
 };
 
 export function DashboardShell({ children, sites, user, usage }: DashboardShellProps) {
@@ -97,7 +97,7 @@ export function DashboardShell({ children, sites, user, usage }: DashboardShellP
   return (
     <div className="ref-app">
       <a className="skip-link" href="#main-content">Saltar al contenido</a>
-      <Sidebar pathname={pathname} open={mobileOpen} withSite={withSite} onNavigate={() => setMobileOpen(false)} onSignOut={() => void signOut()} usage={usage} platformOwner={user.platformOwner} />
+      <Sidebar pathname={pathname} open={mobileOpen} withSite={withSite} onNavigate={() => setMobileOpen(false)} onSignOut={() => void signOut()} usage={usage} selectedSite={selectedSite} platformOwner={user.platformOwner} />
       {mobileOpen && <button className="ref-mobile-backdrop" aria-label="Cerrar menú" onClick={() => setMobileOpen(false)} />}
       <main className="ref-main" suppressHydrationWarning>
         <Topbar sites={sites} selectedSite={selectedSite} userInitial={(user.name || user.email).slice(0, 1).toUpperCase()} onMenuOpen={() => setMobileOpen(true)} onSiteChange={changeSite} />

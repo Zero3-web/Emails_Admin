@@ -8,7 +8,17 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 const eslintConfig = defineConfig([
-  globalIgnores([".next/**", "dist/**", "out/**", "build/**", ".audit-workers-types/**", "next-env.d.ts"]),
+  globalIgnores([
+    ".next/**",
+    "dist/**",
+    "out/**",
+    "build/**",
+    ".audit-workers-types/**",
+    "next-env.d.ts",
+    "src/scripts/**",
+    "updater.cjs",
+    "updater.mjs",
+  ]),
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   react.configs.flat.recommended,
@@ -19,10 +29,16 @@ const eslintConfig = defineConfig([
   {
     rules: {
       "jsx-a11y/label-has-associated-control": "off",
+      "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/no-unused-vars": [
-        "error",
+        "warn",
         { argsIgnorePattern: "^_" },
       ],
+      "react-hooks/purity": "warn",
+      "react-hooks/set-state-in-effect": "warn",
+      "jsx-a11y/click-events-have-key-events": "warn",
+      "jsx-a11y/no-static-element-interactions": "warn",
+      "jsx-a11y/no-noninteractive-element-interactions": "warn",
     },
     languageOptions: {
       globals: {

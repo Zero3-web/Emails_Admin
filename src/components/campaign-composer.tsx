@@ -1,9 +1,10 @@
 "use client";
 /* eslint-disable @next/next/no-img-element -- Images are external snapshots from Tokko and WordPress. */
-import { Check, ChevronLeft, ChevronRight, Eye, FileText, Info, Loader2, Mail, Plus, Search, UsersRound, X } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Eye, FileText, Info, Loader2, Mail, Plus, Search, UsersRound, X, Zap } from "lucide-react";
 import { useMemo, useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useDialogA11y } from "@/src/hooks/use-dialog-a11y";
+import * as XLSX from "xlsx";
 import type {
   AutomationType,
   BlogPost,
@@ -105,6 +106,7 @@ export function CampaignComposer({
   const [customEmails, setCustomEmails] = useState<string[]>([]);
   const [recipientInput, setRecipientInput] = useState("");
   const [showRecipientMenu, setShowRecipientMenu] = useState(false);
+  const [batchSending, setBatchSending] = useState(false);
 
   useEffect(() => {
     if (sites.length > 0) {
@@ -134,20 +136,27 @@ export function CampaignComposer({
     [type, siteId, posts, properties],
   );
 
+  const extractValidEmails = (rawText: string): string[] => {
+    if (!rawText) return [];
+    // Strict email validation regex: excludes invalid binary/XML characters in Excel files
+    const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+    const matches = rawText.match(emailRegex) ?? [];
+    return Array.from(new Set(matches.map((e) => e.toLowerCase().trim())));
+  };
+
   const addCustomEmail = (emailStr: string) => {
-    const emails = emailStr
-      .split(/[\s,;\n]+/)
-      .map((e) => e.trim())
-      .filter((e) => e.includes("@") && e.length > 3);
-    setCustomEmails((prev) => {
-      const next = [...prev];
-      for (const email of emails) {
-        if (!next.includes(email)) {
-          next.push(email);
+    const valid = extractValidEmails(emailStr);
+    if (valid.length > 0) {
+      setCustomEmails((prev) => {
+        const next = [...prev];
+        for (const email of valid) {
+          if (!next.includes(email)) {
+            next.push(email);
+          }
         }
-      }
-      return next;
-    });
+        return next;
+      });
+    }
     setRecipientInput("");
   };
 
@@ -155,18 +164,47 @@ export function CampaignComposer({
     setCustomEmails((prev) => prev.filter((e) => e !== email));
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      const text = evt.target?.result as string;
-      if (text) {
-        addCustomEmail(text);
+    try {
+      let found: string[] = [];
+      const name = file.name.toLowerCase();
+      const isExcel = /\.(xlsx|xls|ods)$/i.test(name);
+
+      if (isExcel) {
+        const buffer = await file.arrayBuffer();
+        const workbook = XLSX.read(buffer, { type: "array" });
+        const allTextParts: string[] = [];
+        for (const sheetName of workbook.SheetNames) {
+          const sheet = workbook.Sheets[sheetName];
+          if (sheet) {
+            const rawData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+            allTextParts.push(JSON.stringify(rawData));
+          }
+        }
+        found = extractValidEmails(allTextParts.join(" "));
+      } else {
+        const text = await file.text();
+        found = extractValidEmails(text);
       }
-    };
-    reader.readAsText(file);
-    e.target.value = "";
+
+      if (found.length > 0) {
+        setCustomEmails((prev) => Array.from(new Set([...prev, ...found])));
+        setError("");
+      } else {
+        setError(
+          "No se encontraron correos válidos en el archivo subido. Asegúrate de incluir emails con formato usuario@dominio.com.",
+        );
+      }
+    } catch (err) {
+      console.error("Error al procesar el archivo:", err);
+      setError(
+        "No se pudo leer el archivo subido. Asegúrate de que sea un archivo de Excel (.xlsx) o CSV válido.",
+      );
+    } finally {
+      e.target.value = "";
+    }
   };
 
   const audienceCount = useMemo(
@@ -176,6 +214,19 @@ export function CampaignComposer({
         : customEmails.length,
     [contacts, siteId, audienceInterest, customEmails],
   );
+
+  const suggestedContacts = useMemo(() => {
+    const term = recipientInput.trim().toLowerCase();
+    if (!term) return [];
+    return contacts
+      .filter((c) => {
+        if (c.status !== "active") return false;
+        if (customEmails.includes(c.email)) return false;
+        const fullText = `${c.firstName ?? ""} ${c.lastName ?? ""} ${c.email} ${c.company ?? ""}`.toLowerCase();
+        return fullText.includes(term);
+      })
+      .slice(0, 6);
+  }, [contacts, recipientInput, customEmails]);
 
   const [visibleCount, setVisibleCount] = useState(20);
 
@@ -296,8 +347,25 @@ export function CampaignComposer({
   }
 
   return (
-    <section ref={composerRef} className={`card campaign-composer ${closing ? "is-closing" : ""}`} role="dialog" aria-modal="true" aria-labelledby="campaign-composer-title" tabIndex={-1}>
-      <input type="file" ref={fileInputRef} onChange={handleFileUpload} accept=".csv,.txt,.xlsx" style={{ display: "none" }} />
+    <div
+      className="campaign-composer-backdrop"
+      role="presentation"
+      onMouseDown={(event) => event.target === event.currentTarget && closeComposer()}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 250,
+        backgroundColor: "rgba(248, 250, 252, 0.98)",
+        backdropFilter: "blur(6px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "16px",
+        overflowY: "auto",
+      }}
+    >
+      <section ref={composerRef} className={`card campaign-composer ${closing ? "is-closing" : ""}`} role="dialog" aria-modal="true" aria-labelledby="campaign-composer-title" tabIndex={-1}>
+      <input type="file" ref={fileInputRef} onChange={handleFileUpload} accept=".xlsx,.xls,.csv,.tsv,.ods,.txt,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" style={{ display: "none" }} />
       
       <header className="campaign-composer-head">
         <div>
@@ -589,6 +657,68 @@ export function CampaignComposer({
                   }}
                 />
 
+                {suggestedContacts.length > 0 && (
+                  <div
+                    className="email-suggestions-dropdown"
+                    style={{
+                      position: "absolute",
+                      top: "calc(100% + 4px)",
+                      left: 0,
+                      right: 0,
+                      background: "#ffffff",
+                      border: "1px solid #cbd5e1",
+                      borderRadius: "8px",
+                      boxShadow: "0 10px 25px rgba(0, 0, 0, 0.15)",
+                      zIndex: 105,
+                      maxHeight: "220px",
+                      overflowY: "auto",
+                      padding: "4px",
+                    }}
+                  >
+                    <div style={{ padding: "4px 8px", fontSize: "11px", fontWeight: 600, color: "#64748b", borderBottom: "1px solid #f1f5f9", marginBottom: "2px" }}>
+                      Sugerencias de la base de datos ({suggestedContacts.length})
+                    </div>
+                    {suggestedContacts.map((c) => {
+                      const name = `${c.firstName ?? ""} ${c.lastName ?? ""}`.trim();
+                      return (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => {
+                            addCustomEmail(c.email);
+                            setRecipientInput("");
+                          }}
+                          style={{
+                            width: "100%",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            padding: "6px 10px",
+                            border: "none",
+                            background: "transparent",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                            textAlign: "left",
+                          }}
+                        >
+                          <div style={{ display: "grid" }}>
+                            <span style={{ fontSize: "12px", fontWeight: 600, color: "#1e293b" }}>
+                              {name || c.email.split("@")[0]}
+                            </span>
+                            <span style={{ fontSize: "11px", color: "#64748b" }}>{c.email}</span>
+                          </div>
+                          {c.company && (
+                            <span style={{ fontSize: "11px", color: "#64748b", background: "#f1f5f9", padding: "2px 6px", borderRadius: "4px" }}>
+                              {c.company}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
                 {/* Recipient '+' Button with Dropdown Options */}
                 <div style={{ position: "relative", marginLeft: "auto", flexShrink: 0 }}>
                   <button
@@ -781,6 +911,41 @@ export function CampaignComposer({
                 }}
               />
             </div>
+
+            {/* Daily Batch Pacing Option if audience > 100 */}
+            {audienceCount > 100 && (
+              <div style={{
+                background: "#f0fdf4",
+                border: "1px solid #bbf7d0",
+                borderRadius: "8px",
+                padding: "12px",
+                display: "grid",
+                gap: "8px",
+                marginTop: "4px",
+              }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#166534", fontWeight: 600, fontSize: "12px" }}>
+                    <Zap size={15} style={{ color: "#16a34a" }} />
+                    <span>Programación en lotes diarios (Límite 100/día)</span>
+                  </div>
+                  <span style={{ fontSize: "11px", color: "#15803d", fontWeight: 600 }}>
+                    {Math.ceil(audienceCount / 100)} días estimados
+                  </span>
+                </div>
+                <p style={{ margin: 0, fontSize: "11px", color: "#166534", lineHeight: 1.4 }}>
+                  Se detectaron {audienceCount.toLocaleString("es-PE")} destinatarios. Para respetar el límite diario de 100 envíos, puedes programar la distribución automática.
+                </p>
+                <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "12px", color: "#14532d", fontWeight: 600, marginTop: "2px" }}>
+                  <input
+                    type="checkbox"
+                    checked={batchSending}
+                    onChange={(e) => setBatchSending(e.target.checked)}
+                    style={{ borderRadius: "4px", accentColor: "#16a34a" }}
+                  />
+                  <span>Activar envío en lotes de 100 correos/día ({Math.ceil(audienceCount / 100)} lotes automáticos)</span>
+                </label>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -833,5 +998,6 @@ export function CampaignComposer({
         )}
       </footer>
     </section>
+  </div>
   );
 }

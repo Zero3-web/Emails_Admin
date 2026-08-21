@@ -60,17 +60,15 @@ html[data-theme="dark"] {
   --am-surface-hover: #252a32;
   --am-border: #2b3038;
   --am-border-strong: #3a414b;
-  --am-ink: #f7f8f4;
-  --am-copy: #d1d5dc;
-  --am-muted: #9ca3ad;
-  --am-faint: #747c87;
+  --am-ink: #f8fafc;
+  --am-copy: #e2e8f0;
+  --am-muted: #cbd5e1;
+  --am-faint: #94a3b8;
   --am-lime: #d3ff00;
   --am-lime-hover: #e1ff62;
   --am-lime-soft: #252d12;
   --am-lime-border: #4b5b19;
   --am-on-lime: #171a20;
-  --am-shadow: none;
-  --am-shadow-popover: 0 20px 48px rgba(0, 0, 0, .42);
   color-scheme: dark;
 }
 
@@ -457,20 +455,21 @@ html body :is(.btn, button.btn, a.btn, .btn-secondary, .aep-export-btn, .icon-bt
 }
 
 :root :is(.btn.primary, .btn-primary, .up-primary, button.primary, a.primary, a.btn.primary, a.up-primary, .ref-create-nav, .up-export, .dashboard-next-step .btn):hover:not(:disabled) {
-  color: var(--am-on-lime) !important;
-  background: var(--am-lime) !important;
-  border-color: var(--am-lime) !important;
+  color: #ffffff !important;
+  background: #374151 !important;
+  border-color: #374151 !important;
   transform: none !important;
   box-shadow: none !important;
 }
-:root :is(.btn.primary, .btn-primary, .up-primary, button.primary, a.primary, a.btn.primary, a.up-primary, .ref-create-nav, .up-export, .dashboard-next-step .btn):hover:not(:disabled) * { color: var(--am-on-lime) !important; }
+:root :is(.btn.primary, .btn-primary, .up-primary, button.primary, a.primary, a.btn.primary, a.up-primary, .ref-create-nav, .up-export, .dashboard-next-step .btn):hover:not(:disabled) * { color: #ffffff !important; }
 
 html[data-theme="dark"] :is(.btn.primary, .btn-primary, .up-primary, button.primary, a.primary, a.btn.primary, a.up-primary, .ref-create-nav, .up-export, .dashboard-next-step .btn) {
-  color: var(--am-on-lime) !important;
-  background: var(--am-lime) !important;
-  border-color: var(--am-lime) !important;
+  color: #ffffff !important;
+  background: #20232b !important;
+  border-color: #20232b !important;
 }
-html[data-theme="dark"] :is(.btn.primary, .btn-primary, .up-primary, button.primary, a.primary, a.btn.primary, a.up-primary, .ref-create-nav, .up-export, .dashboard-next-step .btn) * { color: var(--am-on-lime) !important; }
+html[data-theme="dark"] :is(.btn.primary, .btn-primary, .up-primary, button.primary, a.primary, a.btn.primary, a.up-primary, .ref-create-nav, .up-export, .dashboard-next-step .btn) * { color: #ffffff !important; }
+
 
 :root .btn.danger,
 :root .contacts-suppress {
@@ -895,11 +894,16 @@ html[data-theme="dark"] :is(.ref-nav-link.active, .ref-campaign-menu.active > su
   border-color: var(--am-lime) !important;
 }
 :root .template-design-check {
+  color: transparent !important;
+  background: transparent !important;
+  border-color: var(--am-border) !important;
+}
+:root .template-design-card.active .template-design-check {
   color: var(--am-on-lime) !important;
   background: var(--am-lime-gradient) !important;
   border-color: var(--am-lime) !important;
 }
-:root .template-design-check * { color: var(--am-on-lime) !important; stroke: currentColor !important; }
+:root .template-design-check * { color: inherit !important; stroke: currentColor !important; }
 :root .template-miniature :is(b, em) { background: #d9dee2 !important; }
 :root .template-miniature b:nth-of-type(2) { background: #c7cdd2 !important; }
 :root .template-miniature i { background: var(--am-lime-gradient) !important; }
@@ -1421,8 +1425,7 @@ html[data-theme="dark"] :is(.ref-nav-link.active, .ref-campaign-menu.active > su
 :root .ref-nav-link.active,
 :root .aep-tab.active,
 :root .mobile-tabbar a.active,
-:root .ref-campaign-menu.active > summary,
-:root .ref-campaign-menu.active {
+:root .ref-campaign-menu.active > summary {
   color: #111827 !important;
   background-color: #f3f4f6 !important;
   background: #f3f4f6 !important;
@@ -1431,12 +1434,17 @@ html[data-theme="dark"] :is(.ref-nav-link.active, .ref-campaign-menu.active > su
   font-weight: 600 !important;
 }
 
+:root .ref-campaign-menu {
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
 html[data-theme="dark"] :root .nav-link.active,
 html[data-theme="dark"] :root .ref-nav-link.active,
 html[data-theme="dark"] :root .aep-tab.active,
 html[data-theme="dark"] :root .mobile-tabbar a.active,
 html[data-theme="dark"] :root .ref-campaign-menu.active > summary,
-html[data-theme="dark"] :root .ref-campaign-menu.active,
 html[data-theme="dark"] :is(.ref-nav-link.active, .ref-campaign-menu.active > summary) {
   color: #f9fafb !important;
   background-color: #1e232a !important;
@@ -3133,6 +3141,467 @@ html[data-theme="dark"] body .ref-app details.filter-menu[open] > summary {
 .skeleton-pulse {
   animation: skeleton-pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
-.activity-table-wrap {
-  transition: opacity 0.2s ease-in-out;
+html[data-theme="dark"] body .ref-app .automation-overview-icon.positive {
+  color: #101828 !important;
+  background: var(--am-lime, #d3ff00) !important;
+  border: 1px solid var(--am-lime, #d3ff00) !important;
 }
+html[data-theme="dark"] body .ref-app .activity-overview-icon svg,
+html[data-theme="dark"] body .ref-app .activity-overview-icon.positive svg,
+html[data-theme="dark"] body .ref-app .activity-overview-icon.attention svg,
+html[data-theme="dark"] body .ref-app .automation-overview-icon svg,
+html[data-theme="dark"] body .ref-app .automation-overview-icon.positive svg {
+  color: #101828 !important;
+  stroke: #101828 !important;
+  stroke-width: 2.2 !important;
+}
+
+html[data-theme="dark"] body .ref-app :is(.activity-overview small, .automation-overview small) {
+  color: #e2e8f0 !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+}
+html[data-theme="dark"] body .ref-app :is(.activity-overview strong, .automation-overview strong) {
+  color: #ffffff !important;
+  font-size: 18px !important;
+}
+
+/* 2. Table Avatar Circle (B, K) - Neon Lime Accent Pill */
+html[data-theme="dark"] body .ref-app .activity-recipient i,
+html[data-theme="dark"] body .ref-app .dashboard-email-person > span,
+html[data-theme="dark"] body .ref-app .contacts-person > span {
+  color: #d3ff00 !important;
+  background: rgba(211, 255, 0, 0.16) !important;
+  border: 1px solid rgba(211, 255, 0, 0.4) !important;
+  font-weight: 800 !important;
+  font-style: normal !important;
+}
+
+/* 3. Table Column Headers, Dates & Secondary Descriptors */
+html[data-theme="dark"] body .ref-app .activity-table th {
+  color: #cbd5e1 !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+}
+html[data-theme="dark"] body .ref-app .activity-table td {
+  color: #e2e8f0 !important;
+  border-bottom-color: #21262d !important;
+}
+html[data-theme="dark"] body .ref-app .activity-date {
+  color: #cbd5e1 !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+}
+html[data-theme="dark"] body .ref-app .activity-date svg {
+  color: #94a3b8 !important;
+}
+html[data-theme="dark"] body .ref-app .activity-message small {
+  color: #94a3b8 !important;
+}
+html[data-theme="dark"] body .ref-app .field-error { color: #f0a09a !important; }
+
+html body .ref-app :is(.ref-brand-popover, .contacts-filter-menu > div, .activity-date-filter > div) {
+  border-color: var(--am-border) !important;
+  border-radius: 12px !important;
+  background: var(--am-surface) !important;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, .14) !important;
+}
+html[data-theme="dark"] body .ref-app :is(.ref-brand-popover, .contacts-filter-menu > div, .activity-date-filter > div) {
+  box-shadow: 0 18px 48px rgba(0, 0, 0, .42) !important;
+}
+
+html body .ref-app .activity-table tbody tr[role="button"] {
+  transition: background-color 150ms ease, box-shadow 150ms ease !important;
+}
+html body .ref-app .activity-table tbody tr[role="button"]:hover {
+  background: var(--am-surface-2) !important;
+}
+html body .ref-app .activity-table tbody tr[role="button"]:focus-visible {
+  position: relative !important;
+  z-index: 1 !important;
+  outline: 2px solid var(--am-lime) !important;
+  outline-offset: -2px !important;
+  box-shadow: inset 0 0 0 1px var(--am-lime-border) !important;
+}
+
+html body .ref-app :is(.notice.success, .notice.error, .campaign-step-feedback) {
+  border-radius: 10px !important;
+  padding: 11px 13px !important;
+  font-size: 12px !important;
+  line-height: 1.45 !important;
+}
+
+html body .ref-app :is(.campaign-cell strong, .brand-sender strong, .activity-recipient strong, .activity-message strong) {
+  text-overflow: ellipsis !important;
+  overflow: hidden !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body .ref-app *,
+  html body .ref-app *::before,
+  html body .ref-app *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+/* Contrast corrections from dark-mode visual review. */
+html[data-theme="dark"] body .ref-app .contacts-summary-icon,
+html[data-theme="dark"] body .ref-app .contacts-summary-icon.positive,
+html[data-theme="dark"] body .ref-app .contacts-summary-icon.safe,
+html[data-theme="dark"] body .ref-app .contacts-summary-icon.muted {
+  color: var(--am-lime) !important;
+  background: rgba(215, 255, 34, .12) !important;
+  border: 1px solid rgba(215, 255, 34, .28) !important;
+}
+html[data-theme="dark"] body .ref-app .contacts-summary-icon svg,
+html[data-theme="dark"] body .ref-app .contacts-summary-icon svg * {
+  color: currentColor !important;
+  stroke: currentColor !important;
+}
+
+html body .ref-app .contacts-page-action .btn.primary svg,
+html body .ref-app .contacts-page-action .btn.primary svg * {
+  color: var(--am-on-lime) !important;
+  stroke: currentColor !important;
+}
+
+html[data-theme="dark"] body .ref-app :is(
+  .badge.sent,
+  .badge.success,
+  .badge.connected,
+  .badge.ready,
+  .badge.active,
+  .up-state.sent,
+  .up-state.ready,
+  .aep-badge.sent,
+  .settings-service-state.connected
+) {
+  color: var(--am-lime) !important;
+  background: rgba(215, 255, 34, .11) !important;
+  border-color: rgba(215, 255, 34, .32) !important;
+}
+html[data-theme="dark"] body .ref-app :is(.badge.sent, .badge.ready, .up-state.sent, .up-state.ready) svg,
+html[data-theme="dark"] body .ref-app :is(.badge.sent, .badge.ready, .up-state.sent, .up-state.ready) svg * {
+  color: currentColor !important;
+  stroke: currentColor !important;
+}
+
+/* Inputs use a calm neutral focus ring; lime remains for keyboard focus on actions. */
+html body .ref-app :is(input, select, textarea):focus,
+html body .ref-app :is(input, select, textarea):focus-visible,
+html body .ref-app :is(.campaign-content-search, .contacts-search, .content-search, .activity-search, .aep-search, .email-recipients-input-wrapper):focus-within {
+  outline: none !important;
+  border-color: var(--am-border-strong) !important;
+  box-shadow: 0 0 0 3px rgba(100, 116, 139, .16) !important;
+}
+html[data-theme="dark"] body .ref-app :is(input, select, textarea):focus,
+html[data-theme="dark"] body .ref-app :is(input, select, textarea):focus-visible,
+html[data-theme="dark"] body .ref-app :is(.campaign-content-search, .contacts-search, .content-search, .activity-search, .aep-search, .email-recipients-input-wrapper):focus-within {
+  border-color: #56616d !important;
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, .13) !important;
+}
+
+html body .ref-app details.filter-menu[open] > summary {
+  color: var(--am-ink) !important;
+  border-color: var(--am-border-strong) !important;
+  box-shadow: 0 0 0 2px rgba(100, 116, 139, .12) !important;
+}
+html[data-theme="dark"] body .ref-app details.filter-menu[open] > summary {
+  background: var(--am-surface-2) !important;
+  border-color: #56616d !important;
+  box-shadow: none !important;
+}
+
+/* Restore the dashboard shortcuts to the lower workspace position requested. */
+@media (min-width: 1100px) {
+  html body .ref-app .dashboard-workspace {
+    min-height: calc(100vh - 120px) !important;
+    height: auto !important;
+    justify-content: space-between !important;
+  }
+  html body .ref-app .dashboard-shortcuts {
+    margin-top: auto !important;
+    margin-bottom: 12px !important;
+  }
+}
+
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.skeleton-pulse {
+  animation: skeleton-pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+html[data-theme="dark"] body .ref-app .automation-overview-icon.positive {
+  color: #101828 !important;
+  background: var(--am-lime, #d3ff00) !important;
+  border: 1px solid var(--am-lime, #d3ff00) !important;
+}
+html[data-theme="dark"] body .ref-app .activity-overview-icon svg,
+html[data-theme="dark"] body .ref-app .activity-overview-icon.positive svg,
+html[data-theme="dark"] body .ref-app .activity-overview-icon.attention svg,
+html[data-theme="dark"] body .ref-app .automation-overview-icon svg,
+html[data-theme="dark"] body .ref-app .automation-overview-icon.positive svg {
+  color: #101828 !important;
+  stroke: #101828 !important;
+  stroke-width: 2.2 !important;
+}
+
+html[data-theme="dark"] body .ref-app :is(.activity-overview small, .automation-overview small) {
+  color: #e2e8f0 !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+}
+html[data-theme="dark"] body .ref-app :is(.activity-overview strong, .automation-overview strong) {
+  color: #ffffff !important;
+  font-size: 18px !important;
+}
+
+/* 2. Table Avatar Circle (B, K) - Neon Lime Accent Pill */
+html[data-theme="dark"] body .ref-app .activity-recipient i,
+html[data-theme="dark"] body .ref-app .dashboard-email-person > span,
+html[data-theme="dark"] body .ref-app .contacts-person > span {
+  color: #d3ff00 !important;
+  background: rgba(211, 255, 0, 0.16) !important;
+  border: 1px solid rgba(211, 255, 0, 0.4) !important;
+  font-weight: 800 !important;
+  font-style: normal !important;
+}
+
+/* 3. Table Column Headers, Dates & Secondary Descriptors */
+html[data-theme="dark"] body .ref-app .activity-table th {
+  color: #cbd5e1 !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+}
+html[data-theme="dark"] body .ref-app .activity-table td {
+  color: #e2e8f0 !important;
+  border-bottom-color: #21262d !important;
+}
+html[data-theme="dark"] body .ref-app .activity-date {
+  color: #cbd5e1 !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+}
+html[data-theme="dark"] body .ref-app .activity-date svg {
+  color: #94a3b8 !important;
+}
+html[data-theme="dark"] body .ref-app .activity-message small {
+  color: #94a3b8 !important;
+  font-size: 11px !important;
+}
+html[data-theme="dark"] body .ref-app :is(.activity-recipient strong, .activity-message strong) {
+  color: #ffffff !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+
+/* ==========================================================================
+   COMPACT & REFINED STATUS PILLS (MICRO-PILLS)
+   ========================================================================== */
+
+/* MODERN MINIMALIST ICON CHIPS (MATCHING SYSTEM APP ICONS) */
+/* BARE PAPER PLANE ICON — NO BACKGROUND, NO BORDER */
+:root body .ref-app .activity-status-icon,
+:root body .activity-status-icon,
+body .activity-status-icon {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  min-width: 0 !important;
+}
+
+:root body .ref-app .activity-status-icon svg,
+:root body .activity-status-icon svg,
+body .activity-status-icon svg {
+  width: 15px !important;
+  height: 15px !important;
+  flex-shrink: 0 !important;
+  stroke-width: 1.8 !important;
+}
+
+/* Grey Tone: Sent / Delivered / Normal */
+:root body .ref-app .activity-status-icon.grey,
+:root body .ref-app .activity-status-icon.grey svg,
+body .activity-status-icon.grey,
+body .activity-status-icon.grey svg {
+  color: #64748b !important;
+  fill: none !important;
+}
+
+/* Red Tone: Attention Required (Bounced / Failed / Blocked / Suppressed) */
+:root body .ref-app .activity-status-icon.red,
+:root body .ref-app .activity-status-icon.red svg,
+body .activity-status-icon.red,
+body .activity-status-icon.red svg {
+  color: #ef4444 !important;
+  fill: none !important;
+}
+
+/* Tone: Bounced / Failed (Rebotado / Fallido) */
+:root body .ref-app .activity-status.bounced,
+:root body .ref-app .activity-status.failed,
+body .activity-status.bounced,
+body .activity-status.failed {
+  color: #c5221f !important;
+  background: #fce8e6 !important;
+  border: 1px solid #fad2cf !important;
+}
+:root body .ref-app :is(.activity-status.bounced, .activity-status.failed) svg { color: #c5221f !important; }
+
+/* Tone: Opened (Abierto) */
+:root body .ref-app .activity-status.opened,
+body .activity-status.opened {
+  color: #1967d2 !important;
+  background: #e8f0fe !important;
+  border: 1px solid #d2e3fc !important;
+}
+:root body .ref-app .activity-status.opened svg { color: #1967d2 !important; }
+
+/* Tone: Clicked (Con clic) */
+:root body .ref-app .activity-status.clicked,
+body .activity-status.clicked {
+  color: #7e22ce !important;
+  background: #f3e8ff !important;
+  border: 1px solid #e9d5ff !important;
+}
+:root body .ref-app .activity-status.clicked svg { color: #7e22ce !important; }
+
+/* Tone: Pending / Queued (En cola / Demorado) */
+:root body .ref-app .activity-status.pending,
+:root body .ref-app .activity-status.queued,
+body .activity-status.pending,
+body .activity-status.queued {
+  color: #b45309 !important;
+  background: #fef3c7 !important;
+  border: 1px solid #fde68a !important;
+}
+:root body .ref-app :is(.activity-status.pending, .activity-status.queued) svg { color: #b45309 !important; }
+
+/* Dark Mode Overrides for Status Pills */
+html[data-theme="dark"] body .ref-app .activity-status.sent {
+  color: #cbd5e1 !important;
+  background: rgba(148, 163, 184, 0.16) !important;
+  border: 1px solid rgba(148, 163, 184, 0.3) !important;
+}
+html[data-theme="dark"] body .ref-app .activity-status.sent svg { color: #cbd5e1 !important; }
+
+html[data-theme="dark"] body .ref-app .activity-status.delivered {
+  color: #34d399 !important;
+  background: rgba(16, 185, 129, 0.16) !important;
+  border: 1px solid rgba(16, 185, 129, 0.35) !important;
+}
+html[data-theme="dark"] body .ref-app .activity-status.delivered svg { color: #34d399 !important; }
+
+html[data-theme="dark"] body .ref-app :is(.activity-status.bounced, .activity-status.failed) {
+  color: #f87171 !important;
+  background: rgba(239, 68, 68, 0.16) !important;
+  border: 1px solid rgba(239, 68, 68, 0.35) !important;
+}
+html[data-theme="dark"] body .ref-app :is(.activity-status.bounced, .activity-status.failed) svg { color: #f87171 !important; }
+
+html[data-theme="dark"] body .ref-app .activity-status.opened {
+  color: #60a5fa !important;
+  background: rgba(59, 130, 246, 0.16) !important;
+  border: 1px solid rgba(59, 130, 246, 0.35) !important;
+}
+html[data-theme="dark"] body .ref-app .activity-status.opened svg { color: #60a5fa !important; }
+
+html[data-theme="dark"] body .ref-app .activity-status.clicked {
+  color: #c084fc !important;
+  background: rgba(168, 85, 247, 0.16) !important;
+  border: 1px solid rgba(168, 85, 247, 0.35) !important;
+}
+html[data-theme="dark"] body .ref-app .activity-status.clicked svg { color: #c084fc !important; }
+
+html[data-theme="dark"] body .ref-app :is(.activity-status.pending, .activity-status.queued) {
+  color: #fbbf24 !important;
+  background: rgba(245, 158, 11, 0.16) !important;
+  border: 1px solid rgba(245, 158, 11, 0.35) !important;
+}
+html[data-theme="dark"] body .ref-app :is(.activity-status.pending, .activity-status.queued) svg { color: #fbbf24 !important; }
+
+/* Clean non-overflowing Campaign Approval & Confirm Box */
+:root body .ref-app .campaign-approval,
+body .campaign-approval {
+  display: grid !important;
+  grid-template-columns: 30px minmax(0, 1fr) !important;
+  gap: 10px !important;
+  align-items: start !important;
+  padding: 14px !important;
+  border: 1px solid var(--am-border, #e2e8f0) !important;
+  border-radius: 12px !important;
+  background: var(--am-surface-2, #f8fafc) !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  box-sizing: border-box !important;
+}
+
+:root body .ref-app .campaign-confirm,
+body .campaign-confirm {
+  grid-column: 1 / -1 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  margin-top: 10px !important;
+  padding: 14px 16px !important;
+  background: var(--am-surface, #ffffff) !important;
+  border: 1px solid #fde047 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05) !important;
+}
+
+html[data-theme="dark"] body .ref-app .campaign-confirm {
+  background: #1e293b !important;
+  border-color: #475569 !important;
+}
+
+/* SINGLE SCROLLBAR FIX — Only main content area scrolls, inner panels flow naturally */
+html,
+body,
+:root body,
+:root body .ref-app,
+:root body .ref-main {
+  height: 100vh !important;
+  max-height: 100vh !important;
+  overflow: hidden !important;
+}
+
+:root body .ref-content,
+:root body .content {
+  height: calc(100vh - 64px) !important;
+  max-height: calc(100vh - 64px) !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+/* Eliminate all nested internal scrollbars in cards, panels, and tables */
+:root body .activity-workspace,
+:root body .contacts-workspace,
+:root body .automations-workspace,
+:root body .campaigns-workspace,
+:root body .dashboard-page,
+:root body .activity-panel,
+:root body .contacts-panel,
+:root body .content-library-panel,
+:root body .table-wrap,
+:root body .card,
+:root body table {
+  overflow: visible !important;
+  height: auto !important;
+  max-height: none !important;
+}
+

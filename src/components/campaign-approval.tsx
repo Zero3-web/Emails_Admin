@@ -2,9 +2,16 @@
 
 import { CheckCircle2, Loader2, Send, ShieldCheck, Trash2, UsersRound, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Campaign } from "@/src/domain/types";
 import { PrepareAudienceButton } from "@/src/components/prepare-audience-button";
+
+const sendingSteps = [
+  "Armando estructura de la campaña...",
+  "Validando destinatarios y plantilla...",
+  "Procesando la aprobación...",
+  "Entregando correos a los destinatarios...",
+];
 
 export function CampaignApproval({ 
   campaign, 
@@ -21,14 +28,24 @@ export function CampaignApproval({
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
-  const [testEmail, setTestEmail] = useState("");
-  const [savingTest, setSavingTest] = useState(false);
   const [sending, setSending] = useState(false);
   const [confirmingSend, setConfirmingSend] = useState(false);
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
+  const [loadingStepIndex, setLoadingStepIndex] = useState(0);
 
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    if (!saving && !sending) {
+      setLoadingStepIndex(0);
+      return;
+    }
+    const timer = setInterval(() => {
+      setLoadingStepIndex((prev) => (prev + 1) % sendingSteps.length);
+    }, 1400);
+    return () => clearInterval(timer);
+  }, [saving, sending]);
 
   const approved = campaign.status === "ready";
 
@@ -53,7 +70,7 @@ export function CampaignApproval({
     setError("");
     setSuccessMsg("");
     try {
-      // 1. Approve the campaign (sets status to ready)
+      // 1. Approve campaign
       const appResp = await fetch(`/api/campaigns/${campaign.id}`, {
         method: "PATCH",
         headers: { "content-type": "application/json" },
@@ -61,47 +78,26 @@ export function CampaignApproval({
       });
       const appRes = await appResp.json();
       if (!appResp.ok || !appRes.ok) {
-        throw new Error(appRes.error ?? "No se pudo aprobar la campaña.");
+        console.warn("Approval patch:", appRes);
       }
 
-      // 2. Send the campaign immediately
+      // 2. Send campaign immediately
       const sendResp = await fetch(`/api/campaigns/${campaign.id}/send`, {
         method: "POST",
       });
       const sendRes = await sendResp.json();
       if (!sendResp.ok || !sendRes.ok) {
-        throw new Error(sendRes.error ?? "Se aprobó la campaña pero no se pudo enviar.");
+        throw new Error(sendRes.error ?? "No se pudo enviar la campaña.");
       }
 
       setShowSuccessAnimation(true);
       setTimeout(() => {
         router.push("/activity");
-      }, 1800);
-      router.refresh();
+        router.refresh();
+      }, 1600);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "No se pudo completar la acción.");
       setSaving(false);
-    }
-  }
-
-  async function sendTest() {
-    setSavingTest(true);
-    setError("");
-    setSuccessMsg("");
-    try {
-      const response = await fetch(`/api/campaigns/${campaign.id}/test`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ to: testEmail }),
-      });
-      const result = await response.json();
-      if (!response.ok || !result.ok) throw new Error(result.error ?? "No se pudo enviar el correo de prueba.");
-      setSuccessMsg(`Prueba enviada con éxito a ${testEmail}`);
-      setTestEmail("");
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo enviar el correo de prueba.");
-    } finally {
-      setSavingTest(false);
     }
   }
 
@@ -117,9 +113,8 @@ export function CampaignApproval({
       setShowSuccessAnimation(true);
       setTimeout(() => {
         router.push("/activity");
-      }, 1800);
-
-      router.refresh();
+        router.refresh();
+      }, 1600);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "No se pudo enviar la campaña.");
       setSending(false);
@@ -146,83 +141,37 @@ export function CampaignApproval({
         <style
           dangerouslySetInnerHTML={{
             __html: `
-          @keyframes scaleIn {
-            0% { transform: scale(0.2); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-          }
           @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(6px); }
             to { opacity: 1; transform: translateY(0); }
           }
-          .animate-scale-in {
-            animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-          }
-          .animate-fade-in {
-            animation: fadeIn 0.3s ease-out forwards;
+          .animate-step-text {
+            animation: fadeIn 0.35s ease-out forwards;
           }
         `,
           }}
         />
 
         {showSuccessAnimation ? (
-          <>
-            <div
-              className="animate-scale-in"
-              style={{
-                width: "64px",
-                height: "64px",
-                borderRadius: "50%",
-                background: "#f0fdf4",
-                border: "2px solid #22c55e",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#22c55e",
-                marginBottom: "16px",
-                boxShadow: "0 8px 24px rgba(34, 197, 94, 0.2)",
-              }}
-            >
-              <CheckCircle2 size={36} />
-            </div>
+          <div key="success" className="animate-step-text">
             <h2
-              className="animate-fade-in"
-              style={{ fontSize: "20px", fontWeight: 700, color: "var(--am-ink, #0f172a)", margin: "0 0 6px" }}
+              style={{ fontSize: "24px", fontWeight: 700, color: "#15803d", margin: "0 0 8px" }}
             >
-              Campaña enviada con éxito
+              ¡Campaña enviada con éxito!
             </h2>
-            <p
-              className="animate-fade-in"
-              style={{ fontSize: "13px", color: "var(--muted, #64748b)", margin: 0, animationDelay: "0.15s" }}
-            >
+            <p style={{ fontSize: "14px", color: "var(--muted, #64748b)", margin: 0 }}>
               Redirigiendo al historial de envíos...
             </p>
-          </>
+          </div>
         ) : (
-          <>
-            <div
-              style={{
-                width: "64px",
-                height: "64px",
-                borderRadius: "50%",
-                background: "#eef2ff",
-                border: "2px solid #6366f1",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#6366f1",
-                marginBottom: "16px",
-                boxShadow: "0 8px 24px rgba(99, 102, 241, 0.2)",
-              }}
-            >
-              <Loader2 className="spin" size={32} />
-            </div>
-            <h2 style={{ fontSize: "20px", fontWeight: 700, color: "var(--am-ink, #0f172a)", margin: "0 0 6px" }}>
-              {saving ? "Aprobando y procesando envío..." : "Enviando campaña..."}
+          <div key={loadingStepIndex} className="animate-step-text">
+            <h2 style={{ fontSize: "22px", fontWeight: 700, color: "var(--am-ink, #0f172a)", margin: "0 0 8px" }}>
+              {sendingSteps[loadingStepIndex]}
             </h2>
             <p style={{ fontSize: "13px", color: "var(--muted, #64748b)", margin: 0 }}>
-              Entregando correos a los destinatarios con Resend API...
+              Por favor espera un momento...
             </p>
-          </>
+          </div>
         )}
       </div>
     );
@@ -395,10 +344,12 @@ export function CampaignApproval({
           className="campaign-confirm"
           style={{
             gridColumn: "1 / -1",
+            width: "100%",
+            boxSizing: "border-box",
             marginTop: "10px",
-            padding: "14px 16px",
-            background: "#f8fafc",
-            border: "1px solid #e2e8f0",
+            padding: "12px 14px",
+            background: "#fffdf0",
+            border: "1px solid #fef08a",
             borderRadius: "10px",
             boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
           }}
@@ -407,7 +358,7 @@ export function CampaignApproval({
             ¿Confirmar aprobación y envío? La campaña se enviará inmediatamente a los{" "}
             <strong>{campaign.recipientCount.toLocaleString("es-PE")}</strong> destinatario(s).
           </p>
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px", width: "100%", boxSizing: "border-box" }}>
             <button
               className="btn primary"
               type="button"
@@ -415,18 +366,22 @@ export function CampaignApproval({
               disabled={saving}
               style={{
                 width: "100%",
+                maxWidth: "100%",
+                boxSizing: "border-box",
                 justifyContent: "center",
                 fontSize: "12px",
-                padding: "9px 14px",
+                padding: "9px 10px",
                 fontWeight: 600,
-                background: "#4f46e5",
-                borderColor: "#4f46e5",
-                color: "#ffffff",
+                background: "var(--am-lime, #d3ff00)",
+                borderColor: "var(--am-lime, #d3ff00)",
+                color: "#101828",
                 borderRadius: "8px",
+                whiteSpace: "normal",
+                wordBreak: "break-word",
               }}
             >
-              {saving ? <Loader2 className="spin" size={14} /> : <CheckCircle2 size={14} />}
-              {saving ? "Enviando..." : "Confirmar y enviar ahora"}
+              <CheckCircle2 size={14} />
+              Confirmar envío
             </button>
             <button
               type="button"
@@ -434,6 +389,8 @@ export function CampaignApproval({
               disabled={saving}
               style={{
                 width: "100%",
+                maxWidth: "100%",
+                boxSizing: "border-box",
                 justifyContent: "center",
                 fontSize: "12px",
                 background: "transparent",
@@ -457,7 +414,7 @@ export function CampaignApproval({
       )}
 
       {approved && !confirmingSend && (
-        <div style={{ gridColumn: "1 / -1", display: "grid", gap: "10px", marginTop: "8px" }}>
+        <div style={{ gridColumn: "1 / -1", display: "grid", gap: "10px", marginTop: "8px", width: "100%", boxSizing: "border-box" }}>
           <button
             type="button"
             onClick={() => setConfirmingSend(true)}
@@ -465,13 +422,20 @@ export function CampaignApproval({
             disabled={sending}
             style={{
               width: "100%",
+              maxWidth: "100%",
+              boxSizing: "border-box",
               justifyContent: "center",
-              padding: "10px",
-              fontSize: "13px",
+              padding: "9px 10px",
+              fontSize: "12px",
               fontWeight: 600,
+              background: "var(--am-lime, #d3ff00)",
+              borderColor: "var(--am-lime, #d3ff00)",
+              color: "#101828",
+              borderRadius: "8px",
             }}
           >
-            {sending ? <Loader2 className="spin" size={15} /> : "Enviar a destinatarios ahora"}
+            <Send size={14} />
+            Enviar a destinatarios ahora
           </button>
         </div>
       )}
@@ -481,10 +445,12 @@ export function CampaignApproval({
           className="campaign-confirm"
           style={{
             gridColumn: "1 / -1",
+            width: "100%",
+            boxSizing: "border-box",
             marginTop: "10px",
-            padding: "14px 16px",
-            background: "#f8fafc",
-            border: "1px solid #e2e8f0",
+            padding: "12px 14px",
+            background: "#fffdf0",
+            border: "1px solid #fef08a",
             borderRadius: "10px",
             boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
           }}
@@ -492,7 +458,7 @@ export function CampaignApproval({
           <p style={{ fontSize: "12px", color: "#334155", margin: "0 0 12px", lineHeight: 1.5 }}>
             Se enviará <strong>{campaign.name}</strong> a <strong>{campaign.recipientCount.toLocaleString("es-PE")}</strong> {campaign.recipientCount === 1 ? "destinatario" : "destinatarios"}. Esta acción no se puede deshacer.
           </p>
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px", width: "100%", boxSizing: "border-box" }}>
             <button
               className="btn primary"
               type="button"
@@ -500,18 +466,22 @@ export function CampaignApproval({
               disabled={sending}
               style={{
                 width: "100%",
+                maxWidth: "100%",
+                boxSizing: "border-box",
                 justifyContent: "center",
                 fontSize: "12px",
-                padding: "9px 14px",
+                padding: "9px 10px",
                 fontWeight: 600,
-                background: "#4f46e5",
-                borderColor: "#4f46e5",
-                color: "#ffffff",
+                background: "var(--am-lime, #d3ff00)",
+                borderColor: "var(--am-lime, #d3ff00)",
+                color: "#101828",
                 borderRadius: "8px",
+                whiteSpace: "normal",
+                wordBreak: "break-word",
               }}
             >
-              {sending ? <Loader2 className="spin" size={14} /> : <Send size={14} />}
-              {sending ? "Enviando…" : "Confirmar envío"}
+              <Send size={14} />
+              Confirmar envío
             </button>
             <button
               type="button"
@@ -519,6 +489,8 @@ export function CampaignApproval({
               disabled={sending}
               style={{
                 width: "100%",
+                maxWidth: "100%",
+                boxSizing: "border-box",
                 justifyContent: "center",
                 fontSize: "12px",
                 background: "transparent",

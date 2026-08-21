@@ -1,7 +1,6 @@
 "use client";
 
 /* eslint-disable @next/next/no-img-element */
-import Link from "next/link";
 import { Check, ExternalLink, LockKeyhole, UsersRound, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useDialogA11y } from "@/src/hooks/use-dialog-a11y";
@@ -9,7 +8,7 @@ import { CampaignApproval } from "@/src/components/campaign-approval";
 import { CampaignFilters } from "@/src/components/campaign-filters";
 import { PrepareAudienceButton } from "@/src/components/prepare-audience-button";
 import { EmptyState, SiteMark, StatusBadge } from "@/src/components/ui";
-import type { BlogPost, Campaign, Contact, Property, Site } from "@/src/domain/types";
+import type { Campaign, Site } from "@/src/domain/types";
 import { campaignStages, getCampaignProgress } from "@/src/services/campaign-state";
 
 const labels = {
@@ -22,12 +21,6 @@ const fullLabels = {
   weekly_new_properties: "Nuevas oficinas de la semana",
   monthly_properties: "Oficinas disponibles",
   monthly_blog: "Novedades del blog",
-};
-
-const audienceLabels = {
-  prime: "Oficinas",
-  retail: "Locales comerciales",
-  hub: "Industrial",
 };
 
 export function CampaignsView({
@@ -51,6 +44,26 @@ export function CampaignsView({
   const siteById = useMemo(() => new Map(sites.map((site) => [site.id, site])), [sites]);
 
   const visibleSites = useMemo(() => (initialSite ? sites.filter((site) => site.id === initialSite) : sites), [sites, initialSite]);
+
+  // Recipients modal state
+  const [showRecipientsModal, setShowRecipientsModal] = useState(false);
+  const [recipientsList, setRecipientsList] = useState<string[]>([]);
+  const [loadingRecipients, setLoadingRecipients] = useState(false);
+
+  const fetchRecipients = async (campaignId: string) => {
+    setShowRecipientsModal(true);
+    setLoadingRecipients(true);
+    setRecipientsList([]);
+    try {
+      const res = await fetch(`/api/campaigns/${campaignId}/recipients`);
+      const data = await res.json();
+      setRecipientsList(data.recipients ?? []);
+    } catch {
+      setRecipientsList([]);
+    } finally {
+      setLoadingRecipients(false);
+    }
+  };
 
   const rows = useMemo(
     () =>
@@ -226,9 +239,19 @@ export function CampaignsView({
                         <dt>Contenido</dt>
                         <dd>{items.length} elementos</dd>
                       </div>
-                      <div>
-                        <dt>Destinatarios</dt>
-                        <dd>{selectedCampaign.recipientCount.toLocaleString("es-PE")}</dd>
+                      <div
+                        style={{ cursor: "pointer" }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void fetchRecipients(selectedCampaign.id);
+                        }}
+                        title="Haz clic para ver la lista de correos destinatarios"
+                      >
+                        <dt style={{ color: "#4f46e5", textDecoration: "underline", fontWeight: 600 }}>Destinatarios 🔍</dt>
+                        <dd style={{ fontWeight: 700, color: "#4f46e5", display: "flex", alignItems: "baseline", gap: "4px" }}>
+                          {selectedCampaign.recipientCount.toLocaleString("es-PE")}
+                          <span style={{ fontSize: "11px", textDecoration: "underline", opacity: 0.8 }}>(Ver lista)</span>
+                        </dd>
                       </div>
                       <div>
                         <dt>Creación</dt>
@@ -269,77 +292,126 @@ export function CampaignsView({
                           Copia inmutable de la campaña.
                         </p>
                       </div>
-                      <span className="frozen-badge">
-                        <LockKeyhole size={13} /> Inmutable
+                      <span className="frozen-tag" style={{ fontSize: "11px", gap: "4px" }}>
+                        <LockKeyhole size={11} /> Inmutable
                       </span>
                     </div>
-                    <div className="campaign-frozen-grid">
-                      {items.map((item) => (
-                        <article className="card campaign-frozen-item" key={item.id}>
-                          {item.imageUrl ? <img src={item.imageUrl} alt={item.title} /> : <div className="campaign-frozen-placeholder" />}
-                          <div>
-                            <span>{item.itemType === "property" ? "Oficina" : "Artículo"}</span>
-                            <h3>{item.title}</h3>
-                            {item.itemType === "property" ? (
-                              <p>
-                                {item.location}
-                                {item.area ? ` · ${item.area} m²` : ""}
+
+                    <div className="campaign-frozen-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "12px" }}>
+                      {items.map((rawItem) => {
+                        const item = rawItem as Record<string, any>;
+                        return (
+                          <article key={String(item.id)} className="card property-card" style={{ fontSize: "12px" }}>
+                            <div className="property-media" style={{ height: "120px" }}>
+                              <img src={String(item.imageUrl || "")} alt={String(item.title || "")} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                            </div>
+                            <div className="property-body" style={{ padding: "10px" }}>
+                              <span className="frozen-type-tag" style={{ fontSize: "10px", textTransform: "uppercase", fontWeight: 700, color: "#64748b" }}>
+                                {item.itemType === "property" ? String(item.propertyType || "Oficina") : "Artículo"}
+                              </span>
+                              <h4 style={{ margin: "4px 0", fontSize: "13px", fontWeight: 600, color: "var(--am-ink, #0f172a)", lineHeight: 1.3 }}>
+                                {String(item.title || "")}
+                              </h4>
+                              <p style={{ margin: 0, fontSize: "11px", color: "var(--muted, #64748b)" }}>
+                                {item.location || item.excerpt ? String(item.location || item.excerpt) : ""}
                               </p>
-                            ) : (
-                              <p>{item.excerpt}</p>
-                            )}
-                            <footer>
-                              {item.itemType === "property" && (
-                                <strong>
-                                  {item.price ? `${item.currency} ${item.price.toLocaleString("es-PE")}` : "Precio a consultar"}
+                              {item.price && (
+                                <strong style={{ display: "block", marginTop: "6px", fontSize: "12px", color: "var(--am-ink, #0f172a)" }}>
+                                  USD {Number(item.price).toLocaleString("es-PE")}
                                 </strong>
                               )}
-                              <a href={item.publicUrl} target="_blank" rel="noreferrer">
-                                Ver publicación <ExternalLink size={13} />
+                              <a
+                                href={String(item.publicUrl || item.url || "#")}
+                                target="_blank"
+                                rel="noreferrer"
+                                style={{ display: "inline-flex", alignItems: "center", gap: "4px", marginTop: "8px", fontSize: "11px", color: "#4f46e5", textDecoration: "none", fontWeight: 600 }}
+                              >
+                                Ver publicación <ExternalLink size={11} />
                               </a>
-                            </footer>
-                          </div>
-                        </article>
-                      ))}
+                            </div>
+                          </article>
+                        );
+                      })}
                     </div>
                   </section>
                 </main>
 
-                <aside className="card campaign-actions" style={{ padding: "16px" }}>
-                  <header>
-                    <span>Estado del flujo</span>
-                    <strong>
-                      {selectedCampaign.status === "sent"
-                        ? "Campaña enviada"
-                        : selectedCampaign.status === "scheduled"
-                        ? "Envío programado"
-                        : selectedCampaign.status === "sending"
-                        ? "Enviando campaña"
-                        : `Siguiente paso: ${
-                            selectedCampaign.status === "ready"
-                              ? "probar o enviar"
-                              : selectedCampaign.recipientCount
-                              ? "aprobar la campaña"
-                              : "preparar la audiencia"
-                          }`}
-                    </strong>
-                  </header>
-                  <div className="campaign-stepper" aria-label="Progreso de la campaña">
-                    {campaignStages.map((stage, index) => (
-                      <div className={progress[stage.id] ? "complete" : currentStage === stage.id ? "current" : "pending"} key={stage.id}>
-                        <span>{progress[stage.id] ? <Check size={12} /> : index + 1}</span>
-                        <strong>{stage.label}</strong>
-                      </div>
-                    ))}
-                  </div>
-                  <CampaignApproval
-                    campaign={selectedCampaign}
-                    canApprove={canApprove}
-                    onDeleted={() => setSelectedCampaignId(null)}
-                  />
+                <aside>
+                  <CampaignApproval campaign={selectedCampaign} canApprove={canApprove} />
                 </aside>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Lista de Destinatarios */}
+      {showRecipientsModal && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 999999,
+            background: "rgba(15, 23, 42, 0.55)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "16px",
+          }}
+          onClick={() => setShowRecipientsModal(false)}
+        >
+          <div
+            style={{
+              background: "var(--am-surface, #ffffff)",
+              borderRadius: "14px",
+              padding: "20px 24px",
+              maxWidth: "460px",
+              width: "100%",
+              boxShadow: "0 20px 40px rgba(0,0,0,0.2)",
+              maxHeight: "80vh",
+              display: "flex",
+              flexDirection: "column",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
+              <h3 style={{ fontSize: "15px", fontWeight: 700, margin: 0, color: "var(--am-ink, #0f172a)" }}>
+                Lista de Destinatarios ({recipientsList.length})
+              </h3>
+              <button
+                onClick={() => setShowRecipientsModal(false)}
+                style={{ background: "none", border: "none", cursor: "pointer", padding: "4px", color: "#64748b" }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {loadingRecipients ? (
+              <p style={{ fontSize: "13px", color: "var(--muted, #64748b)" }}>Cargando correos destinatarios...</p>
+            ) : recipientsList.length > 0 ? (
+              <ul
+                style={{
+                  margin: 0,
+                  padding: "0 0 0 16px",
+                  fontSize: "13px",
+                  color: "var(--am-ink, #334155)",
+                  overflowY: "auto",
+                  maxHeight: "360px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "8px",
+                }}
+              >
+                {recipientsList.map((email, idx) => (
+                  <li key={idx} style={{ fontFamily: "monospace", fontSize: "12px", background: "var(--am-surface-2, #f8fafc)", padding: "6px 10px", borderRadius: "6px", listStyle: "none" }}>
+                    ✉️ {email}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p style={{ fontSize: "13px", color: "var(--muted, #64748b)" }}>No se encontraron correos destinatarios.</p>
+            )}
           </div>
         </div>
       )}

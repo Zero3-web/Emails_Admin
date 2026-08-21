@@ -18,7 +18,7 @@ export async function GET() {
       await Promise.all(
         pendingEmails.map(async (email) => {
           try {
-            const resendData = await getResendEmailStatus(email.id);
+            const resendData = await getResendEmailStatus(email.id, (email as any).siteId);
             const liveStatus = resendData.last_event || (resendData as any).status;
             if (liveStatus && liveStatus !== email.status) {
               await db

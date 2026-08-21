@@ -9,10 +9,10 @@ import { PrepareAudienceButton } from "@/src/components/prepare-audience-button"
 import { requirePanelAccess } from "@/src/auth/server";
 import { getCampaigns, getSites } from "@/src/database/repositories";
 import { campaignStages, getCampaignProgress } from "@/src/services/campaign-state";
+import { renderCampaignEmail } from "@/src/services/email-renderer";
+import type { BlogPost, Property } from "@/src/domain/types";
 
 const labels = { weekly_new_properties: "Nuevas oficinas de la semana", monthly_properties: "Oficinas disponibles", monthly_blog: "Novedades del blog" };
-const audienceLabels = { prime: "Oficinas", retail: "Locales comerciales", hub: "Industrial" };
-
 export default async function CampaignDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const [campaigns, sites, access] = await Promise.all([getCampaigns(), getSites(), requirePanelAccess()]);
@@ -27,6 +27,10 @@ export default async function CampaignDetail({ params }: { params: Promise<{ id:
   const canApprove = access.platformOwner || membership?.role === "site_admin" || membership?.role === "approver";
   const audience = campaign.metadata?.audience;
   const displaySubject = campaign.subject.replaceAll("?rea", "Área");
+  const previewItems = items.map((item) => item.itemType === "blog_post"
+    ? ({ id: item.id, siteId: site.id, externalId: item.externalId, title: item.title, excerpt: item.excerpt ?? "", imageUrl: item.imageUrl, publicUrl: item.publicUrl, publishedAt: "" } satisfies BlogPost)
+    : ({ id: item.id, siteId: site.id, externalId: item.externalId, title: item.title, description: "", propertyType: "", location: item.location ?? "", address: "", price: item.price ?? 0, currency: item.currency ?? "USD", area: item.area ?? 0, imageUrl: item.imageUrl, publicUrl: item.publicUrl, status: "", publishedAt: "", segment: campaign.siteId === "prime" ? "prime" : campaign.siteId === "hub" ? "hub" : campaign.siteId === "retail" ? "retail" : "unclassified" } satisfies Property));
+  const previewHtml = await renderCampaignEmail(site, campaign.automationType, previewItems, { preview: true });
 
   return (
     <div className="campaign-detail-page">
@@ -38,11 +42,7 @@ export default async function CampaignDetail({ params }: { params: Promise<{ id:
           <div className="campaign-header-actions" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <CampaignEmailPreviewModalButton
               siteName={site.name}
-              senderEmail={site.senderEmail}
-              subject={displaySubject}
-              introduction={campaign.metadata?.introduction}
-              items={items}
-              recipientCount={campaign.recipientCount}
+              html={previewHtml}
             />
             <Link href="/campaigns">
               <ArrowLeft size={14} /> Volver a campañas
