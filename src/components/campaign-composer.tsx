@@ -482,8 +482,8 @@ export function CampaignComposer({
       {/* STEP 3: AUDIENCIA E INFORMACIÓN */}
       {step === 3 && (
         <div className="campaign-step-panel" key="campaign-step-3" style={{ padding: "16px 20px", display: "grid", gap: "16px" }}>
-          <div className="card" style={{ padding: "16px", display: "grid", gap: "14px", background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: "12px", borderBottom: "1px solid #f1f5f9" }}>
+          <div className="card campaign-review-card" style={{ padding: "16px", display: "grid", gap: "14px", background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px" }}>
+            <div className="campaign-review-head" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: "12px", borderBottom: "1px solid #f1f5f9" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#1e293b", fontWeight: 600, fontSize: "13px" }}>
                 <Mail size={15} style={{ color: "#4f46e5" }} />
                 <span>Configuración de correo y destinatarios</span>
@@ -715,7 +715,7 @@ export function CampaignComposer({
 
             {/* Nombre interno */}
             <div style={{ display: "grid", gap: "6px" }}>
-              <label style={{ fontSize: "12px", fontWeight: 600, color: "#475569", display: "flex", alignItems: "center", gap: "6px" }}>
+              <label className="campaign-field-label" style={{ fontSize: "12px", fontWeight: 600, color: "#475569", display: "flex", alignItems: "center", gap: "6px" }}>
                 <span>Nombre interno</span>
                 <span style={{ fontSize: "11px", color: "#94a3b8", fontWeight: 400 }}>(Nombre de referencia para tu equipo)</span>
               </label>
