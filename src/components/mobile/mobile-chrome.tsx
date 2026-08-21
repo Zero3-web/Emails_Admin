@@ -34,6 +34,7 @@ type MobileChromeProps = {
   onMoreChange: (open: boolean) => void;
   onSiteChange: (siteId: string) => void;
   onSignOut: () => void;
+  platformOwner: boolean;
 };
 
 const mainTabs = [
@@ -43,18 +44,21 @@ const mainTabs = [
   { label: "Actividad", href: "/activity", icon: Activity },
 ];
 
-const moreLinks = [
+const memberMoreLinks = [
   { label: "Automatizaciones", caption: "Flujos y programación", href: "/automations", icon: Zap },
   { label: "Plantillas", caption: "Diseños de correo", href: "/templates", icon: Layers3 },
-  { label: "Propiedades", caption: "Catálogo sincronizado", href: "/properties", icon: Home },
   { label: "Marcas", caption: "Identidad y sitios", href: "/sites", icon: Building2 },
+];
+const ownerMoreLinks = [
+  { label: "Propiedades", caption: "Catálogo sincronizado", href: "/properties", icon: Home },
   { label: "Integraciones", caption: "Servicios conectados", href: "/integrations", icon: PlugZap },
   { label: "Equipo", caption: "Personas y accesos", href: "/team", icon: UsersRound },
   { label: "Configuración", caption: "Preferencias del sistema", href: "/settings", icon: Settings2 },
 ];
 
 export function MobileChrome(props: MobileChromeProps) {
-  const { pathname, sites, selectedSite, userInitial, moreOpen, withSite, onMoreChange, onSiteChange, onSignOut } = props;
+  const { pathname, sites, selectedSite, userInitial, moreOpen, withSite, onMoreChange, onSiteChange, onSignOut, platformOwner } = props;
+  const moreLinks = platformOwner ? [...memberMoreLinks, ...ownerMoreLinks] : memberMoreLinks;
   const siteMenu = useRef<HTMLDetailsElement>(null);
   const currentSite = sites.find((site) => site.id === selectedSite);
   const metadata = getPageMetadata(pathname);

@@ -26,18 +26,19 @@ export default async function Integrations() {
   if (!(await requirePanelAccess()).platformOwner) redirect("/no-access");
   const [integrations, sites] = await Promise.all([getIntegrations(), getSites()]);
   const resendReady = Boolean(process.env.RESEND_API_KEY);
+  const resendTrackingReady = Boolean(process.env.RESEND_WEBHOOK_SECRET);
   const supabaseReady = isSupabaseConfigured();
   const connected = integrations.filter((item) => item.status === "connected").length;
-  const attention = integrations.filter((item) => item.status === "error" || item.status === "pending").length + (resendReady ? 0 : 1);
+  const attention = integrations.filter((item) => item.status === "error" || item.status === "pending").length + (resendReady && resendTrackingReady ? 0 : 1);
   const latestSync = integrations.map((item) => item.lastSyncAt).filter(Boolean).sort().at(-1) ?? null;
   return <><PageHeader eyebrow="Configuración" title="Integraciones" description="Controla las fuentes de contenido y el servicio de envío desde un solo lugar." />
     <section className={`system-priority ${attention ? "attention" : "ready"}`}>
       <span>{attention ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />}</span>
-      <div><small>Estado general</small><strong>{attention ? `${attention} ${attention === 1 ? "conexión necesita" : "conexiones necesitan"} revisión` : "Todas las conexiones están operativas"}</strong><p>{attention ? "Revisa los elementos marcados antes de programar el próximo envío." : "El contenido y los envíos están listos para trabajar."}</p></div>
+      <div><small>Estado general</small><strong>{attention ? `${attention} ${attention === 1 ? "configuración necesita" : "configuraciones necesitan"} revisión` : "Configuración técnica completa"}</strong><p>{attention ? "Revisa los elementos marcados antes de programar el próximo envío." : "Las fuentes, el envío y el seguimiento están configurados."}</p></div>
       <Link className="btn" href="/settings">Ver estado del sistema <ArrowRight size={13} /></Link>
     </section>
     <section className="integration-summary-grid" aria-label="Resumen de integraciones">
-      <article><span><PlugZap size={16} /></span><div><strong>{connected}/{integrations.length}</strong><small>conexiones activas</small></div></article>
+      <article><span><PlugZap size={16} /></span><div><strong>{connected}/{integrations.length}</strong><small>conexiones registradas</small></div></article>
       <article><span><AlertCircle size={16} /></span><div><strong>{attention}</strong><small>requieren atención</small></div></article>
       <article><span><Clock3 size={16} /></span><div><strong>{latestSync ? formatSync(latestSync) : "Sin datos"}</strong><small>última actualización</small></div></article>
     </section>

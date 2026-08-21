@@ -327,6 +327,45 @@ export async function approveCampaign(campaignId: string, approvedBy: string) {
   if (!data) throw new Error("La campaña fue modificada por otra sesión. Recarga e inténtalo de nuevo.");
   return data;
 }
+
+export async function refreshCampaignAudience(campaignId: string) {
+  const db = requireDb();
+  const { data: campaign, error: campaignError } = await db
+    .from("campaigns")
+    .select("site_id,metadata,status")
+    .eq("id", campaignId)
+    .single();
+  if (campaignError) throw campaignError;
+  if (campaign.status !== "draft") throw new Error("Solo se puede actualizar la audiencia de un borrador.");
+  const interest = campaign.metadata?.audience?.interest as ContactInterest | undefined;
+  if (!interest) throw new Error("La campaña no tiene un segmento de audiencia configurado.");
+  const { count, error: countError } = await db
+    .from("contact_subscriptions")
+    .select("contacts!inner(id,status)", { count: "exact", head: true })
+    .eq("site_id", campaign.site_id)
+    .eq("interest", interest)
+    .eq("contacts.status", "active");
+  if (countError) throw countError;
+  const recipientCount = count ?? 0;
+  const metadata = { ...(campaign.metadata ?? {}), audience: { ...(campaign.metadata?.audience ?? {}), interest, count: recipientCount } };
+  const { data, error } = await db
+    .from("campaigns")
+    .update({ recipient_count: recipientCount, metadata })
+    .eq("id", campaignId)
+    .select("id,recipient_count,metadata")
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteCampaign(campaignId: string) {
+  const db = requireDb();
+  await db.from("campaign_items").delete().eq("campaign_id", campaignId);
+  const { error } = await db.from("campaigns").delete().eq("id", campaignId);
+  if (error) throw error;
+  return true;
+}
+
 export async function getIntegrations(): Promise<Integration[]> {
   const db = createSupabaseAdmin();
   if (!db) return [];
@@ -995,6 +1034,7 @@ export async function recordOutboundEmail(input: {
   from: string;
   subject: string;
   status?: string;
+  html?: string;
 }) {
   const db = createSupabaseAdmin();
   if (!db) return;
@@ -1006,6 +1046,7 @@ export async function recordOutboundEmail(input: {
       subject: input.subject,
       status: input.status ?? "sent",
       sent_at: new Date().toISOString(),
+      metadata: input.html ? { html: input.html } : undefined,
     },
     { onConflict: "resend_email_id" },
   );
@@ -1059,6 +1100,7 @@ export async function getOutboundEmails() {
     date: row.sent_at,
     status: row.status,
     errorMessage: row.metadata?.error_message,
+    html: row.metadata?.html,
   }));
 }
 
@@ -1194,4 +1236,3 @@ export async function markCampaignSent(campaignId: string, resendBroadcastId: st
   if (error) throw error;
   return data;
 }
-

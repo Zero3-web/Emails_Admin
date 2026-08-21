@@ -1,4 +1,5 @@
 import {
+  BarChart3,
   LayoutDashboard,
   UsersRound,
   type LucideIcon,
@@ -12,11 +13,13 @@ export type NavigationItem = {
 
 export const primaryNavigation: NavigationItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Analíticas", href: "/analytics", icon: BarChart3 },
   { label: "Audiencia", href: "/contacts", icon: UsersRound },
 ];
 
 export const pageMetadata: Record<string, { title: string; subtitle: string }> = {
   "/dashboard": { title: "Dashboard", subtitle: "Vista general de tus campañas" },
+  "/analytics": { title: "Analíticas", subtitle: "Métricas de rendimiento, entregabilidad y efectividad" },
   "/activity": { title: "Actividad", subtitle: "Correos enviados y actividad reciente" },
   "/templates": { title: "Plantillas", subtitle: "Diseños de correo disponibles" },
   "/contacts": { title: "Audiencia", subtitle: "Contactos, segmentos y suscripciones" },

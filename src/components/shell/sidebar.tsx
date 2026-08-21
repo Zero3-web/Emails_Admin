@@ -4,9 +4,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
+  BarChart3,
   Building2,
   Activity,
   ChevronDown,
+  ChevronUp,
   Eye,
   Home,
   Layers3,
@@ -35,13 +37,14 @@ type SidebarProps = {
   onNavigate: () => void;
   onSignOut: () => void;
   usage?: UsageData;
+  platformOwner?: boolean;
 };
 
-export function Sidebar({ pathname, open, withSite, onNavigate, onSignOut, usage }: SidebarProps) {
+export function Sidebar({ pathname, open, withSite, onNavigate, onSignOut, usage, platformOwner }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const router = useRouter();
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
-  const campaignsActive = ["/campaigns", "/automations", "/activity"].some(isActive);
+  const campaignsActive = ["/campaigns", "/automations", "/activity", "/analytics"].some(isActive);
   const settingsActive = ["/settings", "/sites", "/integrations", "/team", "/templates", "/properties"].some(isActive);
 
   const subLink = (href: string, label: string, icon: React.ReactNode, scoped = true) => {
@@ -96,14 +99,10 @@ export function Sidebar({ pathname, open, withSite, onNavigate, onSignOut, usage
 
       <nav aria-label="Navegación principal" className="ref-nav-scroll">
         {navigationLink(primaryNavigation[0])}
+        {navigationLink(primaryNavigation[1])}
 
         <details className={`ref-campaign-menu ${campaignsActive ? "active" : ""}`} open={(!collapsed && campaignsActive) || undefined}>
-          <summary 
-            title={collapsed ? "Campañas" : undefined}
-            onClick={() => {
-              router.push(withSite("/campaigns"));
-            }}
-          >
+          <summary title={collapsed ? "Campañas" : undefined}>
             <span>
               <Send size={16} strokeWidth={1.9} className="ref-nav-icon" />
               {!collapsed && <span>Campañas</span>}
@@ -112,13 +111,14 @@ export function Sidebar({ pathname, open, withSite, onNavigate, onSignOut, usage
           </summary>
           {!collapsed && (
             <div>
+              {subLink("/campaigns", "Campañas", <Send size={14} strokeWidth={1.5} />)}
               {subLink("/automations", "Automatizaciones", <Zap size={14} strokeWidth={1.5} />)}
               {subLink("/activity", "Actividad de envíos", <Activity size={14} strokeWidth={1.5} />)}
             </div>
           )}
         </details>
 
-        {navigationLink(primaryNavigation[1])}
+        {navigationLink(primaryNavigation[2])}
 
         <details className={`ref-campaign-menu ref-settings-menu ${settingsActive ? "active" : ""}`} open={(!collapsed && settingsActive) || undefined}>
           <summary title={collapsed ? "Configuración" : undefined}>
@@ -131,11 +131,13 @@ export function Sidebar({ pathname, open, withSite, onNavigate, onSignOut, usage
           {!collapsed && (
             <div>
               {subLink("/templates", "Plantillas", <Layers3 size={14} strokeWidth={1.5} />)}
-              {subLink("/properties", "Propiedades", <Home size={14} strokeWidth={1.5} />)}
               {subLink("/sites", "Marcas", <Building2 size={14} strokeWidth={1.5} />, false)}
-              {subLink("/integrations", "Integraciones", <PlugZap size={14} strokeWidth={1.5} />, false)}
-              {subLink("/team", "Equipo y accesos", <UsersRound size={14} strokeWidth={1.5} />, false)}
-              {subLink("/settings", "Estado del sistema", <Settings2 size={14} strokeWidth={1.5} />, false)}
+              {platformOwner && <>
+                {subLink("/properties", "Propiedades", <Home size={14} strokeWidth={1.5} />)}
+                {subLink("/integrations", "Integraciones", <PlugZap size={14} strokeWidth={1.5} />, false)}
+                {subLink("/team", "Equipo y accesos", <UsersRound size={14} strokeWidth={1.5} />, false)}
+                {subLink("/settings", "Estado del sistema", <Settings2 size={14} strokeWidth={1.5} />, false)}
+              </>}
             </div>
           )}
         </details>
@@ -155,55 +157,82 @@ export function Sidebar({ pathname, open, withSite, onNavigate, onSignOut, usage
 }
 
 function CampaignLimitInline({ usage, collapsed }: { usage?: UsageData; collapsed: boolean }) {
-  const [hidden, setHidden] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   if (collapsed) return null;
 
-  const monthCount = usage?.monthCount ?? 1;
+  const monthCount = usage?.monthCount ?? 7;
   const monthlyLimit = usage?.monthlyLimit ?? 3000;
-
   const monthPercent = Math.min(100, Math.round((monthCount / monthlyLimit) * 100));
   const formattedMonthlyLimit = monthlyLimit >= 1000 ? "3,000" : String(monthlyLimit);
 
-  // Dynamic progress bar color based on usage percentage requested in audio:
-  // - 0% - 35%: Plomo / Gray (#94a3b8)
-  // - 35% - 75%: Verde (#10b981)
-  // - 75% - 90%: Anaranjado (#f97316)
-  // - 90%+: Rojo (#ef4444)
-  const progressColor =
-    monthPercent >= 90
+  const todayCount = usage?.todayCount ?? 7;
+  const dailyLimit = usage?.dailyLimit ?? 100;
+  const dailyPercent = Math.min(100, Math.round((todayCount / dailyLimit) * 100));
+
+  const getProgressColor = (percent: number) =>
+    percent >= 90
       ? "#ef4444"
-      : monthPercent >= 75
+      : percent >= 75
       ? "#f97316"
-      : monthPercent >= 35
+      : percent >= 35
       ? "#10b981"
       : "#94a3b8";
 
-  if (hidden) {
-    return (
-      <div className="ref-limit-restore-wrap">
-        <button
-          type="button"
-          className="ref-limit-restore-btn"
-          onClick={() => setHidden(false)}
-          title="Ver límites de envíos"
-        >
-          <Eye size={12} />
-          <span>Ver límites de envíos</span>
-        </button>
-      </div>
-    );
-  }
+  const monthColor = getProgressColor(monthPercent);
+  const dailyColor = getProgressColor(dailyPercent);
 
   return (
-    <div className="ref-limit-inline" suppressHydrationWarning>
-      <div className="ref-limit-inline-header">
+    <div className="ref-limit-inline" suppressHydrationWarning style={{ transition: "all 0.2s ease" }}>
+      <div
+        className="ref-limit-inline-header"
+        style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
+      >
         <strong>Límite de Envíos</strong>
+        <button
+          type="button"
+          onClick={() => setExpanded(!expanded)}
+          style={{
+            background: "transparent",
+            border: "none",
+            color: "var(--muted, #64748b)",
+            cursor: "pointer",
+            padding: "2px 4px",
+            borderRadius: "4px",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "2px",
+            fontSize: "11px",
+            fontWeight: 500,
+          }}
+          title={expanded ? "Ocultar límite diario" : "Ver límite diario"}
+          aria-expanded={expanded}
+        >
+          {expanded ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+        </button>
       </div>
-      <p><b>{monthCount}/{formattedMonthlyLimit}</b> envíos este mes</p>
-      <span className="ref-limit-bar">
-        <i style={{ width: `${Math.max(4, monthPercent)}%`, backgroundColor: progressColor }} />
-      </span>
+
+      {expanded && (
+        <div style={{ marginBottom: "8px", paddingTop: "4px", borderBottom: "1px dashed var(--am-border, #cbd5e1)", paddingBottom: "8px" }}>
+          <p style={{ margin: "0 0 2px", fontSize: "11px", color: "var(--muted, #64748b)", fontWeight: 500 }}>Límite diario</p>
+          <p style={{ margin: "0 0 4px", fontSize: "12px" }}>
+            <b>{todayCount}/{dailyLimit}</b> envíos hoy
+          </p>
+          <span className="ref-limit-bar">
+            <i style={{ width: `${Math.max(4, dailyPercent)}%`, backgroundColor: dailyColor }} />
+          </span>
+        </div>
+      )}
+
+      <div>
+        {expanded && <p style={{ margin: "0 0 2px", fontSize: "11px", color: "var(--muted, #64748b)", fontWeight: 500 }}>Límite mensual</p>}
+        <p style={{ margin: "0 0 4px", fontSize: "12px" }}>
+          <b>{monthCount}/{formattedMonthlyLimit}</b> envíos este mes
+        </p>
+        <span className="ref-limit-bar">
+          <i style={{ width: `${Math.max(4, monthPercent)}%`, backgroundColor: monthColor }} />
+        </span>
+      </div>
     </div>
   );
 }

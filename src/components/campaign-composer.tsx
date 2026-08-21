@@ -319,7 +319,7 @@ export function CampaignComposer({
       </header>
 
       <nav className="campaign-steps" aria-label="Progreso de campaña">
-        {["Plantilla", "Contenido", "Audiencia e Información"].map((label, index) => {
+        {["Plantilla", "Contenido", "Audiencia"].map((label, index) => {
           const isActiveStep = step === index + 1;
           const isCompleteStep = step > index + 1;
           return (

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Inbox } from "lucide-react";
+import { AlertCircle, CheckCircle2, Clock, FileText, Inbox, PauseCircle, Send } from "lucide-react";
 export { Button } from "./ui/button";
 import type {
   CampaignStatus,
@@ -88,7 +88,25 @@ export function StatusBadge({
     success: "Correcto",
     warning: "Atención",
   };
-  return <span className={`badge ${status}`}>{labels[status] ?? status}</span>;
+  const icons: Record<string, React.ReactNode> = {
+    sent: <Send size={11} strokeWidth={2} />,
+    scheduled: <Clock size={11} strokeWidth={2} />,
+    draft: <FileText size={11} strokeWidth={2} />,
+    failed: <AlertCircle size={11} strokeWidth={2} />,
+    ready: <CheckCircle2 size={11} strokeWidth={2} />,
+    pending: <Clock size={11} strokeWidth={2} />,
+    connected: <CheckCircle2 size={11} strokeWidth={2} />,
+    error: <AlertCircle size={11} strokeWidth={2} />,
+    disabled: <PauseCircle size={11} strokeWidth={2} />,
+    success: <CheckCircle2 size={11} strokeWidth={2} />,
+    warning: <AlertCircle size={11} strokeWidth={2} />,
+  };
+  return (
+    <span className={`badge ${status}`} style={{ gap: "4px" }}>
+      {icons[status]}
+      <span>{labels[status] ?? status}</span>
+    </span>
+  );
 }
 export function SiteCard({ site }: { site: Site }) {
   return (

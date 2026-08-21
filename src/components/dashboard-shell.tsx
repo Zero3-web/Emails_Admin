@@ -29,10 +29,33 @@ export function DashboardShell({ children, sites, user, usage }: DashboardShellP
   const [notification, setNotification] = useState<string | null>(null);
   const prevSiteRef = useRef<string | null>(selectedSite);
 
+  // Restore saved brand if no ?site param in URL
+  useEffect(() => {
+    try {
+      const currentParam = params?.get("site");
+      const savedSite = localStorage.getItem("area-mail-selected-site");
+      if (!currentParam && savedSite && savedSite !== "all" && sites.some((s) => s.id === savedSite)) {
+        const next = new URLSearchParams(params?.toString() ?? "");
+        next.set("site", savedSite);
+        router.replace(`${pathname}?${next.toString()}`);
+      } else if (currentParam) {
+        localStorage.setItem("area-mail-selected-site", currentParam);
+      }
+    } catch {
+      // Ignore storage errors
+    }
+  }, [params, pathname, router, sites]);
+
   useEffect(() => {
     if (prevSiteRef.current !== null && prevSiteRef.current !== selectedSite) {
       const site = sites.find((s) => s.id === selectedSite);
       const siteName = site ? site.name : "Todas las marcas";
+
+      try {
+        localStorage.setItem("area-mail-selected-site", selectedSite);
+      } catch {
+        // Ignore storage errors
+      }
 
       const stateTimer = setTimeout(() => {
         setNotification(`Cambiado a ${siteName}`);
@@ -54,6 +77,11 @@ export function DashboardShell({ children, sites, user, usage }: DashboardShellP
   }, [selectedSite, sites]);
 
   const changeSite = (siteId: string) => {
+    try {
+      localStorage.setItem("area-mail-selected-site", siteId);
+    } catch {
+      // Ignore storage errors
+    }
     const next = new URLSearchParams(params?.toString() ?? "");
     if (siteId === "all") next.delete("site");
     else next.set("site", siteId);
@@ -69,7 +97,7 @@ export function DashboardShell({ children, sites, user, usage }: DashboardShellP
   return (
     <div className="ref-app">
       <a className="skip-link" href="#main-content">Saltar al contenido</a>
-      <Sidebar pathname={pathname} open={mobileOpen} withSite={withSite} onNavigate={() => setMobileOpen(false)} onSignOut={() => void signOut()} usage={usage} />
+      <Sidebar pathname={pathname} open={mobileOpen} withSite={withSite} onNavigate={() => setMobileOpen(false)} onSignOut={() => void signOut()} usage={usage} platformOwner={user.platformOwner} />
       {mobileOpen && <button className="ref-mobile-backdrop" aria-label="Cerrar menú" onClick={() => setMobileOpen(false)} />}
       <main className="ref-main" suppressHydrationWarning>
         <Topbar sites={sites} selectedSite={selectedSite} userInitial={(user.name || user.email).slice(0, 1).toUpperCase()} onMenuOpen={() => setMobileOpen(true)} onSiteChange={changeSite} />
@@ -83,6 +111,7 @@ export function DashboardShell({ children, sites, user, usage }: DashboardShellP
           onMoreChange={setMobileMoreOpen}
           onSiteChange={changeSite}
           onSignOut={() => void signOut()}
+          platformOwner={user.platformOwner}
         />
         <div className="ref-content" id="main-content" tabIndex={-1}><div className="ref-page-transition" key={pathname}>{children}</div></div>
       </main>

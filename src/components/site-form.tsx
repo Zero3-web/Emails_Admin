@@ -1,5 +1,5 @@
 "use client";
-import { Check, ChevronDown, Loader2 } from "lucide-react";
+import { AlertTriangle, Check, ChevronDown, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Site } from "@/src/domain/types";
@@ -79,6 +79,13 @@ export function SiteForm({ site }: { site: Site }) {
           {saving ? "Guardando…" : message.startsWith("Cambios") ? "Guardado" : "Guardar cambios"}
         </button>
       </div>
+
+      {(!state.senderEmail.trim() || !state.senderName.trim()) && (
+        <div className="site-sender-warning" role="status">
+          <AlertTriangle size={16} />
+          <div><strong>Remitente incompleto</strong><span>Completa el nombre y el correo antes de realizar una prueba o enviar una campaña.</span></div>
+        </div>
+      )}
 
       <div className="form-grid">
         <Field

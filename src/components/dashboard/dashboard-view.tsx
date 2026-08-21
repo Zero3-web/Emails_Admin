@@ -58,7 +58,7 @@ export function DashboardView({
             <p>Configura flujos automáticos de envío por marca</p>
           </div>
         </Link>
-        <Link href={`/activity${siteQueryOnly}`} className="shortcut-card">
+        <Link href={`/analytics${siteQueryOnly}`} className="shortcut-card">
           <span className="shortcut-icon"><Activity size={18} /></span>
           <div>
             <h3>Revisar analíticas</h3>

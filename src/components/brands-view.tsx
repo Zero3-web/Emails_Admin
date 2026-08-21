@@ -37,8 +37,8 @@ export function BrandsView({ sites, integrations, propertyCounts, contactCounts 
           <div className="brand-main"><span className={`brand-state ${site.isActive ? "active" : "inactive"}`}>{site.isActive ? "Activa" : "Inactiva"}</span><h3>{site.name}</h3><p>{site.domain}</p></div>
           <div className="brand-fact"><span>Contenido</span><strong>{propertyCounts[site.id] ?? 0} propiedades</strong></div>
           <div className="brand-fact"><span>Audiencia</span><strong>{contactCounts[site.id] ?? 0} contactos</strong></div>
-          <div className="brand-fact"><span>Conexiones</span><strong>{ready}/{siteIntegrations.length} operativas</strong></div>
-          <div className="brand-sender"><Mail size={13}/><span><small>Remitente</small><strong>{site.senderEmail || "No configurado"}</strong></span></div>
+          <div className="brand-fact"><span>Conexiones</span><strong>{ready}/{siteIntegrations.length} configuradas</strong></div>
+          <div className="brand-sender"><Mail size={13}/><span><small>Remitente</small><strong title={site.senderEmail || "No configurado"}>{site.senderEmail || "No configurado"}</strong></span></div>
           <Link className="btn" href={`/sites/${site.id}`}>Administrar <ArrowRight size={13}/></Link>
         </article>;
       })}</div>

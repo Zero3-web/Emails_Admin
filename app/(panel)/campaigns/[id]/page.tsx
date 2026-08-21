@@ -5,6 +5,7 @@ import { ArrowLeft, Check, ExternalLink, LockKeyhole, UsersRound } from "lucide-
 import { CampaignEmailPreviewModalButton } from "@/src/components/campaign-email-preview";
 import { PageHeader, SiteMark, StatusBadge } from "@/src/components/ui";
 import { CampaignApproval } from "@/src/components/campaign-approval";
+import { PrepareAudienceButton } from "@/src/components/prepare-audience-button";
 import { requirePanelAccess } from "@/src/auth/server";
 import { getCampaigns, getSites } from "@/src/database/repositories";
 import { campaignStages, getCampaignProgress } from "@/src/services/campaign-state";
@@ -74,12 +75,6 @@ export default async function CampaignDetail({ params }: { params: Promise<{ id:
                 <p>{campaign.metadata.introduction}</p>
               </div>
             )}
-            {audience && (
-              <div className="campaign-audience-summary">
-                <span>Audiencia congelada</span>
-                <strong>{audience.count.toLocaleString("es-PE")} contactos · {audienceLabels[audience.interest]}</strong>
-              </div>
-            )}
             {!campaign.recipientCount && (
               <div className="campaign-readiness-note">
                 <span><UsersRound size={16} /></span>
@@ -87,7 +82,7 @@ export default async function CampaignDetail({ params }: { params: Promise<{ id:
                   <strong>Esta campaña todavía no tiene destinatarios</strong>
                   <p>Agrega contactos con consentimiento para habilitar la aprobación.</p>
                 </div>
-                <Link href="/contacts">Preparar audiencia</Link>
+                <PrepareAudienceButton campaignId={campaign.id} siteId={campaign.siteId} interest={audience?.interest ?? "prime"} />
               </div>
             )}
           </section>

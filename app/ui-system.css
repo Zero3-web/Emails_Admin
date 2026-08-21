@@ -1061,6 +1061,213 @@ html[data-theme="dark"] .role-grid > article > svg { color: var(--am-lime) !impo
   :root .ref-page-transition { width: 100% !important; max-width: 1480px !important; margin-inline: auto !important; }
 }
 
+/* Campaign composer: number marker and label are separate visual elements. */
+html body .ref-app .campaign-steps button > span:first-child {
+  width: 22px !important;
+  height: 22px !important;
+  min-width: 22px !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  flex: none !important;
+  border-radius: 999px !important;
+}
+html body .ref-app .campaign-steps button > :is(.campaign-step-label-full, .campaign-step-label-mobile) {
+  width: auto !important;
+  height: auto !important;
+  min-width: 0 !important;
+  display: inline !important;
+  padding: 0 !important;
+  color: inherit !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  line-height: 1.25 !important;
+  text-align: left !important;
+}
+html body .ref-app .campaign-steps button > .campaign-step-label-mobile { display: none !important; }
+html body .ref-app .campaign-steps button {
+  color: var(--am-muted) !important;
+}
+html body .ref-app .campaign-steps button.active,
+html body .ref-app .campaign-steps button.complete {
+  color: var(--am-ink) !important;
+}
+html body .ref-app .campaign-steps button.active > span:first-child,
+html body .ref-app .campaign-steps button.complete > span:first-child {
+  color: var(--am-on-lime) !important;
+  background: var(--am-lime) !important;
+}
+html body .ref-app .campaign-steps button:not(.active):not(.complete) > span:first-child {
+  color: var(--am-muted) !important;
+  background: var(--am-surface-2) !important;
+}
+html[data-theme="dark"] body .ref-app .campaign-steps button.active,
+html[data-theme="dark"] body .ref-app .campaign-steps button.complete {
+  color: var(--am-ink) !important;
+}
+
+@media (max-width: 720px) {
+  html body .ref-app .campaign-steps button > .campaign-step-label-full { display: none !important; }
+  html body .ref-app .campaign-steps button > .campaign-step-label-mobile {
+    display: block !important;
+    font-size: 10px !important;
+    text-align: center !important;
+  }
+}
+
+/* Step 3 must follow theme tokens instead of embedded light colors. */
+html body .ref-app .campaign-review-card {
+  color: var(--am-copy) !important;
+  background: var(--am-surface) !important;
+  border-color: var(--am-border) !important;
+}
+html body .ref-app .campaign-review-head { border-color: var(--am-border) !important; }
+html body .ref-app .campaign-review-head > div,
+html body .ref-app .campaign-review-card label,
+html body .ref-app .campaign-review-card .campaign-field-label {
+  color: var(--am-copy) !important;
+}
+html body .ref-app .campaign-review-head > span,
+html body .ref-app .campaign-review-card .campaign-field-label > span:last-child {
+  color: var(--am-muted) !important;
+}
+html body .ref-app .campaign-review-card hr { border-color: var(--am-border) !important; }
+html body .ref-app .campaign-review-card :is(input, textarea) {
+  color: var(--am-ink) !important;
+  background: var(--am-surface) !important;
+  border-color: var(--am-border-strong) !important;
+}
+html body .ref-app .campaign-review-card .email-recipients-input-wrapper {
+  color: var(--am-ink) !important;
+  background: var(--am-surface) !important;
+  border-color: var(--am-border-strong) !important;
+}
+html body .ref-app .campaign-review-card .email-recipients-input-wrapper input {
+  color: var(--am-ink) !important;
+  background: transparent !important;
+}
+html[data-theme="dark"] body .ref-app .campaign-review-head svg {
+  color: var(--am-lime) !important;
+  stroke: currentColor !important;
+}
+html[data-theme="dark"] body .ref-app .campaign-review-card .email-recipients-input-wrapper > button {
+  color: var(--am-copy) !important;
+  background: var(--am-surface-2) !important;
+  border-color: var(--am-border-strong) !important;
+}
+
+/* Thin, consistent scrollbars throughout the application. */
+html, body, .ref-app, .ref-app * {
+  scrollbar-width: thin;
+  scrollbar-color: #9aa3ad transparent;
+}
+html[data-theme="dark"], html[data-theme="dark"] body,
+html[data-theme="dark"] .ref-app, html[data-theme="dark"] .ref-app * {
+  scrollbar-color: #56606b transparent;
+}
+html::-webkit-scrollbar, body::-webkit-scrollbar, .ref-app::-webkit-scrollbar, .ref-app *::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+html::-webkit-scrollbar-track, body::-webkit-scrollbar-track, .ref-app::-webkit-scrollbar-track, .ref-app *::-webkit-scrollbar-track {
+  background: transparent;
+}
+html::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb, .ref-app::-webkit-scrollbar-thumb, .ref-app *::-webkit-scrollbar-thumb {
+  background: #9aa3ad;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+}
+html[data-theme="dark"]::-webkit-scrollbar-thumb,
+html[data-theme="dark"] body::-webkit-scrollbar-thumb,
+html[data-theme="dark"] .ref-app::-webkit-scrollbar-thumb,
+html[data-theme="dark"] .ref-app *::-webkit-scrollbar-thumb {
+  background: #56606b;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+html::-webkit-scrollbar-thumb:hover, body::-webkit-scrollbar-thumb:hover, .ref-app *::-webkit-scrollbar-thumb:hover { background-color: #727d88; }
+
+/* Import an audience without leaving the campaign. */
+html body .ref-app .campaign-audience-trigger {
+  width: max-content !important;
+  min-height: 34px !important;
+  padding: 6px 10px !important;
+  color: #5d6800 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+}
+html[data-theme="dark"] body .ref-app .campaign-audience-trigger { color: var(--am-lime) !important; }
+html body .audience-quick-backdrop {
+  z-index: 700 !important;
+  display: grid !important;
+  place-items: center !important;
+  position: fixed !important;
+  inset: 0 !important;
+  padding: 18px !important;
+  background: rgba(15, 23, 42, .58) !important;
+  backdrop-filter: blur(3px) !important;
+}
+html body .audience-quick-dialog {
+  width: min(560px, calc(100vw - 28px)) !important;
+  max-height: calc(100dvh - 36px) !important;
+  overflow: auto !important;
+  color: var(--am-copy) !important;
+  background: var(--am-surface) !important;
+  border: 1px solid var(--am-border) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 26px 80px rgba(0, 0, 0, .3) !important;
+}
+html body .audience-quick-dialog > header {
+  display: grid !important;
+  grid-template-columns: 40px minmax(0, 1fr) 38px !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 16px 18px !important;
+  border-bottom: 1px solid var(--am-border) !important;
+}
+html body .audience-quick-dialog > header > span {
+  width: 40px !important; height: 40px !important; display: grid !important; place-items: center !important;
+  color: var(--am-on-lime) !important; background: var(--am-lime) !important; border-radius: 10px !important;
+}
+html body .audience-quick-dialog > header > div { display: grid !important; gap: 1px !important; }
+html body .audience-quick-dialog h2 { margin: 0 !important; color: var(--am-ink) !important; font-size: 17px !important; }
+html body .audience-quick-dialog header p { margin: 0 !important; color: var(--am-muted) !important; font-size: 11px !important; }
+html body .audience-quick-dialog > header > button { width: 38px !important; height: 38px !important; display: grid !important; place-items: center !important; color: var(--am-copy) !important; background: var(--am-surface) !important; border: 1px solid var(--am-border) !important; border-radius: 9px !important; }
+html body .audience-quick-body { display: grid !important; gap: 14px !important; padding: 18px !important; }
+html body .audience-quick-file {
+  display: grid !important; grid-template-columns: 34px minmax(0,1fr) auto !important; align-items: center !important; gap: 10px !important;
+  min-height: 76px !important; padding: 12px !important; text-align: left !important; color: var(--am-copy) !important;
+  background: var(--am-surface-2) !important; border: 1px dashed var(--am-border-strong) !important; border-radius: 11px !important;
+}
+html body .audience-quick-file > span { display: grid !important; gap: 2px !important; }
+html body .audience-quick-file strong { color: var(--am-ink) !important; font-size: 12px !important; }
+html body .audience-quick-file small { color: var(--am-muted) !important; font-size: 10px !important; }
+html body .audience-quick-file em { color: #5d6800 !important; font-size: 11px !important; font-style: normal !important; font-weight: 700 !important; }
+html[data-theme="dark"] body .audience-quick-file em { color: var(--am-lime) !important; }
+html body .audience-quick-consent { display: grid !important; grid-template-columns: 20px minmax(0,1fr) !important; gap: 9px !important; padding: 12px !important; color: var(--am-copy) !important; background: var(--am-surface-2) !important; border: 1px solid var(--am-border) !important; border-radius: 10px !important; cursor: pointer !important; }
+html body .audience-quick-consent > input { position: absolute !important; opacity: 0 !important; pointer-events: none !important; }
+html body .audience-quick-consent > span { width: 20px !important; height: 20px !important; display: grid !important; place-items: center !important; color: var(--am-on-lime) !important; background: var(--am-surface) !important; border: 1px solid var(--am-border-strong) !important; border-radius: 6px !important; }
+html body .audience-quick-consent.checked > span { background: var(--am-lime) !important; border-color: var(--am-lime) !important; }
+html body .audience-quick-consent > div { display: grid !important; gap: 2px !important; }
+html body .audience-quick-consent strong { color: var(--am-ink) !important; font-size: 12px !important; }
+html body .audience-quick-consent small { color: var(--am-muted) !important; font-size: 10px !important; }
+html body .audience-quick-dialog > footer { display: flex !important; justify-content: flex-end !important; gap: 8px !important; padding: 13px 18px !important; background: var(--am-surface-2) !important; border-top: 1px solid var(--am-border) !important; }
+
+@media (max-width: 720px) {
+  html body .audience-quick-backdrop { padding: 8px !important; }
+  html body .audience-quick-dialog { width: 100% !important; max-height: calc(100dvh - 16px) !important; border-radius: 18px !important; }
+  html body .audience-quick-file { grid-template-columns: 30px minmax(0,1fr) !important; }
+  html body .audience-quick-file em { grid-column: 2 !important; }
+  html body .audience-quick-dialog > footer { display: grid !important; grid-template-columns: 1fr 1fr !important; }
+}
+
 :root .minimal-page-head,
 :root .page-head {
   min-height: 56px !important;
@@ -1294,16 +1501,16 @@ html[data-theme="dark"] .ref-topbar {
 }
 
 html body .theme-toggle-btn {
-  width: 34px !important;
-  height: 34px !important;
-  min-height: 34px !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-height: 32px !important;
   padding: 0 !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  border-radius: 8px !important;
-  border: 1px solid #e5e7eb !important;
-  background: #ffffff !important;
+  border-radius: 50% !important;
+  border: none !important;
+  background: transparent !important;
   color: #4b5563 !important;
   box-shadow: none !important;
   cursor: pointer !important;
@@ -1318,21 +1525,23 @@ html body .theme-toggle-btn svg {
 }
 
 html body .theme-toggle-btn:hover {
-  background: #f3f4f6 !important;
-  border-color: #d1d5db !important;
+  background: transparent !important;
+  border-color: transparent !important;
   color: #111827 !important;
+  transform: scale(1.1) !important;
 }
 
 html[data-theme="dark"] body .theme-toggle-btn {
-  background: #1e232a !important;
-  border-color: #374151 !important;
+  background: transparent !important;
+  border: none !important;
   color: #9ca3af !important;
 }
 
 html[data-theme="dark"] body .theme-toggle-btn:hover {
-  background: #2b323b !important;
-  border-color: #4b5563 !important;
+  background: transparent !important;
+  border-color: transparent !important;
   color: #f9fafb !important;
+  transform: scale(1.1) !important;
 }
 
 :root .ref-brand-menu {
@@ -2562,4 +2771,368 @@ html body .ref-app .campaign-detail-page .campaign-approval .btn.primary:not(:di
   color: var(--am-on-lime) !important;
   background: var(--am-lime-gradient) !important;
   border-color: var(--am-lime) !important;
+}
+
+/* Desktop audit fixes: keep responsive labels mutually exclusive. */
+html body .ref-app .campaign-step-label-mobile {
+  display: none !important;
+}
+
+@media (max-width: 720px) {
+  html body .ref-app .campaign-step-label-full { display: none !important; }
+  html body .ref-app .campaign-step-label-mobile {
+    display: block !important;
+    width: auto !important;
+    height: auto !important;
+    background: transparent !important;
+  }
+}
+
+/* Keep the dashboard actions attached to the greeting on wide screens. */
+@media (min-width: 1100px) {
+  html body .ref-app .dashboard-workspace {
+    min-height: 0 !important;
+    height: auto !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+  }
+  html body .ref-app .dashboard-head { margin-bottom: 18px !important; }
+  html body .ref-app .dashboard-shortcuts { margin: 0 auto !important; }
+}
+
+/* One page scrollbar: the preview itself owns no second outer scroll area. */
+@media (min-width: 769px) {
+  html body .ref-app .template-stage.refined {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+  html body .ref-app .template-stage.refined iframe {
+    height: 720px !important;
+    min-height: 0 !important;
+  }
+}
+
+/* Destructive campaign confirmation is visually distinct and readable. */
+html body .ref-app .campaign-confirm {
+  padding: 14px !important;
+  border: 1px solid #e7c9a0 !important;
+  border-radius: 10px !important;
+  background: #fffaf1 !important;
+}
+html body .ref-app .campaign-confirm p {
+  margin: 0 0 12px !important;
+  color: var(--am-copy) !important;
+  font-size: 12px !important;
+}
+html body .ref-app .campaign-confirm-actions {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 8px !important;
+}
+html body .ref-app .campaign-confirm-actions .btn { justify-content: center !important; }
+html[data-theme="dark"] body .ref-app .campaign-confirm {
+  background: #211e18 !important;
+  border-color: #55452d !important;
+}
+
+/* Second desktop refinement pass --------------------------------------- */
+html body .ref-app :is(
+  .activity-panel p,
+  .activity-result-line,
+  .activity-date,
+  .activity-message small,
+  .campaign-cell + td,
+  .brands-panel p,
+  .team-access-panel p,
+  .automation-panel p,
+  .settings-status-list p
+) {
+  color: var(--am-muted) !important;
+  font-size: 12px !important;
+}
+
+html body .ref-app :is(.activity-recipient strong, .activity-message strong) {
+  max-width: none !important;
+  color: var(--am-ink) !important;
+  font-size: 12px !important;
+}
+
+html body .ref-app .activity-table {
+  table-layout: fixed !important;
+}
+html body .ref-app .activity-table th:nth-child(1),
+html body .ref-app .activity-table td:nth-child(1) { width: 180px !important; }
+html body .ref-app .activity-table th:nth-child(2),
+html body .ref-app .activity-table td:nth-child(2) { width: 26% !important; }
+html body .ref-app .activity-table th:nth-child(3),
+html body .ref-app .activity-table td:nth-child(3) { width: auto !important; }
+html body .ref-app .activity-table th:nth-child(4),
+html body .ref-app .activity-table td:nth-child(4) { width: 120px !important; }
+html body .ref-app .activity-table th:nth-child(5),
+html body .ref-app .activity-table td:nth-child(5) { width: 120px !important; }
+
+html body .ref-app :is(.contacts-empty, .automation-empty-refined) {
+  min-height: 0 !important;
+  margin-top: 0 !important;
+}
+html body .ref-app .contacts-empty { padding: 44px 24px !important; }
+html body .ref-app .automation-empty-refined { padding: 28px !important; }
+html body .ref-app .contacts-empty p,
+html body .ref-app .automation-empty-refined p {
+  color: var(--am-muted) !important;
+  font-size: 12px !important;
+}
+
+html body .ref-app .team-empty-banner {
+  min-height: 0 !important;
+  margin-bottom: 16px !important;
+  padding: 14px 16px !important;
+}
+html body .ref-app .team-brand-list:empty { display: none !important; }
+
+html body .ref-app .brand-fact span,
+html body .ref-app .brand-sender small {
+  color: var(--am-muted) !important;
+  font-size: 11px !important;
+}
+html body .ref-app .brand-fact strong,
+html body .ref-app .brand-sender strong {
+  color: var(--am-copy) !important;
+  font-size: 12px !important;
+}
+
+html body .ref-app .site-sender-warning {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 10px !important;
+  margin: 0 0 16px !important;
+  padding: 12px 14px !important;
+  color: #70490d !important;
+  background: #fff9ec !important;
+  border: 1px solid #ead4a9 !important;
+  border-radius: 10px !important;
+}
+html body .ref-app .site-sender-warning > div { display: grid !important; gap: 2px !important; }
+html body .ref-app .site-sender-warning strong { color: inherit !important; font-size: 12px !important; }
+html body .ref-app .site-sender-warning span { color: #7b5b2a !important; font-size: 11px !important; }
+html[data-theme="dark"] body .ref-app .site-sender-warning {
+  color: #f1ce8d !important;
+  background: #211e18 !important;
+  border-color: #55452d !important;
+}
+html[data-theme="dark"] body .ref-app .site-sender-warning span { color: #d6bd8f !important; }
+
+html body .ref-app :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--am-lime) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px var(--am-lime-soft) !important;
+}
+
+html body .ref-app .library-property-media {
+  aspect-ratio: 16 / 10 !important;
+  height: auto !important;
+  overflow: hidden !important;
+  background: var(--am-surface-2) !important;
+}
+html body .ref-app .library-property-media img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+@media (min-width: 721px) and (max-width: 1100px) {
+  html body .ref-app .brands-list > article {
+    grid-template-columns: 42px minmax(160px, 1.2fr) repeat(2, minmax(100px, .7fr)) auto !important;
+  }
+  html body .ref-app .brands-list .brand-fact:nth-of-type(3),
+  html body .ref-app .brands-list .brand-sender { display: none !important; }
+  html body .ref-app .activity-table th:nth-child(1),
+  html body .ref-app .activity-table td:nth-child(1) { width: 150px !important; }
+  html body .ref-app .activity-table th:nth-child(5),
+  html body .ref-app .activity-table td:nth-child(5) { width: 92px !important; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html body .ref-app :is(.card, .shortcut-card, .library-property-card, .campaign-card-row) {
+    transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease, transform 160ms ease !important;
+  }
+}
+
+/* Final interaction and state consistency. */
+@media (min-width: 721px) {
+  html body .ref-app .ref-collapse-btn {
+    width: 36px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+  }
+  html body .ref-app .theme-toggle-btn {
+    width: 36px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+  }
+  html body .ref-app .device-switch button {
+    min-height: 36px !important;
+    padding-inline: 12px !important;
+  }
+}
+
+html body .ref-app :is(button, .btn, input, select, textarea)[disabled],
+html body .ref-app :is(button, .btn)[aria-disabled="true"] {
+  opacity: .52 !important;
+  cursor: not-allowed !important;
+  filter: saturate(.55) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+html body .ref-app :is(input, select, textarea)[aria-invalid="true"] {
+  border-color: #c94f49 !important;
+  box-shadow: 0 0 0 3px rgba(201, 79, 73, .11) !important;
+}
+html body .ref-app .field-error {
+  color: #a23832 !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+}
+html[data-theme="dark"] body .ref-app .field-error { color: #f0a09a !important; }
+
+html body .ref-app :is(.ref-brand-popover, .contacts-filter-menu > div, .activity-date-filter > div) {
+  border-color: var(--am-border) !important;
+  border-radius: 12px !important;
+  background: var(--am-surface) !important;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, .14) !important;
+}
+html[data-theme="dark"] body .ref-app :is(.ref-brand-popover, .contacts-filter-menu > div, .activity-date-filter > div) {
+  box-shadow: 0 18px 48px rgba(0, 0, 0, .42) !important;
+}
+
+html body .ref-app .activity-table tbody tr[role="button"] {
+  transition: background-color 150ms ease, box-shadow 150ms ease !important;
+}
+html body .ref-app .activity-table tbody tr[role="button"]:hover {
+  background: var(--am-surface-2) !important;
+}
+html body .ref-app .activity-table tbody tr[role="button"]:focus-visible {
+  position: relative !important;
+  z-index: 1 !important;
+  outline: 2px solid var(--am-lime) !important;
+  outline-offset: -2px !important;
+  box-shadow: inset 0 0 0 1px var(--am-lime-border) !important;
+}
+
+html body .ref-app :is(.notice.success, .notice.error, .campaign-step-feedback) {
+  border-radius: 10px !important;
+  padding: 11px 13px !important;
+  font-size: 12px !important;
+  line-height: 1.45 !important;
+}
+
+html body .ref-app :is(.campaign-cell strong, .brand-sender strong, .activity-recipient strong, .activity-message strong) {
+  text-overflow: ellipsis !important;
+  overflow: hidden !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body .ref-app *,
+  html body .ref-app *::before,
+  html body .ref-app *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+/* Contrast corrections from dark-mode visual review. */
+html[data-theme="dark"] body .ref-app .contacts-summary-icon,
+html[data-theme="dark"] body .ref-app .contacts-summary-icon.positive,
+html[data-theme="dark"] body .ref-app .contacts-summary-icon.safe,
+html[data-theme="dark"] body .ref-app .contacts-summary-icon.muted {
+  color: var(--am-lime) !important;
+  background: rgba(215, 255, 34, .12) !important;
+  border: 1px solid rgba(215, 255, 34, .28) !important;
+}
+html[data-theme="dark"] body .ref-app .contacts-summary-icon svg,
+html[data-theme="dark"] body .ref-app .contacts-summary-icon svg * {
+  color: currentColor !important;
+  stroke: currentColor !important;
+}
+
+html body .ref-app .contacts-page-action .btn.primary svg,
+html body .ref-app .contacts-page-action .btn.primary svg * {
+  color: var(--am-on-lime) !important;
+  stroke: currentColor !important;
+}
+
+html[data-theme="dark"] body .ref-app :is(
+  .badge.sent,
+  .badge.success,
+  .badge.connected,
+  .badge.ready,
+  .badge.active,
+  .up-state.sent,
+  .up-state.ready,
+  .aep-badge.sent,
+  .settings-service-state.connected
+) {
+  color: var(--am-lime) !important;
+  background: rgba(215, 255, 34, .11) !important;
+  border-color: rgba(215, 255, 34, .32) !important;
+}
+html[data-theme="dark"] body .ref-app :is(.badge.sent, .badge.ready, .up-state.sent, .up-state.ready) svg,
+html[data-theme="dark"] body .ref-app :is(.badge.sent, .badge.ready, .up-state.sent, .up-state.ready) svg * {
+  color: currentColor !important;
+  stroke: currentColor !important;
+}
+
+/* Inputs use a calm neutral focus ring; lime remains for keyboard focus on actions. */
+html body .ref-app :is(input, select, textarea):focus,
+html body .ref-app :is(input, select, textarea):focus-visible,
+html body .ref-app :is(.campaign-content-search, .contacts-search, .content-search, .activity-search, .aep-search, .email-recipients-input-wrapper):focus-within {
+  outline: none !important;
+  border-color: var(--am-border-strong) !important;
+  box-shadow: 0 0 0 3px rgba(100, 116, 139, .16) !important;
+}
+html[data-theme="dark"] body .ref-app :is(input, select, textarea):focus,
+html[data-theme="dark"] body .ref-app :is(input, select, textarea):focus-visible,
+html[data-theme="dark"] body .ref-app :is(.campaign-content-search, .contacts-search, .content-search, .activity-search, .aep-search, .email-recipients-input-wrapper):focus-within {
+  border-color: #56616d !important;
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, .13) !important;
+}
+
+html body .ref-app details.filter-menu[open] > summary {
+  color: var(--am-ink) !important;
+  border-color: var(--am-border-strong) !important;
+  box-shadow: 0 0 0 2px rgba(100, 116, 139, .12) !important;
+}
+html[data-theme="dark"] body .ref-app details.filter-menu[open] > summary {
+  background: var(--am-surface-2) !important;
+  border-color: #56616d !important;
+  box-shadow: none !important;
+}
+
+/* Restore the dashboard shortcuts to the lower workspace position requested. */
+@media (min-width: 1100px) {
+  html body .ref-app .dashboard-workspace {
+    min-height: calc(100vh - 120px) !important;
+    height: auto !important;
+    justify-content: space-between !important;
+  }
+  html body .ref-app .dashboard-shortcuts {
+    margin-top: auto !important;
+    margin-bottom: 12px !important;
+  }
+}
+
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.skeleton-pulse {
+  animation: skeleton-pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+.activity-table-wrap {
+  transition: opacity 0.2s ease-in-out;
 }

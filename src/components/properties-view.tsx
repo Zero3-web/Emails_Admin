@@ -83,7 +83,7 @@ export function PropertiesView({ properties, sites, initialSiteId = "" }: { prop
             const site = siteById.get(property.siteId);
             return <article className="library-property-card" key={property.id}>
               <button className="library-property-media" type="button" onClick={() => setPreview(property)} aria-label={`Vista previa de ${property.title}`}>
-                {property.imageUrl ? <img src={property.imageUrl} alt="" loading="lazy" /> : <span><Building2 size={24} /></span>}<i>{propertyStatusLabel(property.status)}</i>
+                {property.imageUrl ? <img src={property.imageUrl} alt="" loading="lazy" decoding="async" sizes="(max-width: 720px) 100vw, (max-width: 1100px) 50vw, 25vw" /> : <span><Building2 size={24} /></span>}<i>{propertyStatusLabel(property.status)}</i>
               </button>
               <div className="library-property-body">
                 <div className="library-property-brand">{site?.logoUrl ? <img src={site.logoUrl} alt={site.name} style={{ width: "16px", height: "16px", borderRadius: "50%", objectFit: "cover", marginRight: "6px", background: "#ffffff", display: "inline-block", verticalAlign: "middle" }} /> : <span style={{ background: site?.primaryColor || "#4f46e5" }}>{getSiteInitials(site?.name || segmentLabel(property.segment))}</span>}<small>{site?.name ?? segmentLabel(property.segment)}</small></div>

@@ -44,3 +44,8 @@ yarn-error.log*
 .area-mail-dev.log
 .area-mail-dev.err.log
 .cloudflared-tunnel.log
+.cloudflared-mobile*
+.codex-dev-server*
+.dev-ui-audit*
+.codex-remote-attachments/
+*.log

@@ -60,6 +60,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
           from: site.senderEmail,
           subject: campaign.subject,
           status: "sent",
+          html,
         });
         
         sentCount++;

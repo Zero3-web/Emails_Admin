@@ -10,6 +10,7 @@ const roleInfo: Record<SiteRole, { label: string; short: string; detail: string;
 
 export function TeamAccessView({ ready, sites, members, invitations }: { ready: boolean; sites: Site[]; members: SiteMember[]; invitations: SiteInvitation[] }) {
   const pending = invitations.filter((item) => item.status === "pending");
+  const hasAnyAccess = Boolean(members.length || pending.length);
   if (!ready) return <div className="team-layout refined">
     <section className="system-priority attention"><span><AlertCircle size={18}/></span><div><small>Preparación pendiente</small><strong>Activa el control de acceso por marca</strong><p>Las invitaciones permanecerán cerradas hasta completar la configuración de seguridad.</p></div></section>
     <RoleGuide/>
@@ -22,7 +23,7 @@ export function TeamAccessView({ ready, sites, members, invitations }: { ready: 
       <article><span className="team-overview-icon"><ShieldCheck size={16}/></span><div><strong>{sites.length}</strong><small>marcas protegidas</small></div></article>
     </section>
 
-    {!members.length && !pending.length && <section className="team-empty-banner"><span><UserPlus size={18}/></span><div><strong>Acceso preparado, sin personas asignadas</strong><p>Los miembros aparecerán aquí cuando se incorporen mediante el acceso seguro de la plataforma.</p></div></section>}
+    {!hasAnyAccess && <section className="team-empty-banner"><span><UserPlus size={18}/></span><div><strong>Acceso preparado, sin personas asignadas</strong><p>Las marcas están protegidas. Los miembros aparecerán aquí cuando se incorporen mediante el acceso seguro.</p></div></section>}
 
     <section className="card team-access-panel">
       <header><div><h2>Acceso por marca</h2><p>Visualiza quién puede trabajar en cada operación y qué responsabilidad tiene.</p></div><span>{members.length + pending.length} accesos</span></header>
@@ -34,7 +35,7 @@ export function TeamAccessView({ ready, sites, members, invitations }: { ready: 
           <header><span style={{background:site.primaryColor || "#4f46e5"}}>{initials}</span><div><h3>{site.name}</h3><p>{site.domain}</p></div><strong>{siteMembers.length} {siteMembers.length === 1 ? "miembro" : "miembros"}</strong></header>
           <div className="team-member-list">{siteMembers.map((member) => { const role = roleInfo[member.role]; const Icon = role.icon; return <article key={member.id}><span className="member-avatar">{(member.fullName || member.email).slice(0,2).toUpperCase()}</span><div><strong>{member.fullName || member.email}</strong><small>{member.email}</small></div><span className="member-role refined"><Icon size={13}/><span>{role.label}</span></span></article>; })}
             {siteInvitations.map((invite) => <article className="pending" key={invite.id}><span className="member-avatar"><Clock3 size={14}/></span><div><strong>{invite.email}</strong><small>Esperando aceptación</small></div><span className="member-role refined"><Clock3 size={13}/><span>{roleInfo[invite.role].label}</span></span></article>)}
-            {!siteMembers.length && !siteInvitations.length && <div className="team-brand-empty"><UsersRound size={18}/><span><strong>Sin personas asignadas</strong><small>Esta marca todavía no tiene miembros ni invitaciones pendientes.</small></span></div>}
+            {hasAnyAccess && !siteMembers.length && !siteInvitations.length && <div className="team-brand-empty"><UsersRound size={18}/><span><strong>Sin personas asignadas</strong><small>No hay miembros ni invitaciones pendientes para esta marca.</small></span></div>}
           </div>
         </section>;
       })}</div>

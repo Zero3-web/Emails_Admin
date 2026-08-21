@@ -59,16 +59,14 @@ a.primary:hover {
 
 /* Secondary Buttons & General Control Buttons */
 .btn,
-.aep-export-btn,
-.theme-toggle-btn {
+.aep-export-btn {
   background-color: #121418 !important;
   color: #ffffff !important;
   border: 1px solid #272c35 !important;
 }
 
 .btn:hover,
-.aep-export-btn:hover,
-.theme-toggle-btn:hover {
+.aep-export-btn:hover {
   border-color: #ccff00 !important;
   color: #ccff00 !important;
 }
@@ -330,7 +328,7 @@ a:hover,
 [data-theme="dark"] .ref-content table thead,[data-theme="dark"] .ref-content table th { color:#aab3bc !important; background:#1d242b !important; border-color:#21262d !important; }
 [data-theme="dark"] .ref-content table td,[data-theme="dark"] .ref-content table tr { border-color:#2a323a !important; }
 [data-theme="dark"] .ref-content table tbody tr:hover { background:#1c232a !important; }
-[data-theme="dark"] .ref-collapse-btn,[data-theme="dark"] .theme-toggle-btn,[data-theme="dark"] .ref-brand-menu > summary:hover,[data-theme="dark"] .ref-brand-menu[open] > summary { color:#aab4bd !important; background:#20272e !important; border-color:#21262d !important; }
+[data-theme="dark"] .ref-collapse-btn,[data-theme="dark"] .ref-brand-menu > summary:hover,[data-theme="dark"] .ref-brand-menu[open] > summary { color:#aab4bd !important; background:#20272e !important; border-color:#21262d !important; }
 [data-theme="dark"] .ref-brand-popover { color:#dfe5ea; background:#1a2026; border-color:#343c45; box-shadow:0 18px 44px rgba(0,0,0,.42); }
 [data-theme="dark"] .ref-brand-popover > button { color:#e7ebee; }
 [data-theme="dark"] .ref-brand-popover > button:hover,[data-theme="dark"] .ref-brand-popover > button[aria-selected="true"] { background:#232c32; }
@@ -746,8 +744,9 @@ h1 {
   color: #b42318;
 }
 .badge.draft {
-  background: #eff1f3;
-  color: #59616a;
+  background: #e2e8f0;
+  color: #334155;
+  border: 1px solid #cbd5e1;
 }
 .table-wrap {
   overflow: auto;
@@ -3840,9 +3839,9 @@ body {
   place-items: center;
   width: 32px;
   height: 32px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background: #ffffff;
+  border: none !important;
+  border-radius: 50%;
+  background: transparent !important;
   color: #475569;
   cursor: pointer;
   transition: all 0.15s ease;
