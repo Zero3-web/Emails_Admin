@@ -2482,3 +2482,84 @@ html[data-theme="dark"] :root :is(.brand-overview, .team-overview, .automation-o
   color: #818cf8 !important;
 }
 
+/* Theme integrity --------------------------------------------------------
+ * These selectors intentionally sit after the legacy component layers.
+ * They prevent light-only component rules from leaking into dark mode.
+ */
+html body .ref-app :is(.brand-overview, .team-overview, .automation-overview, .settings-overview) > button {
+  color: #3f4800 !important;
+  background: var(--am-lime-soft) !important;
+  border-color: var(--am-lime-border) !important;
+}
+html body .ref-app :is(.brand-overview, .team-overview, .automation-overview, .settings-overview) > button strong {
+  color: #3f4800 !important;
+}
+html body .ref-app :is(.brand-overview, .team-overview, .automation-overview, .settings-overview) > button small {
+  color: #626a45 !important;
+}
+
+html[data-theme="dark"] body .ref-app :is(.brand-overview, .team-overview, .automation-overview, .settings-overview) > article {
+  color: var(--am-copy) !important;
+  background: var(--am-surface) !important;
+  border-color: var(--am-border) !important;
+}
+html[data-theme="dark"] body .ref-app :is(.brand-overview, .team-overview, .automation-overview, .settings-overview) article strong {
+  color: var(--am-ink) !important;
+}
+html[data-theme="dark"] body .ref-app :is(.brand-overview, .team-overview, .automation-overview, .settings-overview) article small {
+  color: var(--am-muted) !important;
+}
+html[data-theme="dark"] body .ref-app :is(.brand-overview, .team-overview, .automation-overview, .settings-overview) > button {
+  color: var(--am-lime) !important;
+  background: var(--am-lime-soft) !important;
+  border-color: var(--am-lime-border) !important;
+}
+html[data-theme="dark"] body .ref-app :is(.brand-overview, .team-overview, .automation-overview, .settings-overview) > button strong {
+  color: var(--am-lime) !important;
+}
+html[data-theme="dark"] body .ref-app :is(.brand-overview, .team-overview, .automation-overview, .settings-overview) > button small {
+  color: #b8c48e !important;
+}
+
+html[data-theme="dark"] body .ref-sidebar .ref-campaign-menu {
+  color: var(--am-copy) !important;
+  background: transparent !important;
+}
+html[data-theme="dark"] body .ref-sidebar .ref-campaign-menu.active > summary {
+  color: var(--am-ink) !important;
+  background: var(--am-surface-2) !important;
+}
+html[data-theme="dark"] body .ref-sidebar .ref-campaign-menu > div,
+html[data-theme="dark"] body .ref-sidebar .ref-campaign-menu > div a {
+  color: var(--am-muted) !important;
+  background: transparent !important;
+}
+html[data-theme="dark"] body .ref-sidebar .ref-campaign-menu > div a:hover,
+html[data-theme="dark"] body .ref-sidebar .ref-campaign-menu > div a.active {
+  color: var(--am-ink) !important;
+  background: var(--am-surface-2) !important;
+}
+
+html body .ref-app :is(.template-brand-list > button.active, .template-design-card.active, .contacts-site-options > button.active, .contacts-interest-options > button.active, .automation-brand-options > button.active, .automation-type-options > button.active) {
+  color: var(--am-ink) !important;
+  background: var(--am-lime-soft) !important;
+  border-color: var(--am-lime-border) !important;
+  box-shadow: 0 0 0 1px var(--am-lime-border) !important;
+}
+html[data-theme="dark"] body .ref-app :is(.template-brand-list > button.active, .template-design-card.active, .contacts-site-options > button.active, .contacts-interest-options > button.active, .automation-brand-options > button.active, .automation-type-options > button.active) {
+  color: var(--am-ink) !important;
+  background: var(--am-lime-soft) !important;
+  border-color: var(--am-lime-border) !important;
+}
+
+html body .ref-app .content-library-nav a.active {
+  color: var(--am-ink) !important;
+  background: var(--am-lime-soft) !important;
+  border-color: var(--am-lime-border) !important;
+  box-shadow: inset 0 -2px 0 var(--am-lime) !important;
+}
+html body .ref-app .campaign-detail-page .campaign-approval .btn.primary:not(:disabled) {
+  color: var(--am-on-lime) !important;
+  background: var(--am-lime-gradient) !important;
+  border-color: var(--am-lime) !important;
+}
