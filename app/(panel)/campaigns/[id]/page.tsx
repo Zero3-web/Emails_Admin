@@ -13,6 +13,7 @@ import { renderCampaignEmail } from "@/src/services/email-renderer";
 import type { BlogPost, Property } from "@/src/domain/types";
 
 const labels = { weekly_new_properties: "Nuevas oficinas de la semana", monthly_properties: "Oficinas disponibles", monthly_blog: "Novedades del blog" };
+
 export default async function CampaignDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const [campaigns, sites, access] = await Promise.all([getCampaigns(), getSites(), requirePanelAccess()]);
@@ -88,35 +89,66 @@ export default async function CampaignDetail({ params }: { params: Promise<{ id:
           </section>
 
           <section className="campaign-frozen">
-            <div className="section-head">
+            <div className="section-head" style={{ marginBottom: "12px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div>
-                <h2 className="section-title">Contenido congelado</h2>
-                <p className="subtitle">Esta copia no cambiará cuando Tokko o WordPress se actualicen.</p>
+                <h2 className="section-title" style={{ fontSize: "14px", margin: 0, fontWeight: 700 }}>Contenido congelado</h2>
+                <p className="subtitle" style={{ fontSize: "11px", margin: "2px 0 0", color: "#64748b" }}>Esta copia no cambiará cuando Tokko o WordPress se actualicen.</p>
               </div>
-              <span className="frozen-badge">
+              <span className="frozen-badge" style={{ fontSize: "11px", display: "inline-flex", alignItems: "center", gap: "4px", background: "#f1f5f9", padding: "4px 8px", borderRadius: "6px", color: "#475569", fontWeight: 600 }}>
                 <LockKeyhole size={13} /> Inmutable
               </span>
             </div>
-            <div className="campaign-frozen-grid">
+            <div className="campaign-frozen-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "14px" }}>
               {items.map((item) => (
-                <article className="card campaign-frozen-item" key={item.id}>
-                  {item.imageUrl ? <img src={item.imageUrl} alt={item.title} /> : <div className="campaign-frozen-placeholder" />}
-                  <div>
-                    <span>{item.itemType === "property" ? "Oficina" : "Artículo"}</span>
-                    <h3>{item.title}</h3>
-                    {item.itemType === "property" ? (
-                      <p>{item.location}{item.area ? ` · ${item.area} m²` : ""}</p>
+                <article key={item.id} style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  background: "#ffffff",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: "12px",
+                  overflow: "hidden",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+                }}>
+                  <div style={{ height: "130px", width: "100%", overflow: "hidden", background: "#f8fafc", position: "relative" }}>
+                    {item.imageUrl ? (
+                      <img src={item.imageUrl} alt={item.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     ) : (
-                      <p>{item.excerpt}</p>
+                      <div style={{ width: "100%", height: "100%", display: "grid", placeItems: "center", color: "#94a3b8", fontSize: "11px" }}>Sin imagen</div>
                     )}
-                    <footer>
-                      {item.itemType === "property" && (
-                        <strong>{item.price ? `${item.currency} ${item.price.toLocaleString("es-PE")}` : "Precio a consultar"}</strong>
+                  </div>
+                  <div style={{ padding: "12px", display: "flex", flexDirection: "column", flex: 1, gap: "6px" }}>
+                    <span style={{ fontSize: "10px", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.04em", color: "#4f46e5", display: "block" }}>
+                      {item.itemType === "property" ? "Oficina" : "Artículo"}
+                    </span>
+                    <h4 style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: "#0f172a", lineHeight: 1.35, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                      {item.title}
+                    </h4>
+                    {item.itemType === "property" ? (
+                      <p style={{ margin: 0, fontSize: "11px", color: "#64748b", lineHeight: 1.4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                        {item.location}{item.area ? ` · ${item.area} m²` : ""}
+                      </p>
+                    ) : (
+                      <p style={{ margin: 0, fontSize: "11px", color: "#64748b", lineHeight: 1.4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                        {item.excerpt}
+                      </p>
+                    )}
+                    <div style={{ marginTop: "auto", paddingTop: "8px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px", borderTop: "1px solid #f1f5f9" }}>
+                      {item.itemType === "property" ? (
+                        <strong style={{ fontSize: "12px", color: "#0f172a", fontWeight: 700 }}>
+                          {item.price ? `${item.currency} ${item.price.toLocaleString("es-PE")}` : "Precio a consultar"}
+                        </strong>
+                      ) : (
+                        <span />
                       )}
-                      <a href={item.publicUrl} target="_blank" rel="noreferrer">
-                        Ver publicación <ExternalLink size={13} />
+                      <a
+                        href={item.publicUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "11px", color: "#4f46e5", textDecoration: "none", fontWeight: 600 }}
+                      >
+                        Ver publicación <ExternalLink size={11} />
                       </a>
-                    </footer>
+                    </div>
                   </div>
                 </article>
               ))}
@@ -146,8 +178,6 @@ export default async function CampaignDetail({ params }: { params: Promise<{ id:
             ))}
           </div>
           <CampaignApproval campaign={campaign} canApprove={canApprove} />
-          
-          
         </aside>
       </div>
     </div>

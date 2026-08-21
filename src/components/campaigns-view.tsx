@@ -230,7 +230,7 @@ export function CampaignsView({
                         </small>
                       </div>
                     </div>
-                    <dl style={{ margin: "12px 0 0" }}>
+                    <dl style={{ margin: "12px 0 0", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "10px" }}>
                       <div>
                         <dt>Plantilla</dt>
                         <dd>{fullLabels[selectedCampaign.automationType]}</dd>
@@ -240,17 +240,27 @@ export function CampaignsView({
                         <dd>{items.length} elementos</dd>
                       </div>
                       <div
-                        style={{ cursor: "pointer" }}
                         onClick={(e) => {
                           e.stopPropagation();
                           void fetchRecipients(selectedCampaign.id);
                         }}
-                        title="Haz clic para ver la lista de correos destinatarios"
+                        style={{
+                          cursor: "pointer",
+                          background: "#eef2ff",
+                          border: "1px solid #c7d2fe",
+                          padding: "6px 10px",
+                          borderRadius: "8px",
+                          transition: "all 0.15s ease",
+                        }}
+                        title="Ver lista de destinatarios"
                       >
-                        <dt style={{ color: "#4f46e5", textDecoration: "underline", fontWeight: 600 }}>Destinatarios 🔍</dt>
-                        <dd style={{ fontWeight: 700, color: "#4f46e5", display: "flex", alignItems: "baseline", gap: "4px" }}>
+                        <dt style={{ fontSize: "11px", color: "#4338ca", fontWeight: 600, display: "flex", alignItems: "center", gap: "4px" }}>
+                          <UsersRound size={12} />
+                          <span>Destinatarios</span>
+                        </dt>
+                        <dd style={{ fontWeight: 700, color: "#3730a3", margin: "2px 0 0", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px" }}>
                           {selectedCampaign.recipientCount.toLocaleString("es-PE")}
-                          <span style={{ fontSize: "11px", textDecoration: "underline", opacity: 0.8 }}>(Ver lista)</span>
+                          <span style={{ fontSize: "10px", background: "#4338ca", color: "#ffffff", padding: "1px 6px", borderRadius: "999px", fontWeight: 600 }}>Ver lista</span>
                         </dd>
                       </div>
                       <div>
@@ -283,51 +293,69 @@ export function CampaignsView({
                   </section>
 
                   <section className="campaign-frozen">
-                    <div className="section-head" style={{ marginBottom: "12px" }}>
+                    <div className="section-head" style={{ marginBottom: "12px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                       <div>
-                        <h2 className="section-title" style={{ fontSize: "14px" }}>
+                        <h2 className="section-title" style={{ fontSize: "14px", margin: 0, fontWeight: 700 }}>
                           Contenido congelado
                         </h2>
-                        <p className="subtitle" style={{ fontSize: "11px" }}>
-                          Copia inmutable de la campaña.
+                        <p className="subtitle" style={{ fontSize: "11px", margin: "2px 0 0", color: "#64748b" }}>
+                          Copia inmutable guardada al crear la campaña.
                         </p>
                       </div>
-                      <span className="frozen-tag" style={{ fontSize: "11px", gap: "4px" }}>
-                        <LockKeyhole size={11} /> Inmutable
+                      <span className="frozen-tag" style={{ fontSize: "11px", display: "inline-flex", alignItems: "center", gap: "4px", background: "#f1f5f9", padding: "4px 8px", borderRadius: "6px", color: "#475569", fontWeight: 600 }}>
+                        <LockKeyhole size={12} /> Inmutable
                       </span>
                     </div>
 
-                    <div className="campaign-frozen-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "12px" }}>
+                    <div className="campaign-frozen-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "14px" }}>
                       {items.map((rawItem) => {
                         const item = rawItem as Record<string, any>;
                         return (
-                          <article key={String(item.id)} className="card property-card" style={{ fontSize: "12px" }}>
-                            <div className="property-media" style={{ height: "120px" }}>
-                              <img src={String(item.imageUrl || "")} alt={String(item.title || "")} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          <article key={String(item.id)} style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            background: "#ffffff",
+                            border: "1px solid #e2e8f0",
+                            borderRadius: "12px",
+                            overflow: "hidden",
+                            boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+                          }}>
+                            <div style={{ height: "130px", width: "100%", overflow: "hidden", background: "#f8fafc", position: "relative" }}>
+                              {item.imageUrl ? (
+                                <img src={String(item.imageUrl || "")} alt={String(item.title || "")} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                              ) : (
+                                <div style={{ width: "100%", height: "100%", display: "grid", placeItems: "center", color: "#94a3b8", fontSize: "11px" }}>Sin imagen</div>
+                              )}
                             </div>
-                            <div className="property-body" style={{ padding: "10px" }}>
-                              <span className="frozen-type-tag" style={{ fontSize: "10px", textTransform: "uppercase", fontWeight: 700, color: "#64748b" }}>
+                            <div style={{ padding: "12px", display: "flex", flexDirection: "column", flex: 1, gap: "6px" }}>
+                              <span style={{ fontSize: "10px", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.04em", color: "#4f46e5", display: "block" }}>
                                 {item.itemType === "property" ? String(item.propertyType || "Oficina") : "Artículo"}
                               </span>
-                              <h4 style={{ margin: "4px 0", fontSize: "13px", fontWeight: 600, color: "var(--am-ink, #0f172a)", lineHeight: 1.3 }}>
+                              <h4 style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: "#0f172a", lineHeight: 1.35, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                                 {String(item.title || "")}
                               </h4>
-                              <p style={{ margin: 0, fontSize: "11px", color: "var(--muted, #64748b)" }}>
-                                {item.location || item.excerpt ? String(item.location || item.excerpt) : ""}
-                              </p>
-                              {item.price && (
-                                <strong style={{ display: "block", marginTop: "6px", fontSize: "12px", color: "var(--am-ink, #0f172a)" }}>
-                                  USD {Number(item.price).toLocaleString("es-PE")}
-                                </strong>
-                              )}
-                              <a
-                                href={String(item.publicUrl || item.url || "#")}
-                                target="_blank"
-                                rel="noreferrer"
-                                style={{ display: "inline-flex", alignItems: "center", gap: "4px", marginTop: "8px", fontSize: "11px", color: "#4f46e5", textDecoration: "none", fontWeight: 600 }}
-                              >
-                                Ver publicación <ExternalLink size={11} />
-                              </a>
+                              {item.location || item.excerpt ? (
+                                <p style={{ margin: 0, fontSize: "11px", color: "#64748b", lineHeight: 1.4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                                  {String(item.location || item.excerpt)}
+                                </p>
+                              ) : null}
+                              <div style={{ marginTop: "auto", paddingTop: "8px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px", borderTop: "1px solid #f1f5f9" }}>
+                                {item.price ? (
+                                  <strong style={{ fontSize: "12px", color: "#0f172a", fontWeight: 700 }}>
+                                    USD {Number(item.price).toLocaleString("es-PE")}
+                                  </strong>
+                                ) : (
+                                  <span />
+                                )}
+                                <a
+                                  href={String(item.publicUrl || item.url || "#")}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "11px", color: "#4f46e5", textDecoration: "none", fontWeight: 600 }}
+                                >
+                                  Ver publicación <ExternalLink size={11} />
+                                </a>
+                              </div>
                             </div>
                           </article>
                         );
