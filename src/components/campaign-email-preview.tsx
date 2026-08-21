@@ -70,6 +70,10 @@ export function CampaignEmailPreviewModalButton({
       {/* High-End Preview Modal Overlay */}
       {isOpen && (
         <div
+          className="campaign-email-preview"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Vista previa del correo"
           style={{
             position: "fixed",
             inset: 0,
@@ -87,6 +91,7 @@ export function CampaignEmailPreviewModalButton({
         >
           {/* Modal Header Bar */}
           <header
+            className="campaign-email-preview-head"
             style={{
               background: "#0f172a",
               borderBottom: "1px solid #1e293b",
@@ -107,6 +112,7 @@ export function CampaignEmailPreviewModalButton({
 
             {/* Desktop / Mobile Switcher */}
             <div
+              className="campaign-email-preview-modes"
               style={{
                 background: "#1e293b",
                 padding: "3px",
@@ -181,6 +187,7 @@ export function CampaignEmailPreviewModalButton({
 
           {/* Modal Content Viewport */}
           <main
+            className="campaign-email-preview-viewport"
             style={{
               overflowY: "auto",
               display: "grid",
@@ -190,6 +197,7 @@ export function CampaignEmailPreviewModalButton({
             }}
           >
             <div
+              className="campaign-email-preview-paper"
               style={{
                 width: "100%",
                 maxWidth: mode === "desktop" ? "640px" : "360px",

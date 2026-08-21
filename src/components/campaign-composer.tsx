@@ -339,7 +339,8 @@ export function CampaignComposer({
               >
                 {isCompleteStep ? <Check size={12} /> : index + 1}
               </span>
-              {label}
+              <span className="campaign-step-label-full">{label}</span>
+              <span className="campaign-step-label-mobile">{index === 2 ? "Audiencia" : label}</span>
             </button>
           );
         })}

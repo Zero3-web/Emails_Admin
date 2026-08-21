@@ -1,5 +1,5 @@
 /* Mobile-only product surface. Desktop rules intentionally live elsewhere. */
-.mobile-header,.mobile-tabbar,.mobile-more-sheet,.mobile-sheet-backdrop{display:none}
+.mobile-header,.mobile-tabbar,.mobile-more-sheet,.mobile-sheet-backdrop,.campaign-step-label-mobile{display:none}
 
 @media (max-width:720px){
   :root{--mobile-accent:#c9ff22;--mobile-nav-h:72px}
@@ -60,6 +60,80 @@
   .table-wrap,.contacts-table-wrap,.campaign-table-wrap{overflow-x:auto!important;-webkit-overflow-scrolling:touch}
   :is(.up-card,.card,[class$="-panel"]){border-radius:17px!important;box-shadow:none!important}
   :is(input,select,textarea,button){font-size:16px}
+
+  /* Campaign composer is a self-contained mobile dialog with its own scroll. */
+  body:has(.campaign-composer[role="dialog"]) .mobile-tabbar{display:none!important}
+  .campaign-composer[role="dialog"]{position:fixed!important;z-index:220!important;inset:calc(8px + env(safe-area-inset-top)) 8px calc(8px + env(safe-area-inset-bottom))!important;width:auto!important;height:auto!important;max-width:none!important;max-height:none!important;margin:0!important;padding:0!important;transform:none!important;display:grid!important;grid-template-rows:auto auto minmax(0,1fr) auto!important;overflow:hidden!important;border-radius:22px!important;background:var(--am-surface)!important;box-shadow:0 0 0 120vmax rgba(8,11,7,.58),0 22px 60px rgba(8,11,7,.28)!important}
+  .campaign-composer .campaign-composer-head{display:flex!important;align-items:flex-start!important;padding:15px 16px 12px!important;gap:12px!important}
+  .campaign-composer .campaign-composer-head>div{min-width:0!important}
+  .campaign-composer .campaign-composer-head h2{font-size:20px!important}
+  .campaign-composer .campaign-composer-head .icon-btn{flex:none!important;width:44px!important;height:44px!important;border-radius:12px!important}
+  .campaign-composer .campaign-steps{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;width:100%!important;padding:0 8px!important;overflow:hidden!important}
+  .campaign-composer .campaign-steps button{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:4px!important;min-width:0!important;min-height:58px!important;padding:6px 2px!important;white-space:nowrap!important}
+  .campaign-composer .campaign-steps button>span:first-child{flex:none!important;width:22px!important;height:22px!important}
+  .campaign-composer .campaign-step-label-full{display:none!important}
+  .campaign-composer .campaign-step-label-mobile{display:block!important;max-width:100%!important;overflow:hidden!important;text-overflow:ellipsis!important;font-size:10px!important}
+  .campaign-composer .campaign-step-panel{min-width:0!important;min-height:0!important;height:auto!important;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important;padding:14px!important}
+  .campaign-composer .campaign-form-grid{display:grid!important;grid-template-columns:1fr!important;align-content:start!important;gap:14px!important}
+  .campaign-composer .campaign-template-field{min-width:0!important}
+  .campaign-composer .campaign-template-options{display:grid!important;grid-template-columns:1fr!important;gap:10px!important}
+  .campaign-composer .campaign-template-option{display:grid!important;grid-template-columns:64px minmax(0,1fr) 22px!important;align-items:center!important;gap:10px!important;width:100%!important;min-width:0!important;min-height:104px!important;padding:10px!important;text-align:left!important;border-radius:14px!important}
+  .campaign-composer .campaign-template-mini{display:grid!important;grid-template-rows:14px 24px 7px 7px!important;align-content:start!important;gap:5px!important;width:64px!important;height:78px!important;padding:7px!important;border:1px solid var(--am-border)!important;border-radius:9px!important;background:var(--am-surface-2)!important}
+  .campaign-composer .campaign-template-mini :is(i,b,em){display:block!important;border-radius:2px!important;background:var(--am-border-strong)!important}
+  .campaign-composer .campaign-template-mini i{width:30px!important;background:var(--am-lime)!important}
+  .campaign-composer .campaign-template-option>span:nth-child(2){min-width:0!important}
+  .campaign-composer .campaign-template-option small{display:block!important;white-space:normal!important;line-height:1.35!important}
+  .campaign-composer .campaign-picker{grid-template-columns:1fr!important;overflow:visible!important}
+  .campaign-composer .campaign-content-step{display:block!important}
+  .campaign-composer .campaign-content-step>*+*{margin-top:10px!important}
+  .campaign-composer .campaign-composer-foot{display:flex!important;flex-direction:row!important;align-items:center!important;gap:8px!important;min-height:66px!important;padding:10px 14px!important;background:var(--am-surface)!important}
+  .campaign-composer .campaign-composer-foot>div{flex:1!important}
+  .campaign-composer .campaign-composer-foot .btn{width:auto!important;min-height:44px!important;justify-content:center!important}
+  .campaign-composer .campaign-composer-foot>button:last-child{min-width:132px!important}
+
+  body:has(.contacts-import[role="dialog"]) .mobile-tabbar{display:none!important}
+  html body .ref-app .contacts-modal-backdrop{position:fixed!important;z-index:230!important;inset:0!important;display:grid!important;place-items:center!important;padding:8px!important;overflow:hidden!important}
+  html body .ref-app .contacts-import[role="dialog"]{position:relative!important;inset:auto!important;width:100%!important;height:calc(100dvh - 16px)!important;max-width:none!important;max-height:none!important;margin:0!important;padding:0!important;transform:none!important;display:grid!important;grid-template-rows:auto auto minmax(0,1fr) auto!important;gap:0!important;overflow:hidden!important;border-radius:22px!important}
+  .contacts-import>header{min-height:0!important;padding:14px!important;gap:10px!important}
+  .contacts-import>header .icon-btn{flex:none!important;width:44px!important;height:44px!important}
+  .contacts-import-steps{min-height:58px!important;padding:0 6px!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  .contacts-import-steps>span{flex-direction:column!important;gap:3px!important;min-width:0!important;font-size:9px!important;white-space:nowrap!important}
+  .contacts-import-body{min-height:0!important;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important;padding:12px!important}
+  .contacts-file-step{display:grid!important;grid-template-columns:1fr!important;gap:10px!important}
+  .contacts-drop{min-height:220px!important;padding:18px 12px!important}
+  .contacts-file-guide{min-width:0!important;padding:14px!important;border-radius:14px!important}
+  .contacts-import-workspace{grid-template-columns:1fr!important;gap:12px!important}
+  .contacts-import>footer{min-height:64px!important;padding:10px 12px!important;gap:8px!important}
+
+  body:has(.automation-modal[role="dialog"]) .mobile-tabbar{display:none!important}
+  html body .ref-app .automation-modal-backdrop{position:fixed!important;z-index:230!important;inset:0!important;display:grid!important;place-items:center!important;padding:8px!important;overflow:hidden!important}
+  html body .ref-app .automation-modal[role="dialog"]{position:relative!important;inset:auto!important;width:100%!important;height:calc(100dvh - 16px)!important;max-width:none!important;max-height:none!important;margin:0!important;display:grid!important;grid-template-rows:auto minmax(0,1fr) auto!important;overflow:hidden!important;border-radius:22px!important}
+  .automation-modal>header{min-height:0!important;padding:14px!important;gap:10px!important}
+  .automation-modal>header button{flex:none!important;width:44px!important;height:44px!important;border-radius:12px!important}
+  .automation-modal-body{min-height:0!important;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important;padding:14px!important}
+  .automation-brand-options,.automation-type-options{display:grid!important;grid-template-columns:1fr!important;gap:9px!important}
+  .automation-brand-options>button{width:100%!important;min-width:0!important;min-height:58px!important;border-radius:13px!important}
+  .automation-type-options>button{width:100%!important;min-width:0!important;min-height:92px!important;border-radius:13px!important}
+  .automation-type-options p{font-size:10px!important}
+  .automation-schedule-grid{grid-template-columns:1fr!important;gap:12px!important}
+  .automation-weekdays{grid-template-columns:repeat(7,minmax(0,1fr))!important}
+  .automation-weekdays button{min-width:0!important;padding:4px 1px!important}
+  .automation-modal>footer{min-height:66px!important;padding:10px 12px!important;gap:8px!important;background:var(--am-surface)!important}
+  .automation-modal>footer .btn{min-height:44px!important;justify-content:center!important}
+
+  body:has(:is(.brand-create-modal,.campaign-item-preview,.content-preview-modal)[role="dialog"]) .mobile-tabbar{display:none!important}
+  html body .ref-app :is(.brand-modal-backdrop,.campaign-preview-backdrop,.content-preview-backdrop){position:fixed!important;z-index:230!important;inset:0!important;display:grid!important;place-items:center!important;padding:8px!important;overflow:hidden!important}
+  html body .ref-app :is(.brand-create-modal,.campaign-item-preview,.content-preview-modal)[role="dialog"]{position:relative!important;inset:auto!important;width:100%!important;max-width:none!important;max-height:calc(100dvh - 16px)!important;margin:0!important;transform:none!important;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain!important;border-radius:22px!important}
+
+  body:has(.campaign-email-preview[role="dialog"]) .mobile-tabbar{display:none!important}
+  .campaign-email-preview[role="dialog"]{grid-template-rows:auto minmax(0,1fr)!important}
+  .campaign-email-preview-head{min-height:64px!important;padding:8px 10px!important;gap:8px!important}
+  .campaign-email-preview-head>div:first-child{display:none!important}
+  .campaign-email-preview-modes{margin-right:auto!important}
+  .campaign-email-preview-modes button{min-width:0!important;min-height:40px!important;padding:6px 10px!important;font-size:12px!important}
+  .campaign-email-preview-head>button:last-child{flex:none!important;width:40px!important;height:40px!important}
+  .campaign-email-preview-viewport{min-height:0!important;align-items:start!important;padding:12px 8px!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important}
+  .campaign-email-preview-paper{max-width:100%!important;border-radius:12px!important}
 
   /* Campaign detail becomes a vertical mobile journey: context, progress, data, content. */
   .campaign-detail-page{gap:12px!important;min-width:0!important}
