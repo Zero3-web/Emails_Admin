@@ -725,7 +725,11 @@ html[data-theme="dark"] .ref-content :is(
   .role-guide, .panel-state-card, .library-property-card, .content-preview-modal,
   .contacts-confirm, .campaign-item-preview, .brand-create-modal
 ) { color: var(--am-ink) !important; background: var(--am-surface) !important; border-color: var(--am-border) !important; }
-html[data-theme="dark"] :is(input, select, textarea, .campaign-content-search, .contacts-search, .content-search, .activity-search, .aep-search) { color: var(--am-ink) !important; background: var(--am-surface-2) !important; border-color: var(--am-border-strong) !important; }
+html[data-theme="dark"] :is(input:not(.auth-input input), select, textarea, .campaign-content-search, .contacts-search, .content-search, .activity-search, .aep-search) { color: var(--am-ink) !important; background: var(--am-surface-2) !important; border-color: var(--am-border-strong) !important; }
+html[data-theme="dark"] .auth-input,
+html .auth-input { background: #ffffff !important; background-color: #ffffff !important; border: 1px solid #d0d5dd !important; color: #182230 !important; }
+html[data-theme="dark"] .auth-input input,
+html .auth-input input { background: transparent !important; background-color: transparent !important; color: #182230 !important; border: 0 !important; box-shadow: none !important; outline: none !important; }
 html[data-theme="dark"] .ref-content table { color: var(--am-copy) !important; background: var(--am-surface) !important; }
 html[data-theme="dark"] .ref-content table thead,
 html[data-theme="dark"] .ref-content table th { color: var(--am-muted) !important; background: var(--am-surface-2) !important; border-color: var(--am-border) !important; }

@@ -5945,17 +5945,27 @@ a.up-primary:active:not(:disabled) {
 
 /* Auth input styling lock: ensure clean white inputs matching localhost */
 html[data-theme="dark"] .auth-input,
+html .auth-input,
 :root .auth-input {
   background: #ffffff !important;
+  background-color: #ffffff !important;
   border: 1px solid #d0d5dd !important;
   color: #182230 !important;
 }
 html[data-theme="dark"] .auth-input input,
+html .auth-input input,
 :root .auth-input input {
   background: transparent !important;
+  background-color: transparent !important;
   color: #182230 !important;
+  border: 0 !important;
+  border-style: none !important;
+  border-width: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
 }
 html[data-theme="dark"] .auth-input input::placeholder,
+html .auth-input input::placeholder,
 :root .auth-input input::placeholder {
   color: #98a2b3 !important;
 }
