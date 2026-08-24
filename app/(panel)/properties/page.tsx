@@ -4,8 +4,12 @@ import { ContentLibraryNav } from "@/src/components/content-library-nav";
 import { PropertiesView } from "@/src/components/properties-view";
 import { PageHeader } from "@/src/components/ui";
 import { getProperties, getSites } from "@/src/database/repositories";
+import { requirePanelAccess } from "@/src/auth/server";
+import { redirect } from "next/navigation";
 
 export default async function PropertiesPage({ searchParams }: { searchParams: Promise<{ site?: string }> }) {
+  const access = await requirePanelAccess();
+  if (!access.platformOwner) redirect("/dashboard");
   const filters = await searchParams;
   const [properties, sites] = await Promise.all([getProperties(), getSites()]);
   const initialSiteId = sites.some((site) => site.id === filters.site) ? filters.site : "";

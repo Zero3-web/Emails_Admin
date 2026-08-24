@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Building2,
   Activity,
@@ -128,9 +128,9 @@ export function Sidebar({ pathname, open, withSite, onNavigate, onSignOut, usage
           </summary>
           {!collapsed && (
             <div>
-              {subLink("/templates", "Plantillas", <Layers3 size={14} strokeWidth={1.5} />)}
               {subLink("/sites", "Marcas", <Building2 size={14} strokeWidth={1.5} />, false)}
               {platformOwner && <>
+                {subLink("/templates", "Plantillas", <Layers3 size={14} strokeWidth={1.5} />)}
                 {subLink("/properties", "Propiedades", <Home size={14} strokeWidth={1.5} />)}
                 {subLink("/integrations", "Integraciones", <PlugZap size={14} strokeWidth={1.5} />, false)}
                 {subLink("/team", "Equipo y accesos", <UsersRound size={14} strokeWidth={1.5} />, false)}
@@ -154,19 +154,33 @@ export function Sidebar({ pathname, open, withSite, onNavigate, onSignOut, usage
   );
 }
 
-function CampaignLimitInline({ usage, collapsed }: { usage?: UsageData; collapsed: boolean }) {
+function CampaignLimitInline({ usage: propUsage, collapsed }: { usage?: UsageData; collapsed: boolean }) {
   const [expanded, setExpanded] = useState(false);
+  const [liveUsage, setLiveUsage] = useState<UsageData | null>(null);
+
+  useEffect(() => {
+    fetch("/api/usage")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.ok && data.usage) {
+          setLiveUsage(data.usage);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   if (collapsed) return null;
 
+  const usage = liveUsage ?? propUsage;
   const monthCount = usage?.monthCount ?? 0;
-  const monthlyLimit = usage?.monthlyLimit ?? 0;
-  const monthPercent = monthlyLimit ? Math.min(100, Math.round((monthCount / monthlyLimit) * 100)) : 0;
+  const monthlyLimit = usage?.monthlyLimit && usage.monthlyLimit > 0 ? usage.monthlyLimit : 10000;
+  const monthPercent = Math.min(100, Math.round((monthCount / monthlyLimit) * 100));
   const formattedMonthlyLimit = monthlyLimit.toLocaleString("es-PE");
 
   const todayCount = usage?.todayCount ?? 0;
-  const dailyLimit = usage?.dailyLimit ?? 0;
-  const dailyPercent = dailyLimit ? Math.min(100, Math.round((todayCount / dailyLimit) * 100)) : 0;
+  const dailyLimit = usage?.dailyLimit && usage.dailyLimit > 0 ? usage.dailyLimit : 500;
+  const dailyPercent = Math.min(100, Math.round((todayCount / dailyLimit) * 100));
+  const formattedDailyLimit = dailyLimit.toLocaleString("es-PE");
 
   const getProgressColor = (percent: number) =>
     percent >= 90
@@ -214,7 +228,7 @@ function CampaignLimitInline({ usage, collapsed }: { usage?: UsageData; collapse
         <div style={{ marginBottom: "8px", paddingTop: "4px", borderBottom: "1px dashed var(--am-border, #cbd5e1)", paddingBottom: "8px" }}>
           <p style={{ margin: "0 0 2px", fontSize: "11px", color: "var(--muted, #64748b)", fontWeight: 500 }}>Límite diario</p>
           <p style={{ margin: "0 0 4px", fontSize: "12px" }}>
-            <b>{todayCount}/{dailyLimit}</b> envíos hoy
+            <b>{todayCount}/{formattedDailyLimit}</b> envíos hoy
           </p>
           <span className="ref-limit-bar">
             <i style={{ width: `${Math.max(4, dailyPercent)}%`, backgroundColor: dailyColor }} />

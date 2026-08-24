@@ -1,8 +1,9 @@
 "use client";
 
 /* eslint-disable @next/next/no-img-element */
-import { Check, ExternalLink, LockKeyhole, UsersRound, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Check, CheckCircle2, ExternalLink, Eye, Loader2, LockKeyhole, MoreVertical, Send, Trash2, UsersRound, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useDialogA11y } from "@/src/hooks/use-dialog-a11y";
 import { CampaignApproval } from "@/src/components/campaign-approval";
 import { CampaignFilters } from "@/src/components/campaign-filters";
@@ -40,7 +41,11 @@ export function CampaignsView({
   initialStatus?: string;
   initialSite?: string;
 }) {
+  const router = useRouter();
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [sendingId, setSendingId] = useState<string | null>(null);
   const siteById = useMemo(() => new Map(sites.map((site) => [site.id, site])), [sites]);
 
   const visibleSites = useMemo(() => (initialSite ? sites.filter((site) => site.id === initialSite) : sites), [sites, initialSite]);
@@ -62,6 +67,55 @@ export function CampaignsView({
       setRecipientsList([]);
     } finally {
       setLoadingRecipients(false);
+    }
+  };
+
+  const [confirmDeleteCampaign, setConfirmDeleteCampaign] = useState<{ id: string; name: string } | null>(null);
+  const [toastMessage, setToastMessage] = useState<{ text: string; error?: boolean } | null>(null);
+
+  const deleteModalRef = useDialogA11y<HTMLElement>(Boolean(confirmDeleteCampaign), () => setConfirmDeleteCampaign(null));
+
+  useEffect(() => {
+    if (!toastMessage) return;
+    const timeout = setTimeout(() => setToastMessage(null), 3600);
+    return () => clearTimeout(timeout);
+  }, [toastMessage]);
+
+  const handleDeleteCampaign = (e: React.MouseEvent, campaign: { id: string; name: string }) => {
+    e.stopPropagation();
+    setConfirmDeleteCampaign({ id: campaign.id, name: campaign.name });
+  };
+
+  const executeDeleteCampaign = async (campaignId: string) => {
+    setDeletingId(campaignId);
+    try {
+      const res = await fetch(`/api/campaigns/${campaignId}`, { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error ?? "No se pudo eliminar.");
+      if (selectedCampaignId === campaignId) setSelectedCampaignId(null);
+      setConfirmDeleteCampaign(null);
+      setToastMessage({ text: "Campaña eliminada correctamente." });
+      router.refresh();
+    } catch (err) {
+      setToastMessage({ text: err instanceof Error ? err.message : "No se pudo eliminar la campaña.", error: true });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleSendCampaign = async (e: React.MouseEvent, campaignId: string) => {
+    e.stopPropagation();
+    setSendingId(campaignId);
+    try {
+      const res = await fetch(`/api/campaigns/${campaignId}/send`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error ?? "No se pudo enviar la campaña.");
+      setToastMessage({ text: "¡Campaña enviada exitosamente!" });
+      router.refresh();
+    } catch (err) {
+      setToastMessage({ text: err instanceof Error ? err.message : "No se pudo enviar la campaña.", error: true });
+    } finally {
+      setSendingId(null);
     }
   };
 
@@ -102,12 +156,19 @@ export function CampaignsView({
                 <th>Tipo</th>
                 <th>Contenido</th>
                 <th>Destinatarios</th>
+                <th>Fecha</th>
                 <th>Estado</th>
+                <th style={{ textAlign: "right" }}>Acciones</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((campaign) => {
                 const site = siteById.get(campaign.siteId)!;
+                const formattedDate = campaign.metadata?.frozenAt
+                  ? new Date(campaign.metadata.frozenAt).toLocaleString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })
+                  : campaign.scheduledAt
+                  ? new Date(campaign.scheduledAt).toLocaleString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })
+                  : "—";
                 return (
                   <tr
                     key={campaign.id}
@@ -127,8 +188,87 @@ export function CampaignsView({
                     <td data-label="Tipo">{labels[campaign.automationType]}</td>
                     <td data-label="Contenido">{campaign.metadata?.items?.length ?? 0} elementos</td>
                     <td data-label="Destinatarios">{campaign.recipientCount.toLocaleString("es-PE")}</td>
+                    <td data-label="Fecha" style={{ fontSize: "12px", color: "var(--muted, #64748b)" }}>{formattedDate}</td>
                     <td data-label="Estado">
                       <StatusBadge status={campaign.status} />
+                    </td>
+                    <td data-label="Acciones" style={{ textAlign: "right", position: "relative" }} onClick={(e) => e.stopPropagation()}>
+                      <div style={{ display: "inline-block", position: "relative" }}>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenMenuId(openMenuId === campaign.id ? null : campaign.id);
+                          }}
+                          className="btn subtle"
+                          style={{ padding: "6px 8px", borderRadius: "8px", color: "var(--am-ink, #475569)" }}
+                          aria-label="Opciones de campaña"
+                        >
+                          <MoreVertical size={16} />
+                        </button>
+                        {openMenuId === campaign.id && (
+                          <>
+                            <div style={{ position: "fixed", inset: 0, zIndex: 40 }} onClick={() => setOpenMenuId(null)} />
+                            <div
+                              style={{
+                                position: "absolute",
+                                right: 0,
+                                top: "100%",
+                                marginTop: "4px",
+                                background: "var(--am-surface, #ffffff)",
+                                border: "1px solid var(--am-border, #e2e8f0)",
+                                borderRadius: "10px",
+                                boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
+                                padding: "4px",
+                                zIndex: 50,
+                                minWidth: "155px",
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "2px",
+                                textAlign: "left",
+                              }}
+                            >
+                              <button
+                                type="button"
+                                className="btn subtle"
+                                onClick={() => {
+                                  setOpenMenuId(null);
+                                  setSelectedCampaignId(campaign.id);
+                                }}
+                                style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%", justifyContent: "flex-start", padding: "8px 12px", fontSize: "13px" }}
+                              >
+                                <Eye size={14} /> Ver detalles
+                              </button>
+                              {campaign.status !== "sent" && (
+                                <button
+                                  type="button"
+                                  className="btn subtle"
+                                  onClick={(e) => {
+                                    setOpenMenuId(null);
+                                    void handleSendCampaign(e, campaign.id);
+                                  }}
+                                  disabled={sendingId === campaign.id}
+                                  style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%", justifyContent: "flex-start", padding: "8px 12px", fontSize: "13px", color: "#4f46e5" }}
+                                >
+                                  {sendingId === campaign.id ? <Loader2 size={14} className="spin" /> : <Send size={14} />} Enviar ahora
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                className="btn subtle"
+                                onClick={(e) => {
+                                  setOpenMenuId(null);
+                                  handleDeleteCampaign(e, campaign);
+                                }}
+                                disabled={deletingId === campaign.id}
+                                style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%", justifyContent: "flex-start", padding: "8px 12px", fontSize: "13px", color: "#ef4444" }}
+                              >
+                                {deletingId === campaign.id ? <Loader2 size={14} className="spin" /> : <Trash2 size={14} />} Eliminar
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );
@@ -307,7 +447,7 @@ export function CampaignsView({
                       </span>
                     </div>
 
-                    <div className="campaign-frozen-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "14px" }}>
+                    <div className="campaign-frozen-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "10px", maxHeight: "440px", overflowY: "auto", paddingRight: "4px" }}>
                       {items.map((rawItem) => {
                         const item = rawItem as Record<string, any>;
                         return (
@@ -320,7 +460,7 @@ export function CampaignsView({
                             overflow: "hidden",
                             boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
                           }}>
-                            <div style={{ height: "130px", width: "100%", overflow: "hidden", background: "#f8fafc", position: "relative" }}>
+                            <div style={{ height: "110px", width: "100%", overflow: "hidden", background: "#f8fafc", position: "relative" }}>
                               {item.imageUrl ? (
                                 <img src={String(item.imageUrl || "")} alt={String(item.title || "")} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                               ) : (
@@ -365,7 +505,7 @@ export function CampaignsView({
                 </main>
 
                 <aside>
-                  <CampaignApproval campaign={selectedCampaign} canApprove={canApprove} />
+                  <CampaignApproval campaign={selectedCampaign} canApprove={canApprove} onDeleted={() => setSelectedCampaignId(null)} />
                 </aside>
               </div>
             </div>
@@ -441,6 +581,59 @@ export function CampaignsView({
               <p style={{ fontSize: "13px", color: "var(--muted, #64748b)" }}>No se encontraron correos destinatarios.</p>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Styled Confirmation Dialog for Deleting Campaign */}
+      {confirmDeleteCampaign && (
+        <div
+          className="contacts-modal-backdrop"
+          role="presentation"
+          onMouseDown={(e) => { if (e.target === e.currentTarget && !deletingId) setConfirmDeleteCampaign(null); }}
+        >
+          <section
+            ref={deleteModalRef}
+            className="contacts-confirm"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="confirm-campaign-delete-title"
+            tabIndex={-1}
+          >
+            <span className="contacts-confirm-icon" style={{ background: "rgba(239, 68, 68, 0.12)", color: "#ef4444" }}>
+              <Trash2 size={20} />
+            </span>
+            <h2 id="confirm-campaign-delete-title">¿Eliminar campaña?</h2>
+            <p>
+              ¿Estás seguro de eliminar la campaña <strong>{confirmDeleteCampaign.name}</strong>? Esta acción no se puede deshacer.
+            </p>
+            <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end", marginTop: "16px" }}>
+              <button
+                className="btn"
+                type="button"
+                disabled={Boolean(deletingId)}
+                onClick={() => setConfirmDeleteCampaign(null)}
+              >
+                Cancelar
+              </button>
+              <button
+                className="btn danger"
+                type="button"
+                disabled={Boolean(deletingId)}
+                onClick={() => void executeDeleteCampaign(confirmDeleteCampaign.id)}
+              >
+                {deletingId ? <Loader2 className="spin" size={14} /> : <Trash2 size={14} />}
+                {deletingId ? "Eliminando…" : "Eliminar campaña"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {/* Styled Floating Toast Notification */}
+      {toastMessage && (
+        <div className={`toast ${toastMessage.error ? "toast-error" : ""}`} role="status">
+          <span>{toastMessage.error ? <X size={14} /> : <CheckCircle2 size={14} />} {toastMessage.text}</span>
+          <button type="button" onClick={() => setToastMessage(null)} aria-label="Cerrar notificación"><X size={13} /></button>
         </div>
       )}
     </>

@@ -35,15 +35,22 @@ const formatDate = (value: string) => {
     : new Intl.DateTimeFormat("es-PE", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(date);
 };
 
-export function SentEmailsHistory() {
+const normalizeSite = (s?: string) => (s ?? "").toLowerCase().replace(/^area-?/, "");
+
+export function SentEmailsHistory({ initialSite = "all" }: { initialSite?: string }) {
   const [items, setItems] = useState<SentEmailItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [siteFilter, setSiteFilter] = useState(initialSite);
   const [query, setQuery] = useState("");
   const [animatingFilter, setAnimatingFilter] = useState(false);
+
+  useEffect(() => {
+    setSiteFilter(initialSite);
+  }, [initialSite]);
 
   // Detail Modal State
   const [selectedItem, setSelectedItem] = useState<SentEmailItem | null>(null);
@@ -108,9 +115,19 @@ export function SentEmailsHistory() {
     setTimeout(() => setAnimatingFilter(false), 200);
   };
 
-  const rows = useMemo(
+  const siteItems = useMemo(
     () =>
       items.filter((item) => {
+        const itemSite = normalizeSite((item as any).siteId);
+        const targetSite = normalizeSite(siteFilter);
+        return siteFilter === "all" || itemSite === targetSite;
+      }),
+    [items, siteFilter]
+  );
+
+  const rows = useMemo(
+    () =>
+      siteItems.filter((item) => {
         const date = item.date?.slice(0, 10) ?? "";
         const state = normalizeStatus(item.status);
         return (
@@ -120,12 +137,12 @@ export function SentEmailsHistory() {
           (!query || `${item.to} ${item.subject} ${item.from} ${item.id}`.toLowerCase().includes(query.toLowerCase()))
         );
       }),
-    [items, fromDate, toDate, statusFilter, query]
+    [siteItems, fromDate, toDate, statusFilter, query]
   );
 
-  const delivered = items.filter((item) => ["delivered", "opened", "clicked"].includes(normalizeStatus(item.status))).length;
-  const attention = items.filter((item) => ["bounced", "failed", "complained"].includes(normalizeStatus(item.status))).length;
-  const recipients = new Set(items.map((item) => item.to.toLowerCase())).size;
+  const delivered = siteItems.filter((item) => ["delivered", "opened", "clicked"].includes(normalizeStatus(item.status))).length;
+  const attention = siteItems.filter((item) => ["bounced", "failed", "complained"].includes(normalizeStatus(item.status))).length;
+  const recipients = new Set(siteItems.map((item) => item.to.toLowerCase())).size;
   const hasFilters = Boolean(query || fromDate || toDate || statusFilter !== "all");
   const clearFilters = () => {
     setQuery("");
@@ -245,7 +262,7 @@ export function SentEmailsHistory() {
             <Send size={16} />
           </span>
           <div>
-            <strong>{items.length}</strong>
+            <strong>{siteItems.length}</strong>
             <small>correos registrados</small>
           </div>
         </article>

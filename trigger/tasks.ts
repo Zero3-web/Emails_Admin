@@ -3,6 +3,7 @@ import { approveCampaign, createCampaignDraft, getBlogPosts, getProperties, getS
 import { createCampaign } from "@/src/services/campaigns";
 import { renderCampaignEmail } from "@/src/services/email-renderer";
 import { createSupabaseAdmin } from "@/src/database/supabase/server";
+import { dispatchCampaign } from "@/src/services/campaign-dispatch";
 import type { AutomationType, ContactInterest } from "@/src/domain/types";
 
 export const taskNames = ["sync-properties", "sync-blog-posts", "generate-weekly-properties", "generate-monthly-properties", "generate-monthly-blog", "run-due-automations"] as const;
@@ -135,6 +136,11 @@ export async function runDueAutomations(now = new Date()) {
       created += 1;
       if (!row.requires_approval) {
         await approveCampaign(campaign.id, `automation:${row.id}`);
+        try {
+          await dispatchCampaign(campaign.id);
+        } catch (dispatchErr) {
+          console.error("Error al despachar campaña automática:", dispatchErr);
+        }
         autoSendCampaignIds.push(campaign.id);
       }
     } catch (cause) {

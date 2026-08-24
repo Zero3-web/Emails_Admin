@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 
 export default async function TeamPage(){
   const access = await requirePanelAccess();
-  if (!access.platformOwner && !access.memberships.some((item) => item.role === "site_admin")) redirect("/no-access");
+  if (!access.platformOwner) redirect("/no-access");
   const [overview,sites]=await Promise.all([getAccessOverview(),getSites()]);
   return <><PageHeader eyebrow="Configuración" title="Equipo y accesos" description="Consulta las personas, responsabilidades y permisos de cada marca."/><TeamAccessView ready={overview.ready} sites={sites} members={overview.members} invitations={overview.invitations}/></>;
 }

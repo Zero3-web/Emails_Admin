@@ -1,6 +1,6 @@
 "use client";
 /* eslint-disable @next/next/no-img-element -- Images are external snapshots from Tokko and WordPress. */
-import { Check, ChevronLeft, ChevronRight, Eye, FileText, Info, Loader2, Mail, Plus, Search, UsersRound, X, Zap } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, ExternalLink, Eye, FileText, Info, Loader2, Mail, Plus, Search, UsersRound, X, Zap } from "lucide-react";
 import { useMemo, useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useDialogA11y } from "@/src/hooks/use-dialog-a11y";
@@ -126,15 +126,49 @@ export function CampaignComposer({
   }, [siteId, type, siteSegment, currentSite]);
 
   const config = options.find((item) => item.value === type)!;
-  const available = useMemo(
-    () =>
-      type === "monthly_blog"
-        ? posts.filter((item) => item.siteId === siteId)
-        : properties.filter(
-            (item) => item.siteId === siteId && Boolean(item.publicUrl),
-          ),
-    [type, siteId, posts, properties],
-  );
+  const available = useMemo(() => {
+    if (type === "monthly_blog") {
+      const blogList = posts.filter((item) => item.siteId === siteId || item.siteId === currentSite?.id);
+      return blogList.length > 0 ? blogList : posts;
+    }
+
+    const cleanSite = (siteId || currentSite?.slug || "").toLowerCase();
+    const isHub = cleanSite.includes("hub");
+    const isRetail = cleanSite.includes("retail");
+
+    const validProps = properties.filter((item) => Boolean(item.publicUrl));
+
+    if (isHub) {
+      const hubProps = validProps.filter(
+        (item) =>
+          item.segment === "hub" ||
+          item.siteId === "hub" ||
+          item.siteId === siteId ||
+          /hub|industrial|nave|terreno|almacen|bodega|deposito|logistico/i.test(`${item.propertyType} ${item.title} ${item.location}`)
+      );
+      return hubProps.length > 0 ? hubProps : validProps;
+    }
+
+    if (isRetail) {
+      const retailProps = validProps.filter(
+        (item) =>
+          item.segment === "retail" ||
+          item.siteId === "retail" ||
+          item.siteId === siteId ||
+          /retail|local|comercial/i.test(`${item.propertyType} ${item.title} ${item.location}`)
+      );
+      return retailProps.length > 0 ? retailProps : validProps;
+    }
+
+    const primeProps = validProps.filter(
+      (item) =>
+        item.segment === "prime" ||
+        item.siteId === "prime" ||
+        item.siteId === siteId ||
+        /oficina|prime|corporativ/i.test(`${item.propertyType} ${item.title} ${item.location}`)
+    );
+    return primeProps.length > 0 ? primeProps : validProps;
+  }, [type, siteId, currentSite, posts, properties]);
 
   const extractValidEmails = (rawText: string): string[] => {
     if (!rawText) return [];
@@ -956,7 +990,11 @@ export function CampaignComposer({
           <section ref={previewRef} className="campaign-item-preview" role="dialog" aria-modal="true" aria-label={`Vista previa de ${previewItem.title}`} tabIndex={-1}>
             <header><div><span>Vista previa</span><strong>{previewItem.title}</strong></div><button type="button" className="icon-btn" onClick={() => setPreviewId(null)} aria-label="Cerrar vista previa"><X size={18} /></button></header>
             <div className="campaign-item-preview-media">{previewItem.imageUrl ? <img src={previewItem.imageUrl} alt={previewItem.title} /> : <FileText size={32} />}</div>
-            <div className="campaign-item-preview-copy"><p>{"location" in previewItem ? previewItem.description : previewItem.excerpt}</p><a href={previewItem.publicUrl} target="_blank" rel="noreferrer">Abrir publicación</a></div>
+            <div className="campaign-item-preview-copy" style={{ display: "flex", justifyContent: "flex-end", padding: "14px 16px", background: "#ffffff" }}>
+              <a href={previewItem.publicUrl} target="_blank" rel="noreferrer" className="btn primary" style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "13px" }}>
+                <ExternalLink size={14} /> Abrir publicación
+              </a>
+            </div>
           </section>
         </div>
       )}

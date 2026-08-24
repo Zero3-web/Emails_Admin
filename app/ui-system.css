@@ -524,7 +524,9 @@ html body :root .content-search input:focus,
 html body :root .activity-search input:focus,
 html body :root .aep-search input:focus,
 html body :root .email-recipients-input-wrapper input:focus,
-html body :root .ref-search input:focus {
+html body :root .ref-search input:focus,
+html body :root .auth-input input:focus,
+html body :root .auth-input input:focus-visible {
   min-height: 0 !important;
   height: auto !important;
   padding: 0 !important;
@@ -542,14 +544,14 @@ html body :root .ref-search input:focus {
 }
 
 :root :is(input, textarea)::placeholder { color: var(--am-faint) !important; opacity: 1 !important; }
-:root :is(input:not(.composer-search-input):not(.search-input), select, textarea):focus {
+:root :is(input:not(.composer-search-input):not(.search-input):not(.auth-input input), select, textarea):focus {
   border-color: #cbd5e1 !important;
   box-shadow: 0 0 0 2px rgba(203, 213, 225, 0.4) !important;
   outline: none !important;
 }
-:root :is(.campaign-content-search, .contacts-search, .content-search, .activity-search, .aep-search, .email-recipients-input-wrapper):focus-within {
-  border-color: #cbd5e1 !important;
-  box-shadow: 0 0 0 2px rgba(203, 213, 225, 0.4) !important;
+:root :is(.campaign-content-search, .contacts-search, .content-search, .activity-search, .aep-search, .email-recipients-input-wrapper, .auth-input):focus-within {
+  border-color: #7f9fe8 !important;
+  box-shadow: 0 0 0 3px rgba(47, 96, 210, 0.14) !important;
   outline: none !important;
 }
 :root .field label,

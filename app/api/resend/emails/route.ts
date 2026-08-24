@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { getOutboundEmails } from "@/src/database/repositories";
-import { assertPlatformOwner, requireApiAccess } from "@/src/auth/server";
+import { requireApiAccess } from "@/src/auth/server";
 import { apiErrorResponse } from "@/src/security/http";
 import { getResendEmailStatus } from "@/src/integrations/resend/client";
 import { createSupabaseAdmin } from "@/src/database/supabase/server";
 
 export async function GET() {
   try {
-    assertPlatformOwner(await requireApiAccess());
+    await requireApiAccess();
     const emails = await getOutboundEmails();
 
     // Sync live status with Resend API for recent sent/pending emails
@@ -18,8 +18,8 @@ export async function GET() {
       await Promise.all(
         pendingEmails.map(async (email) => {
           try {
-            const resendData = await getResendEmailStatus(email.id, (email as any).siteId);
-            const liveStatus = resendData.last_event || (resendData as any).status;
+            const resendData = await getResendEmailStatus(email.id, email.siteId ?? undefined) as Record<string, unknown>;
+            const liveStatus = (resendData.last_event ?? resendData.status) as string | undefined;
             if (liveStatus && liveStatus !== email.status) {
               await db
                 .from("outbound_emails")

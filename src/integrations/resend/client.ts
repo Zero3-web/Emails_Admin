@@ -11,7 +11,9 @@ export function requireResendKey(siteId?: string) {
     ];
     for (const name of candidates) {
       const val = process.env[name];
-      if (val && val.trim() !== "" && val !== "re_tu_api_key_aqui") return val.trim();
+      if (val && val.trim() !== "" && val !== "re_tu_api_key_aqui") {
+        return val.replace(/[\r\n\0]/g, "").trim();
+      }
     }
   }
 
@@ -19,7 +21,7 @@ export function requireResendKey(siteId?: string) {
   if (!defaultKey || defaultKey === "re_tu_api_key_aqui") {
     throw new Error("Integración de Resend no configurada. Configura RESEND_API_KEY en .env o .env.local");
   }
-  return defaultKey.trim();
+  return defaultKey.replace(/[\r\n\0]/g, "").trim();
 }
 
 export function getDefaultSenderForSite(siteId?: string): string {
@@ -53,8 +55,22 @@ export async function sendResendEmail({
   siteId,
   headers,
 }: SendEmailParams) {
-  const apiKey = requireResendKey(siteId);
-  const sender = from && from.includes("@") && !from.includes("<>") ? from : getDefaultSenderForSite(siteId);
+  const apiKey = requireResendKey(siteId).replace(/[\r\n\0]/g, "").trim();
+  const rawSender = from && from.includes("@") && !from.includes("<>") ? from : getDefaultSenderForSite(siteId);
+  const sender = rawSender.replace(/[\r\n\0]/g, "").trim();
+  const cleanSubject = subject.replace(/[\r\n\0]/g, " ").trim();
+  const cleanTo = to.replace(/[\r\n\0]/g, "").trim();
+
+  const cleanHeaders: Record<string, string> = {};
+  if (headers) {
+    for (const [key, value] of Object.entries(headers)) {
+      const k = key.replace(/[\r\n\0]/g, "").trim();
+      const v = String(value).replace(/[\r\n\0]/g, "").trim();
+      if (k && v) cleanHeaders[k] = v;
+    }
+  }
+
+  const payloadHeaders = Object.keys(cleanHeaders).length > 0 ? cleanHeaders : undefined;
 
   let response = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -64,11 +80,11 @@ export async function sendResendEmail({
     },
     body: JSON.stringify({
       from: sender,
-      to: [to],
-      subject,
+      to: [cleanTo],
+      subject: cleanSubject,
       html: html ?? (text ? `<p>${text}</p>` : "<p></p>"),
       text,
-      headers,
+      headers: payloadHeaders,
     }),
   });
 
@@ -85,26 +101,39 @@ export async function sendResendEmail({
         },
         body: JSON.stringify({
           from: "Area Mail <onboarding@resend.dev>",
-          to: [to],
-          subject,
+          to: [cleanTo],
+          subject: cleanSubject,
           html: html ?? (text ? `<p>${text}</p>` : "<p></p>"),
           text,
-          headers,
+          headers: payloadHeaders,
         }),
       });
-    }
 
-    if (!response.ok) {
-      const errText = await response.text();
+      if (!response.ok) {
+        const retryErrText = await response.text();
+        let errorMessage = `Resend HTTP ${response.status}`;
+        try {
+          const parsed = JSON.parse(retryErrText);
+          if (parsed.message) errorMessage = parsed.message;
+          else if (parsed.name && parsed.message) errorMessage = `${parsed.name}: ${parsed.message}`;
+          else if (parsed.error) errorMessage = typeof parsed.error === "string" ? parsed.error : JSON.stringify(parsed.error);
+        } catch {
+          // Ignore JSON parsing errors
+        }
+        console.error(`[Resend Error ${response.status}]:`, retryErrText);
+        throw new Error(`Resend API: ${errorMessage}`);
+      }
+    } else {
       let errorMessage = `Resend HTTP ${response.status}`;
       try {
-        const parsed = JSON.parse(errText);
+        const parsed = JSON.parse(rawText);
         if (parsed.message) errorMessage = parsed.message;
+        else if (parsed.name && parsed.message) errorMessage = `${parsed.name}: ${parsed.message}`;
         else if (parsed.error) errorMessage = typeof parsed.error === "string" ? parsed.error : JSON.stringify(parsed.error);
       } catch {
-        // Ignore JSON parsing errors and use default fallback message
+        // Ignore JSON parsing errors
       }
-      console.error(`[Resend Error ${response.status}]:`, errText);
+      console.error(`[Resend Error ${response.status}]:`, rawText);
       throw new Error(`Resend API: ${errorMessage}`);
     }
   }

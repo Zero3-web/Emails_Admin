@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { updateAutomation } from "@/src/database/repositories";
+import { deleteAutomation, updateAutomation } from "@/src/database/repositories";
 import type { Automation } from "@/src/domain/types";
 import { assertPlatformOwner, requireApiAccess } from "@/src/auth/server";
 import { apiErrorResponse, assertSameOrigin, HttpError, readJsonObject, singleLineString } from "@/src/security/http";
@@ -34,5 +34,18 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json({ ok: true, automation: await updateAutomation(id, patch) });
   } catch (error) {
     return apiErrorResponse(error, "No se pudo actualizar la automatización.");
+  }
+}
+
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    assertSameOrigin(request);
+    assertPlatformOwner(await requireApiAccess());
+    const { id } = await params;
+    if (!/^[0-9a-f-]{36}$/i.test(id)) throw new HttpError("La automatización no es válida.");
+    await deleteAutomation(id);
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    return apiErrorResponse(error, "No se pudo eliminar la automatización.");
   }
 }

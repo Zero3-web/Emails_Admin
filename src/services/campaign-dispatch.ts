@@ -2,7 +2,7 @@ import { createSupabaseAdmin } from "@/src/database/supabase/server";
 import { assertBulkSendingAllowed } from "@/src/config/runtime";
 import { getDefaultSenderForSite, sendResendEmail } from "@/src/integrations/resend/client";
 import { renderCampaignEmail } from "@/src/services/email-renderer";
-import type { AutomationType, BlogPost, Campaign, ContactInterest, Property, Site } from "@/src/domain/types";
+import type { AutomationType, BlogPost, Campaign, Property, Site } from "@/src/domain/types";
 import { createUnsubscribeToken, publicAppUrl } from "@/src/security/unsubscribe";
 
 type CampaignRow = {
@@ -74,8 +74,8 @@ async function recipientsFor(db: NonNullable<ReturnType<typeof createSupabaseAdm
     if (list.length > 0) return list;
   }
 
-  // Fallback 2: test email targets
-  return ["buegabenjamin872@gmail.com", "burgabenjamin872@gmail.com"];
+  // No eligible recipients found in any source
+  return [];
 }
 
 export async function dispatchCampaign(campaignId: string) {
@@ -108,49 +108,59 @@ export async function dispatchCampaign(campaignId: string) {
   
   const items = (campaign.metadata?.items ?? []) as unknown as Array<Property | BlogPost>;
 
-  const validSenderEmail = site.senderEmail && site.senderEmail.includes("@") ? site.senderEmail : undefined;
+  const cleanSubject = campaign.subject.replace(/[\r\n\0]/g, " ").trim();
+  const validSenderEmail = site.senderEmail && site.senderEmail.includes("@") ? site.senderEmail.replace(/[\r\n\0]/g, "").trim() : undefined;
+  const cleanSenderName = (site.senderName || site.name).replace(/[\r\n\0]/g, "").trim();
   const sender = validSenderEmail
-    ? `${site.senderName || site.name} <${validSenderEmail}>`
+    ? `${cleanSenderName} <${validSenderEmail}>`
     : getDefaultSenderForSite(site.id);
 
   let sentCount = 0;
 
-  for (const to of targetRecipients) {
-    const token = createUnsubscribeToken({ email: to, siteId: campaign.site_id });
-    const unsubscribeUrl = `${publicAppUrl()}/api/unsubscribe?token=${encodeURIComponent(token)}`;
-    const html = await renderCampaignEmail(site, campaign.automation_type, items, { unsubscribeUrl });
-    const result = await sendResendEmail({
-      to,
-      subject: campaign.subject,
-      html,
-      from: sender,
-      siteId: site.id,
-      headers: { "List-Unsubscribe": `<${unsubscribeUrl}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" },
-    });
-    
-    // Save to outbound_emails table for Activity history
-    await db.from("outbound_emails").upsert({
-      campaign_id: campaignId,
-      site_id: campaign.site_id,
-      resend_email_id: result.id,
-      recipient: to,
-      sender: site.senderEmail || sender,
-      subject: campaign.subject,
+  try {
+    for (const to of targetRecipients) {
+      const cleanTo = to.replace(/[\r\n\0]/g, "").trim();
+      const token = createUnsubscribeToken({ email: cleanTo, siteId: campaign.site_id });
+      const rawUrl = `${publicAppUrl()}/api/unsubscribe?token=${encodeURIComponent(token)}`;
+      const unsubscribeUrl = rawUrl.replace(/[\r\n\0]/g, "").trim();
+      const html = await renderCampaignEmail(site, campaign.automation_type, items, { unsubscribeUrl });
+      const result = await sendResendEmail({
+        to: cleanTo,
+        subject: cleanSubject,
+        html,
+        from: sender,
+        siteId: site.id,
+        headers: { "List-Unsubscribe": `<${unsubscribeUrl}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" },
+      });
+      
+      // Save to outbound_emails table for Activity history
+      await db.from("outbound_emails").upsert({
+        campaign_id: campaignId,
+        site_id: campaign.site_id,
+        resend_email_id: result.id,
+        recipient: to,
+        sender: site.senderEmail || sender,
+        subject: campaign.subject,
+        status: "sent",
+        sent_at: new Date().toISOString(),
+        metadata: { html },
+      }, { onConflict: "resend_email_id" });
+
+      sentCount += 1;
+    }
+
+    const finished = await db.from("campaigns").update({
       status: "sent",
       sent_at: new Date().toISOString(),
-      metadata: { html },
-    }, { onConflict: "resend_email_id" });
+      resend_broadcast_id: `trigger-${campaignId}`,
+      error_message: null,
+    }).eq("id", campaignId).select("id,status").single();
+    if (finished.error) throw finished.error;
 
-    sentCount += 1;
+    return { sentCount, skipped: false };
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : "No se pudo entregar los correos.";
+    await db.from("campaigns").update({ status: "ready", error_message: errorMsg }).eq("id", campaignId);
+    throw err;
   }
-
-  const finished = await db.from("campaigns").update({
-    status: "sent",
-    sent_at: new Date().toISOString(),
-    resend_broadcast_id: `trigger-${campaignId}`,
-    error_message: null,
-  }).eq("id", campaignId).select("id,status").single();
-  if (finished.error) throw finished.error;
-
-  return { sentCount, skipped: false };
 }

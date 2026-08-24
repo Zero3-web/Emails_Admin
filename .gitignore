@@ -49,3 +49,5 @@ yarn-error.log*
 .dev-ui-audit*
 .codex-remote-attachments/
 *.log
+.trigger/
+*.tsbuildinfo

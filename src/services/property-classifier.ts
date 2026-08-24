@@ -10,54 +10,40 @@ const normalize = (value: string) =>
 export function classifyProperty(input: {
   propertyType: string;
   title?: string;
+  location?: string;
+  description?: string;
 }): PropertySegment {
   const type = normalize(input.propertyType);
   const title = normalize(input.title ?? "");
+  const loc = normalize(input.location ?? "");
+  const desc = normalize(input.description ?? "");
+  const combined = `${type} ${title} ${loc} ${desc}`;
 
-  // Tokko structured types & titles for Area Hub (Naves industriales, terrenos industriales, almacenes, depósitos)
+  // Tokko structured types & titles for Area Hub (Naves industriales, terrenos industriales, almacenes, depósitos, bodegas)
   if (
-    type.includes("nave") ||
-    type.includes("industrial") ||
-    type.includes("terreno") ||
-    type.includes("almacen") ||
-    type.includes("deposito") ||
-    type.includes("logistico")
+    combined.includes("nave") ||
+    combined.includes("industrial") ||
+    combined.includes("terreno") ||
+    combined.includes("almacen") ||
+    combined.includes("deposito") ||
+    combined.includes("bodega") ||
+    combined.includes("logistico") ||
+    combined.includes("parque")
   ) {
     return "hub";
   }
 
   // Area Retail (Locales comerciales)
-  if (type.includes("local") || type.includes("comercial")) {
+  if (combined.includes("local") || combined.includes("comercial") || combined.includes("retail") || combined.includes("tienda") || combined.includes("stand")) {
     return "retail";
   }
 
   // Area Prime (Oficinas corporativas)
-  if (type.includes("oficina")) {
+  if (combined.includes("oficina") || combined.includes("prime") || combined.includes("corporativ")) {
     return "prime";
   }
 
-  // Fallback checks on title keywords
-  if (
-    title.includes("nave") ||
-    title.includes("terreno industrial") ||
-    title.includes("terreno") ||
-    title.includes("industrial") ||
-    title.includes("almacen") ||
-    title.includes("deposito") ||
-    title.includes("logistico")
-  ) {
-    return "hub";
-  }
-
-  if (title.includes("local") || title.includes("comercial")) {
-    return "retail";
-  }
-
-  if (title.includes("oficina")) {
-    return "prime";
-  }
-
-  return "unclassified";
+  return "hub"; // Fallback to hub if completely ambiguous so all brands have content options
 }
 
 export function inferSiteSegment(input: {
@@ -70,19 +56,19 @@ export function inferSiteSegment(input: {
     persisted === "prime" ||
     persisted === "retail" ||
     persisted === "hub"
-  )
+  ) {
     return persisted;
-  const identity = normalize(`${input.slug} ${input.name}`);
-  if (identity.includes("retail")) return "retail";
-  if (identity.includes("hub")) return "hub";
-  if (identity.includes("prime")) return "prime";
-  return "unclassified";
+  }
+  const slug = normalize(input.slug);
+  const name = normalize(input.name);
+  if (slug.includes("retail") || name.includes("retail")) return "retail";
+  if (slug.includes("hub") || name.includes("hub") || slug.includes("industrial")) return "hub";
+  return "prime";
 }
 
-export const segmentLabel = (segment: PropertySegment) =>
-  ({
-    prime: "Área Prime",
-    retail: "Área Retail",
-    hub: "Área Hub",
-    unclassified: "Sin clasificar",
-  })[segment];
+export function segmentLabel(segment: PropertySegment): string {
+  if (segment === "retail") return "Area Retail";
+  if (segment === "hub") return "Area Hub";
+  if (segment === "prime") return "Area Prime";
+  return "Sin clasificar";
+}

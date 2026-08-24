@@ -65,8 +65,8 @@ export class WordPressProvider implements BlogProvider {
 
     // Special handler for Area Hub (Vercel + Supabase Headless Blog)
     if (isAreaHub) {
-      const areaHubSupabaseUrl = "https://vztirszogukjfcyfmpkk.supabase.co";
-      const areaHubAnonKey =
+      const areaHubSupabaseUrl = process.env.AREAHUB_SUPABASE_URL ?? "https://vztirszogukjfcyfmpkk.supabase.co";
+      const areaHubAnonKey = process.env.AREAHUB_SUPABASE_ANON_KEY ??
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6dGlyc3pvZ3VramZjeWZtcGtrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYwMDcwNjIsImV4cCI6MjA3MTU4MzA2Mn0.W_-U0Zi3XT1-BGhDYO4Gm6qLGEHLdaNL4fLM9-m9IJc";
 
       const res = await safeExternalFetch(

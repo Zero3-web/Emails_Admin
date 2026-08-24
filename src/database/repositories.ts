@@ -455,6 +455,25 @@ export async function suppressContact(contactId: string) {
   return data;
 }
 
+export async function activateContact(contactId: string) {
+  const db = requireDb();
+  const { data, error } = await db
+    .from("contacts")
+    .update({ status: "active", unsubscribed_at: null })
+    .eq("id", contactId)
+    .select("id,email,status")
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteContact(contactId: string) {
+  const db = requireDb();
+  const { error } = await db.from("contacts").delete().eq("id", contactId);
+  if (error) throw error;
+  return true;
+}
+
 export async function suppressContactsBulk(contactIds: string[]) {
   if (!contactIds.length) return [];
   const db = requireDb();
@@ -465,6 +484,14 @@ export async function suppressContactsBulk(contactIds: string[]) {
     .select("id,email,status,unsubscribed_at");
   if (error) throw error;
   return data ?? [];
+}
+
+export async function deleteContactsBulk(contactIds: string[]) {
+  if (!contactIds.length) return 0;
+  const db = requireDb();
+  const { error, count } = await db.from("contacts").delete({ count: "exact" }).in("id", contactIds);
+  if (error) throw error;
+  return count ?? contactIds.length;
 }
 
 export async function importContacts(input: {
@@ -974,13 +1001,35 @@ export async function syncTokkoProperties(siteId: string) {
     throw cause;
   }
 }
+export function calculateNextRun(
+  row: { frequency: string; day_of_week?: number | null; day_of_month?: number | null; send_time: string },
+  after: Date = new Date(),
+) {
+  const [hour, minute] = row.send_time.slice(0, 5).split(":").map(Number);
+  const lima = new Date(after.getTime() - 5 * 60 * 60 * 1000);
+  const year = lima.getUTCFullYear();
+  const month = lima.getUTCMonth();
+  const date = lima.getUTCDate();
+  if (row.frequency === "weekly") {
+    const today = lima.getUTCDay() || 7;
+    const days = (Number(row.day_of_week ?? 1) - today + 7) % 7;
+    let candidate = new Date(Date.UTC(year, month, date + days, hour + 5, minute));
+    if (candidate <= after) candidate = new Date(candidate.getTime() + 7 * 24 * 60 * 60 * 1000);
+    return candidate;
+  }
+  let candidate = new Date(Date.UTC(year, month, Number(row.day_of_month ?? 1), hour + 5, minute));
+  if (candidate <= after) candidate = new Date(Date.UTC(year, month + 1, Number(row.day_of_month ?? 1), hour + 5, minute));
+  return candidate;
+}
+
 export async function updateAutomation(id: string, patch: Partial<Automation>) {
   const db = requireDb();
+  const { data: existing } = await db.from("automation_settings").select("*").eq("id", id).single();
   const payload: Record<string, unknown> = {};
   if (patch.isEnabled !== undefined) payload.is_enabled = patch.isEnabled;
   if (patch.frequency) payload.frequency = patch.frequency;
   if (patch.day !== undefined) {
-    const frequency = patch.frequency;
+    const frequency = patch.frequency ?? existing?.frequency;
     if (!frequency)
       throw new Error("La frecuencia es obligatoria para cambiar el día.");
     payload.day_of_week = frequency === "weekly" ? patch.day : null;
@@ -989,6 +1038,18 @@ export async function updateAutomation(id: string, patch: Partial<Automation>) {
   if (patch.sendTime) payload.send_time = patch.sendTime;
   if (patch.requiresApproval !== undefined)
     payload.requires_approval = patch.requiresApproval;
+
+  if (existing && (patch.frequency !== undefined || patch.day !== undefined || patch.sendTime !== undefined || patch.isEnabled === true)) {
+    const frequency = (payload.frequency ?? existing.frequency) as string;
+    const day_of_week = (payload.day_of_week !== undefined ? payload.day_of_week : existing.day_of_week) as number | null;
+    const day_of_month = (payload.day_of_month !== undefined ? payload.day_of_month : existing.day_of_month) as number | null;
+    const send_time = (payload.send_time ?? existing.send_time) as string;
+    const is_enabled = (payload.is_enabled !== undefined ? payload.is_enabled : existing.is_enabled) as boolean;
+    if (is_enabled && send_time) {
+      payload.next_run_at = calculateNextRun({ frequency, day_of_week, day_of_month, send_time }).toISOString();
+    }
+  }
+
   const { data, error } = await db
     .from("automation_settings")
     .update(payload)
@@ -997,6 +1058,15 @@ export async function updateAutomation(id: string, patch: Partial<Automation>) {
     .single();
   if (error) throw error;
   return mapAutomation(data);
+}
+export async function deleteAutomation(id: string) {
+  const db = requireDb();
+  const { error } = await db
+    .from("automation_settings")
+    .delete()
+    .eq("id", id);
+  if (error) throw error;
+  return { success: true };
 }
 export async function createAutomation(
   input: Pick<
@@ -1107,24 +1177,63 @@ export async function getOutboundEmails() {
   const allowed = await authorizedSiteUuids();
   let query = db
     .from("outbound_emails")
-    .select("*")
+    .select("*,sites(slug)")
     .order("sent_at", { ascending: false })
     .limit(250);
   if (allowed) query = query.in("site_id", allowed);
   const { data, error } = await query;
   if (error) throw error;
-  return data.map((row) => ({
-    id: row.resend_email_id,
-    to: row.recipient,
-    from: row.sender,
-    subject: row.subject,
-    date: row.sent_at,
-    status: row.status,
-    errorMessage: row.metadata?.error_message,
-    html: row.metadata?.html,
-    siteId: row.site_id,
-    events: row.status === "delivered" || row.status === "sent" ? ["email.delivered"] : [],
-  }));
+
+  const emailIds = (data ?? []).map((row) => row.resend_email_id).filter(Boolean);
+  const eventsMap: Record<string, string[]> = {};
+  if (emailIds.length > 0) {
+    const { data: eventsData } = await db
+      .from("email_events")
+      .select("resend_email_id,event_type")
+      .in("resend_email_id", emailIds);
+    if (eventsData) {
+      for (const ev of eventsData) {
+        if (ev.resend_email_id) {
+          if (!eventsMap[ev.resend_email_id]) eventsMap[ev.resend_email_id] = [];
+          eventsMap[ev.resend_email_id].push(ev.event_type);
+        }
+      }
+    }
+  }
+
+  return (data ?? []).map((row) => {
+    const recordedEvents = eventsMap[row.resend_email_id] ?? [];
+    const statusEv = row.status ? `email.${row.status}` : undefined;
+    const defaultEvs = row.status === "delivered" || row.status === "sent" ? ["email.delivered"] : [];
+    const allEvents = Array.from(new Set([...recordedEvents, ...(statusEv ? [statusEv] : []), ...defaultEvs]));
+
+    const slug = Array.isArray(row.sites) ? row.sites[0]?.slug : (row.sites as { slug?: string } | null)?.slug;
+    let resolvedSiteId = slug ? siteKey(slug) : undefined;
+    if (!resolvedSiteId && row.site_id) {
+      const candidate = siteKey(String(row.site_id));
+      if (candidate && candidate !== String(row.site_id)) resolvedSiteId = candidate;
+    }
+    if (!resolvedSiteId) {
+      const text = `${row.sender ?? ""} ${row.subject ?? ""}`.toLowerCase();
+      if (text.includes("prime") || text.includes("areaprime")) resolvedSiteId = "prime";
+      else if (text.includes("hub") || text.includes("areahub")) resolvedSiteId = "hub";
+      else if (text.includes("retail") || text.includes("arearetail")) resolvedSiteId = "retail";
+      else resolvedSiteId = "prime";
+    }
+
+    return {
+      id: row.resend_email_id,
+      to: row.recipient,
+      from: row.sender,
+      subject: row.subject,
+      date: row.sent_at,
+      status: row.status,
+      errorMessage: row.metadata?.error_message,
+      html: row.metadata?.html,
+      siteId: resolvedSiteId,
+      events: allEvents,
+    };
+  });
 }
 
 export async function getResendUsage(): Promise<{

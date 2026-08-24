@@ -6,12 +6,16 @@ import {
   getProperties,
   getSites,
 } from "@/src/database/repositories";
+import { requirePanelAccess } from "@/src/auth/server";
+import { redirect } from "next/navigation";
 
 export default async function Templates({
   searchParams,
 }: {
   searchParams: Promise<{ site?: string }>;
 }) {
+  const access = await requirePanelAccess();
+  if (!access.platformOwner) redirect("/dashboard");
   const filters = await searchParams;
   const [sites, properties, posts] = await Promise.all([
     getSites(),

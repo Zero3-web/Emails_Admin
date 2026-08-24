@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element -- Property images are synchronized from external providers. */
 import { Building2, Check, ChevronLeft, ChevronRight, ExternalLink, MapPin, Search, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Property, Site } from "@/src/domain/types";
 import { useDialogA11y } from "@/src/hooks/use-dialog-a11y";
 import { segmentLabel, type PropertySegment } from "@/src/services/property-classifier";
@@ -36,6 +36,11 @@ function formatDescription(value: string) {
 export function PropertiesView({ properties, sites, initialSiteId = "" }: { properties: Property[]; sites: Site[]; initialSiteId?: string }) {
   const [query, setQuery] = useState("");
   const [siteId, setSiteId] = useState(initialSiteId);
+
+  useEffect(() => {
+    setSiteId(initialSiteId);
+  }, [initialSiteId]);
+
   const [type, setType] = useState("");
   const [segment, setSegment] = useState("");
   const [page, setPage] = useState(1);
