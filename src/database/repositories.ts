@@ -918,13 +918,16 @@ export async function syncTokkoProperties(siteId: string) {
     const rows = properties.map((property) => {
       const segment = classifyProperty(property);
       const targetSite = sitesBySegment.get(segment);
-      const storedTemplate = targetSite?.tokko_filter?.property_url_template;
-      const urlTemplate =
-        typeof storedTemplate === "string"
-          ? storedTemplate
-          : segment === "prime" && targetSite?.domain
-            ? `https://${targetSite.domain}/ficha/?id={id}`
-            : undefined;
+      
+      let publicUrl = property.publicUrl || "";
+      if (segment === "prime") {
+        publicUrl = `https://areaprime.com.pe/ficha/?id=${encodeURIComponent(property.externalId)}`;
+      } else if (segment === "retail") {
+        publicUrl = `https://area-retail.net/ficha/?id=${encodeURIComponent(property.externalId)}`;
+      } else if (segment === "hub") {
+        publicUrl = property.publicUrl || `https://www.area-hub.com/broker`;
+      }
+
       return {
         site_id: targetSite?.id ?? null,
         external_id: property.externalId,
@@ -937,9 +940,7 @@ export async function syncTokkoProperties(siteId: string) {
         currency: property.currency,
         area: property.area,
         image_url: property.imageUrl,
-        public_url: urlTemplate
-          ? urlTemplate.replace("{id}", encodeURIComponent(property.externalId))
-          : (property.publicUrl || (site.slug.includes("hub") ? `https://areahub.pe/ficha/?id=${encodeURIComponent(property.externalId)}` : null)),
+        public_url: publicUrl,
         status: property.status,
         published_at: property.publishedAt || null,
         last_seen_at: new Date().toISOString(),

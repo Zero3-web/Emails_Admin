@@ -13,37 +13,49 @@ export function classifyProperty(input: {
   location?: string;
   description?: string;
 }): PropertySegment {
-  const type = normalize(input.propertyType);
-  const title = normalize(input.title ?? "");
-  const loc = normalize(input.location ?? "");
-  const desc = normalize(input.description ?? "");
-  const combined = `${type} ${title} ${loc} ${desc}`;
+  const type = normalize(input.propertyType || "");
+  const title = normalize(input.title || "");
 
-  // Tokko structured types & titles for Area Hub (Naves industriales, terrenos industriales, almacenes, depósitos, bodegas)
+  // 1. Primary classification by explicit Tokko property type
+  if (type.includes("oficina") || type.includes("corporativ")) {
+    return "prime";
+  }
+  if (type.includes("local") || type.includes("tienda") || type.includes("comercial") || type.includes("stand")) {
+    return "retail";
+  }
   if (
-    combined.includes("nave") ||
-    combined.includes("industrial") ||
-    combined.includes("terreno") ||
-    combined.includes("almacen") ||
-    combined.includes("deposito") ||
-    combined.includes("bodega") ||
-    combined.includes("logistico") ||
-    combined.includes("parque")
+    type.includes("nave") ||
+    type.includes("industrial") ||
+    type.includes("terreno") ||
+    type.includes("almacen") ||
+    type.includes("deposito") ||
+    type.includes("bodega") ||
+    type.includes("logistico") ||
+    type.includes("parque")
   ) {
     return "hub";
   }
 
-  // Area Retail (Locales comerciales)
-  if (combined.includes("local") || combined.includes("comercial") || combined.includes("retail") || combined.includes("tienda") || combined.includes("stand")) {
-    return "retail";
-  }
-
-  // Area Prime (Oficinas corporativas)
-  if (combined.includes("oficina") || combined.includes("prime") || combined.includes("corporativ")) {
+  // 2. Secondary classification by title keywords
+  if (title.includes("oficina") || title.includes("corporativ")) {
     return "prime";
   }
+  if (title.includes("local") || title.includes("tienda") || title.includes("retail") || title.includes("comercial") || title.includes("stand")) {
+    return "retail";
+  }
+  if (
+    title.includes("nave") ||
+    title.includes("industrial") ||
+    title.includes("terreno") ||
+    title.includes("almacen") ||
+    title.includes("deposito") ||
+    title.includes("bodega") ||
+    title.includes("logistico")
+  ) {
+    return "hub";
+  }
 
-  return "hub"; // Fallback to hub if completely ambiguous so all brands have content options
+  return "prime";
 }
 
 export function inferSiteSegment(input: {
