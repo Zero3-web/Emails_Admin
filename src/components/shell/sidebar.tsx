@@ -39,11 +39,11 @@ type SidebarProps = {
   platformOwner?: boolean;
 };
 
-export function Sidebar({ pathname, open, withSite, onNavigate, onSignOut, usage, selectedSite = "all", platformOwner }: SidebarProps) {
+export function Sidebar({ pathname, open, withSite, onNavigate, onSignOut, usage, selectedSite = "all" }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
   const campaignsActive = ["/campaigns", "/automations", "/activity", "/analytics"].some(isActive);
-  const settingsActive = ["/settings", "/sites", "/integrations", "/team", "/templates", "/properties"].some(isActive);
+  const settingsActive = ["/sites", "/templates", "/properties"].some(isActive);
 
   const subLink = (href: string, label: string, icon: React.ReactNode, scoped = true) => {
     const active = isActive(href);
@@ -129,13 +129,8 @@ export function Sidebar({ pathname, open, withSite, onNavigate, onSignOut, usage
           {!collapsed && (
             <div>
               {subLink("/sites", "Marcas", <Building2 size={14} strokeWidth={1.5} />, false)}
-              {platformOwner && <>
-                {subLink("/templates", "Plantillas", <Layers3 size={14} strokeWidth={1.5} />)}
-                {subLink("/properties", "Propiedades", <Home size={14} strokeWidth={1.5} />)}
-                {subLink("/integrations", "Integraciones", <PlugZap size={14} strokeWidth={1.5} />, false)}
-                {subLink("/team", "Equipo y accesos", <UsersRound size={14} strokeWidth={1.5} />, false)}
-                {subLink("/settings", "Estado del sistema", <Settings2 size={14} strokeWidth={1.5} />, false)}
-              </>}
+              {subLink("/templates", "Plantillas", <Layers3 size={14} strokeWidth={1.5} />)}
+              {subLink("/properties", "Propiedades", <Home size={14} strokeWidth={1.5} />)}
             </div>
           )}
         </details>
