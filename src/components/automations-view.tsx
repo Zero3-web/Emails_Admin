@@ -27,6 +27,7 @@ export function AutomationsView({ initial, sites, contacts = [] }: { initial: Au
   const [items, setItems] = useState(initial);
   const [editingId, setEditingId] = useState<string | "new" | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null);
   const [saving, setSaving] = useState<string | null>(null);
   const [message, setMessage] = useState<{ text: string; error?: boolean } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
@@ -280,41 +281,67 @@ export function AutomationsView({ initial, sites, contacts = [] }: { initial: Au
                             {saving === item.id && <Loader2 className="spin" size={12}/>}
                           </button>
                         </div>
-                        <div style={{ position: "relative" }}>
+                        <div style={{ display: "inline-block", position: "relative" }} onClick={(e) => e.stopPropagation()}>
                           <button
                             type="button"
                             className="btn subtle"
-                            onClick={() => setOpenMenuId(openMenuId === item.id ? null : item.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (openMenuId === item.id) {
+                                setOpenMenuId(null);
+                                setMenuPos(null);
+                              } else {
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                const menuHeight = 170;
+                                const spaceBelow = window.innerHeight - rect.bottom;
+                                const top = spaceBelow < menuHeight ? Math.max(10, rect.top - menuHeight - 4) : rect.bottom + 4;
+                                const right = Math.max(10, window.innerWidth - rect.right);
+                                setOpenMenuId(item.id);
+                                setMenuPos({ top, right });
+                              }
+                            }}
                             style={{ padding: "6px", borderRadius: "8px", color: "var(--am-ink, #475569)" }}
                             aria-label="Opciones de automatización"
                           >
                             <MoreVertical size={16} />
                           </button>
-                          {openMenuId === item.id && (
+                          {openMenuId === item.id && menuPos && (
                             <>
-                              <div style={{ position: "fixed", inset: 0, zIndex: 40 }} onClick={() => setOpenMenuId(null)} />
+                              <div
+                                style={{ position: "fixed", inset: 0, zIndex: 999 }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setOpenMenuId(null);
+                                  setMenuPos(null);
+                                }}
+                              />
                               <div
                                 style={{
-                                  position: "absolute",
-                                  right: 0,
-                                  top: "100%",
-                                  marginTop: "4px",
+                                  position: "fixed",
+                                  top: `${menuPos.top}px`,
+                                  right: `${menuPos.right}px`,
                                   background: "var(--am-surface, #ffffff)",
                                   border: "1px solid var(--am-border, #e2e8f0)",
                                   borderRadius: "10px",
-                                  boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
+                                  boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
                                   padding: "4px",
-                                  zIndex: 50,
-                                  minWidth: "160px",
+                                  zIndex: 1000,
+                                  minWidth: "165px",
                                   display: "flex",
                                   flexDirection: "column",
                                   gap: "2px",
+                                  textAlign: "left",
                                 }}
+                                onClick={(e) => e.stopPropagation()}
                               >
                                 <button
                                   type="button"
                                   className="btn subtle"
-                                  onClick={() => { setOpenMenuId(null); openEdit(item); }}
+                                  onClick={() => {
+                                    setOpenMenuId(null);
+                                    setMenuPos(null);
+                                    openEdit(item);
+                                  }}
                                   style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%", justifyContent: "flex-start", padding: "8px 12px", fontSize: "13px" }}
                                 >
                                   <Pencil size={14} /> Editar
@@ -322,7 +349,11 @@ export function AutomationsView({ initial, sites, contacts = [] }: { initial: Au
                                 <button
                                   type="button"
                                   className="btn subtle"
-                                  onClick={() => { setOpenMenuId(null); void executeManualRun(item); }}
+                                  onClick={() => {
+                                    setOpenMenuId(null);
+                                    setMenuPos(null);
+                                    void executeManualRun(item);
+                                  }}
                                   disabled={runningId === item.id}
                                   style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%", justifyContent: "flex-start", padding: "8px 12px", fontSize: "13px", color: "#4f46e5", fontWeight: 600 }}
                                 >
@@ -333,6 +364,7 @@ export function AutomationsView({ initial, sites, contacts = [] }: { initial: Au
                                   className="btn subtle"
                                   onClick={() => {
                                     setOpenMenuId(null);
+                                    setMenuPos(null);
                                     const customList = item.customRecipients;
                                     const hasCustom = customList && customList.length > 0;
                                     setMessage({
@@ -348,7 +380,11 @@ export function AutomationsView({ initial, sites, contacts = [] }: { initial: Au
                                 <button
                                   type="button"
                                   className="btn subtle"
-                                  onClick={() => { setOpenMenuId(null); promptDelete(item); }}
+                                  onClick={() => {
+                                    setOpenMenuId(null);
+                                    setMenuPos(null);
+                                    promptDelete(item);
+                                  }}
                                   disabled={saving === item.id || runningId === item.id}
                                   style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%", justifyContent: "flex-start", padding: "8px 12px", fontSize: "13px", color: "#ef4444" }}
                                 >

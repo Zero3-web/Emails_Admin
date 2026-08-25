@@ -4597,7 +4597,7 @@ body {
 .contacts-filter-menu > div button { width:100%; min-height:35px; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:7px 9px; border:0; border-radius:6px; color:#475467; background:transparent; text-align:left; cursor:pointer; font-size:11px; }
 .contacts-filter-menu > div button:hover,.contacts-filter-menu > div button[aria-selected="true"] { color:#4f46e5; background:#eef2ff; }
 .contacts-clear-filters { border:0; color:#4f46e5; background:transparent; cursor:pointer; font-size:11px; font-weight:600; }
-.contacts-table-wrap { overflow-x:auto; min-height:220px; }
+.contacts-table-wrap, .table-wrap, .campaigns-table-wrap { overflow-x:auto; min-height:240px; padding-bottom: 20px; }
 .contacts-table { width:100%; border-collapse:collapse; }
 .contacts-table th { height:38px; padding:9px 13px; color:#667085; background:#f7f9fa; font-size:10px; font-weight:650; text-align:left; }
 .contacts-table td { min-height:54px; padding:10px 13px; border-top:1px solid #edf0f2; color:#475467; font-size:11px; vertical-align:middle; }

@@ -61,6 +61,7 @@ export function ContactsView({ ready, initial, sites, canSuppress, initialSite =
   const [syncOpen, setSyncOpen] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null);
 
   const importDialogRef = useDialogA11y<HTMLElement>(importOpen, closeImport);
   const suppressDialogRef = useDialogA11y<HTMLElement>(Boolean(suppressTarget), () => setSuppressTarget(null));
@@ -456,7 +457,7 @@ export function ContactsView({ ready, initial, sites, canSuppress, initialSite =
                       </th>
                     )}
                     <th>Contacto</th>
-                    <th>Empresa</th>
+                    <th>Teléfono</th>
                     <th>Interés</th>
                     <th>Consentimiento</th>
                     <th>Estado</th>
@@ -467,7 +468,6 @@ export function ContactsView({ ready, initial, sites, canSuppress, initialSite =
                   {visibleContacts.map((contact, index) => {
                     const displayName = `${contact.firstName} ${contact.lastName}`.trim() || contact.email.split("@")[0];
                     const isSelected = selectedContactIds.includes(contact.id);
-                    const isNearBottom = visibleContacts.length <= 4 || index >= visibleContacts.length - 2;
                     return (
                       <tr key={contact.id} className={isSelected ? "selected-row" : ""}>
                         {canSuppress && (
@@ -493,7 +493,7 @@ export function ContactsView({ ready, initial, sites, canSuppress, initialSite =
                             </div>
                           </div>
                         </td>
-                        <td>{contact.company || <span className="muted">Sin empresa</span>}</td>
+                        <td>{contact.phone || contact.company || <span className="muted">—</span>}</td>
                         <td>
                           <div className="contacts-tags">
                             {contact.interests.length ? contact.interests.map((item) => <span key={item}>{interestLabels[item]}</span>) : <span className="empty">Sin interés</span>}
@@ -512,15 +512,26 @@ export function ContactsView({ ready, initial, sites, canSuppress, initialSite =
                           <span className={`contacts-status ${contact.status}`}>{statusLabels[contact.status]}</span>
                         </td>
                         {canSuppress && (
-                          <td style={{ textAlign: "right" }}>
-                            <div style={{ position: "relative", display: "inline-block" }}>
+                          <td style={{ textAlign: "right" }} onClick={(e) => e.stopPropagation()}>
+                            <div style={{ display: "inline-block", position: "relative" }}>
                               <button
                                 type="button"
                                 className="btn subtle icon-btn"
                                 style={{ padding: "4px 8px", borderRadius: "6px", color: "#64748b" }}
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setOpenMenuId(openMenuId === contact.id ? null : contact.id);
+                                  if (openMenuId === contact.id) {
+                                    setOpenMenuId(null);
+                                    setMenuPos(null);
+                                  } else {
+                                    const rect = e.currentTarget.getBoundingClientRect();
+                                    const menuHeight = 165;
+                                    const spaceBelow = window.innerHeight - rect.bottom;
+                                    const top = spaceBelow < menuHeight ? Math.max(10, rect.top - menuHeight - 4) : rect.bottom + 4;
+                                    const right = Math.max(10, window.innerWidth - rect.right);
+                                    setOpenMenuId(contact.id);
+                                    setMenuPos({ top, right });
+                                  }
                                 }}
                                 aria-label="Más opciones"
                                 title="Opciones del contacto"
@@ -531,30 +542,33 @@ export function ContactsView({ ready, initial, sites, canSuppress, initialSite =
                                   <MoreHorizontal size={16} />
                                 )}
                               </button>
-                              {openMenuId === contact.id && (
+                              {openMenuId === contact.id && menuPos && (
                                 <>
                                   <div
-                                    style={{ position: "fixed", inset: 0, zIndex: 99 }}
-                                    onClick={() => setOpenMenuId(null)}
+                                    style={{ position: "fixed", inset: 0, zIndex: 999 }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setOpenMenuId(null);
+                                      setMenuPos(null);
+                                    }}
                                   />
                                   <div
                                     style={{
-                                      position: "absolute",
-                                      right: 0,
-                                      ...(isNearBottom
-                                        ? { bottom: "100%", marginBottom: "6px" }
-                                        : { top: "100%", marginTop: "4px" }),
-                                      width: "190px",
+                                      position: "fixed",
+                                      top: `${menuPos.top}px`,
+                                      right: `${menuPos.right}px`,
+                                      width: "195px",
                                       background: "#ffffff",
                                       borderRadius: "10px",
                                       boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
                                       border: "1px solid #e2e8f0",
-                                      zIndex: 100,
+                                      zIndex: 1000,
                                       padding: "5px",
                                       display: "grid",
                                       gap: "2px",
                                       textAlign: "left",
                                     }}
+                                    onClick={(e) => e.stopPropagation()}
                                   >
                                     {contact.status === "active" ? (
                                       <button
@@ -575,6 +589,7 @@ export function ContactsView({ ready, initial, sites, canSuppress, initialSite =
                                         }}
                                         onClick={() => {
                                           setOpenMenuId(null);
+                                          setMenuPos(null);
                                           setSuppressTarget(contact);
                                         }}
                                       >
@@ -600,6 +615,7 @@ export function ContactsView({ ready, initial, sites, canSuppress, initialSite =
                                         }}
                                         onClick={() => {
                                           setOpenMenuId(null);
+                                          setMenuPos(null);
                                           void activate(contact);
                                         }}
                                       >
@@ -625,6 +641,7 @@ export function ContactsView({ ready, initial, sites, canSuppress, initialSite =
                                       }}
                                       onClick={() => {
                                         setOpenMenuId(null);
+                                        setMenuPos(null);
                                         void copyEmail(contact.email);
                                       }}
                                     >
@@ -650,6 +667,7 @@ export function ContactsView({ ready, initial, sites, canSuppress, initialSite =
                                       }}
                                       onClick={() => {
                                         setOpenMenuId(null);
+                                        setMenuPos(null);
                                         setSingleDeleteTarget(contact);
                                       }}
                                     >
@@ -771,13 +789,13 @@ export function ContactsView({ ready, initial, sites, canSuppress, initialSite =
         <header><div><span>Audiencia</span><h2 id="contacts-import-title">Importar contactos</h2><p>Agrega personas autorizadas a una marca y segmento.</p></div><button className="icon-btn" type="button" onClick={closeImport} aria-label="Cerrar importación"><X size={18} /></button></header>
         <nav className="contacts-import-steps" aria-label="Progreso de importación">{["Archivo", "Clasificación", "Consentimiento"].map((stepLabel, index) => { const current = rows.length ? 3 : 1; return <span key={stepLabel} className={index + 1 <= current ? "active" : ""}><i>{index + 1 < current ? <Check size={11} /> : index + 1}</i>{stepLabel}</span>; })}</nav>
         <div className="contacts-import-body"><input ref={inputRef} type="file" accept=".xlsx,.xls,.csv,.tsv,.ods,.txt,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" hidden onChange={(event) => void choose(event.target.files?.[0])} />
-          {!rows.length ? <div className="contacts-file-step"><button className="contacts-drop" type="button" onClick={() => inputRef.current?.click()} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); void choose(event.dataTransfer.files?.[0]); }}><span className="contacts-drop-icon"><Upload size={20} /></span><strong>Selecciona un archivo Excel o CSV</strong><span>O arrástralo aquí · Máximo 5,000 contactos</span><em>Elegir archivo</em></button><div className="contacts-file-guide"><strong>Formato esperado</strong><p>La primera fila debe contener encabezados. Solo el correo es obligatorio.</p><div><code>email</code><code>nombre</code><code>apellido</code><code>empresa</code><code>teléfono</code></div></div></div> :
+          {!rows.length ? <div className="contacts-file-step"><button className="contacts-drop" type="button" onClick={() => inputRef.current?.click()} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); void choose(event.dataTransfer.files?.[0]); }}><span className="contacts-drop-icon"><Upload size={20} /></span><strong>Selecciona un archivo Excel o CSV</strong><span>O arrástralo aquí · Máximo 5,000 contactos</span><em>Elegir archivo</em></button><div className="contacts-file-guide"><strong>Formato esperado</strong><p>La primera fila debe contener encabezados. Solo el correo es obligatorio.</p><div><code>email</code><code>nombre</code><code>apellido</code><code>teléfono</code></div></div></div> :
           <div className="contacts-import-workspace"><div className="contacts-import-config"><div className="contacts-file-selected"><FileSpreadsheet size={17} /><span><strong>{fileName}</strong><small>{rows.length.toLocaleString("es-PE")} filas detectadas</small></span><button type="button" onClick={() => { setRows([]); setFileName(""); }} aria-label="Cambiar archivo">Cambiar</button></div>
             <fieldset className="contacts-choice-field"><legend><Building2 size={14} />Marca de destino</legend><div className="contacts-site-options">{sites.map((site) => <button key={site.id} type="button" className={siteId === site.id ? "active" : ""} aria-pressed={siteId === site.id} onClick={() => handleSelectSite(site.id)}>{site.logoUrl ? <img src={site.logoUrl} alt={site.name} style={{ width: "16px", height: "16px", borderRadius: "50%", objectFit: "cover", marginRight: "6px", background: "#ffffff", display: "inline-block", verticalAlign: "middle" }} /> : <span style={{ backgroundColor: site.primaryColor }}>{getSiteInitials(site.name)}</span>}<strong>{site.name}</strong>{siteId === site.id && <Check size={13} />}</button>)}</div></fieldset>
             <fieldset className="contacts-choice-field"><legend><Tag size={14} />Interés principal</legend><div className="contacts-interest-options">{(Object.entries(interestLabels) as Array<[ContactInterest, string]>).map(([value, label]) => <button key={value} type="button" className={interest === value ? "active" : ""} aria-pressed={interest === value} onClick={() => setInterest(value)}><span className="contacts-radio">{interest === value && <i />}</span><strong>{label}</strong></button>)}</div></fieldset>
             <label className="field contacts-source-field"><span>¿Dónde autorizaron recibir comunicaciones?</span><input value={source} onChange={(event) => setSource(event.target.value)} placeholder="Ej. formulario web de Área Prime" /><small>Este dato quedará registrado como origen del consentimiento.</small></label>
             <label className={`consent-check ${confirmed ? "checked" : ""}`}><input type="checkbox" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} /><ShieldCheck size={17} /><span><strong>Confirmo que tengo autorización</strong><small>Estos contactos aceptaron recibir comunicaciones de esta marca.</small></span></label></div>
-            <div className="contacts-preview"><header><div><strong>Vista previa</strong><span>Primeras 5 filas</span></div><span>{rows.length.toLocaleString("es-PE")} contactos</span></header><div className="contacts-preview-table"><div className="head"><span>Contacto</span><span>Correo</span><span>Empresa</span></div>{rows.slice(0, 5).map((row, index) => <div key={`${row.email}-${index}`}><span>{`${row.firstName} ${row.lastName}`.trim() || "Sin nombre"}</span><strong>{row.email}</strong><em>{row.company || "—"}</em></div>)}</div><div className="contacts-import-note"><ShieldCheck size={15} /><p><strong>Protección automática</strong><span>Los duplicados se actualizarán y las bajas existentes permanecerán suprimidas.</span></p></div></div></div>}
+            <div className="contacts-preview"><header><div><strong>Vista previa</strong><span>Primeras 5 filas</span></div><span>{rows.length.toLocaleString("es-PE")} contactos</span></header><div className="contacts-preview-table"><div className="head"><span>Contacto</span><span>Correo</span><span>Teléfono</span></div>{rows.slice(0, 5).map((row, index) => <div key={`${row.email}-${index}`}><span>{`${row.firstName} ${row.lastName}`.trim() || "Sin nombre"}</span><strong>{row.email}</strong><em>{row.phone || "—"}</em></div>)}</div><div className="contacts-import-note"><ShieldCheck size={15} /><p><strong>Protección automática</strong><span>Los duplicados se actualizarán y las bajas existentes permanecerán suprimidas.</span></p></div></div></div>}
           {error && <p className="notice error motion-notice" role="alert">{error}</p>}
         </div>
         <footer><div>{rows.length > 0 && <button className="btn subtle" type="button" onClick={() => { setRows([]); setFileName(""); }}><ChevronLeft size={15} />Volver</button>}</div>{rows.length > 0 && <button className="btn primary" type="button" disabled={saving || !confirmed || !source.trim() || !siteId} onClick={() => void save()}>{saving ? <Loader2 className="spin" size={15} /> : <Upload size={15} />}{saving ? "Importando…" : `Importar ${rows.length.toLocaleString("es-PE")} contactos`}</button>}</footer>

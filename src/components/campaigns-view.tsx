@@ -44,6 +44,7 @@ export function CampaignsView({
   const router = useRouter();
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [sendingId, setSendingId] = useState<string | null>(null);
   const siteById = useMemo(() => new Map(sites.map((site) => [site.id, site])), [sites]);
@@ -192,13 +193,24 @@ export function CampaignsView({
                     <td data-label="Estado">
                       <StatusBadge status={campaign.status} />
                     </td>
-                    <td data-label="Acciones" style={{ textAlign: "right", position: "relative" }} onClick={(e) => e.stopPropagation()}>
+                    <td data-label="Acciones" style={{ textAlign: "right" }} onClick={(e) => e.stopPropagation()}>
                       <div style={{ display: "inline-block", position: "relative" }}>
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            setOpenMenuId(openMenuId === campaign.id ? null : campaign.id);
+                            if (openMenuId === campaign.id) {
+                              setOpenMenuId(null);
+                              setMenuPos(null);
+                            } else {
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              const menuHeight = 135;
+                              const spaceBelow = window.innerHeight - rect.bottom;
+                              const top = spaceBelow < menuHeight ? Math.max(10, rect.top - menuHeight - 4) : rect.bottom + 4;
+                              const right = Math.max(10, window.innerWidth - rect.right);
+                              setOpenMenuId(campaign.id);
+                              setMenuPos({ top, right });
+                            }
                           }}
                           className="btn subtle"
                           style={{ padding: "6px 8px", borderRadius: "8px", color: "var(--am-ink, #475569)" }}
@@ -206,33 +218,41 @@ export function CampaignsView({
                         >
                           <MoreVertical size={16} />
                         </button>
-                        {openMenuId === campaign.id && (
+                        {openMenuId === campaign.id && menuPos && (
                           <>
-                            <div style={{ position: "fixed", inset: 0, zIndex: 40 }} onClick={() => setOpenMenuId(null)} />
+                            <div
+                              style={{ position: "fixed", inset: 0, zIndex: 999 }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenMenuId(null);
+                                setMenuPos(null);
+                              }}
+                            />
                             <div
                               style={{
-                                position: "absolute",
-                                right: 0,
-                                top: "100%",
-                                marginTop: "4px",
+                                position: "fixed",
+                                top: `${menuPos.top}px`,
+                                right: `${menuPos.right}px`,
                                 background: "var(--am-surface, #ffffff)",
                                 border: "1px solid var(--am-border, #e2e8f0)",
                                 borderRadius: "10px",
-                                boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
+                                boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
                                 padding: "4px",
-                                zIndex: 50,
-                                minWidth: "155px",
+                                zIndex: 1000,
+                                minWidth: "160px",
                                 display: "flex",
                                 flexDirection: "column",
                                 gap: "2px",
                                 textAlign: "left",
                               }}
+                              onClick={(e) => e.stopPropagation()}
                             >
                               <button
                                 type="button"
                                 className="btn subtle"
                                 onClick={() => {
                                   setOpenMenuId(null);
+                                  setMenuPos(null);
                                   setSelectedCampaignId(campaign.id);
                                 }}
                                 style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%", justifyContent: "flex-start", padding: "8px 12px", fontSize: "13px" }}
@@ -245,6 +265,7 @@ export function CampaignsView({
                                   className="btn subtle"
                                   onClick={(e) => {
                                     setOpenMenuId(null);
+                                    setMenuPos(null);
                                     void handleSendCampaign(e, campaign.id);
                                   }}
                                   disabled={sendingId === campaign.id}
@@ -258,6 +279,7 @@ export function CampaignsView({
                                 className="btn subtle"
                                 onClick={(e) => {
                                   setOpenMenuId(null);
+                                  setMenuPos(null);
                                   handleDeleteCampaign(e, campaign);
                                 }}
                                 disabled={deletingId === campaign.id}
