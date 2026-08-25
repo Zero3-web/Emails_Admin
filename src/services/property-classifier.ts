@@ -16,13 +16,12 @@ export function classifyProperty(input: {
   const type = normalize(input.propertyType || "");
   const title = normalize(input.title || "");
 
-  // 1. Primary classification by explicit Tokko property type
-  if (type.includes("oficina") || type.includes("corporativ")) {
+  // 1. Strict check: Any property with office in title or type MUST be prime
+  if (title.includes("oficina") || type.includes("oficina") || title.includes("corporativ") || type.includes("corporativ")) {
     return "prime";
   }
-  if (type.includes("local") || type.includes("tienda") || type.includes("comercial") || type.includes("stand")) {
-    return "retail";
-  }
+
+  // 2. Strict check: Any industrial property MUST be hub
   if (
     type.includes("nave") ||
     type.includes("industrial") ||
@@ -31,28 +30,30 @@ export function classifyProperty(input: {
     type.includes("deposito") ||
     type.includes("bodega") ||
     type.includes("logistico") ||
-    type.includes("parque")
-  ) {
-    return "hub";
-  }
-
-  // 2. Secondary classification by title keywords
-  if (title.includes("oficina") || title.includes("corporativ")) {
-    return "prime";
-  }
-  if (title.includes("local") || title.includes("tienda") || title.includes("retail") || title.includes("comercial") || title.includes("stand")) {
-    return "retail";
-  }
-  if (
+    type.includes("parque") ||
     title.includes("nave") ||
     title.includes("industrial") ||
-    title.includes("terreno") ||
     title.includes("almacen") ||
     title.includes("deposito") ||
     title.includes("bodega") ||
     title.includes("logistico")
   ) {
     return "hub";
+  }
+
+  // 3. Strict check: Retail commercial stores
+  if (
+    type.includes("local") ||
+    type.includes("tienda") ||
+    type.includes("comercial") ||
+    type.includes("stand") ||
+    title.includes("local") ||
+    title.includes("tienda") ||
+    title.includes("retail") ||
+    title.includes("comercial") ||
+    title.includes("stand")
+  ) {
+    return "retail";
   }
 
   return "prime";

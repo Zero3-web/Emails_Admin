@@ -7,26 +7,44 @@ import { dispatchCampaign } from "@/src/services/campaign-dispatch";
 import type { AutomationType } from "@/src/domain/types";
 import { contentIdsForAutomation } from "@/trigger/tasks";
 
-const automationCopy: Record<AutomationType, { name: string; subject: string; introduction: string; limit: number }> = {
-  weekly_new_properties: {
-    name: "Nuevas oficinas de la semana",
-    subject: "Nuevas oficinas disponibles",
-    introduction: "Descubre las oportunidades incorporadas recientemente.",
-    limit: 5,
-  },
-  monthly_properties: {
-    name: "Oficinas disponibles",
-    subject: "Oficinas destacadas del mes",
-    introduction: "Revisa la selección de oficinas corporativas disponibles este mes.",
-    limit: 10,
-  },
-  monthly_blog: {
-    name: "Novedades del blog",
-    subject: "Novedades y artículos del mes",
-    introduction: "Te compartimos las últimas publicaciones y análisis de mercado.",
-    limit: 5,
-  },
-};
+function getAutomationCopy(slug: string, type: AutomationType) {
+  const isRetail = slug.toLowerCase().includes("retail");
+  const isHub = slug.toLowerCase().includes("hub");
+
+  if (type === "monthly_blog") {
+    return {
+      name: isRetail ? "Novedades del blog comercial" : isHub ? "Novedades del blog industrial" : "Novedades del blog empresarial",
+      subject: isRetail ? "Novedades y tendencias comerciales del mes" : isHub ? "Novedades y análisis industrial del mes" : "Novedades y análisis corporativo del mes",
+      introduction: "Te compartimos las últimas publicaciones y análisis de mercado.",
+      limit: 5,
+    };
+  }
+
+  if (isRetail) {
+    return {
+      name: type === "weekly_new_properties" ? "Nuevos locales comerciales de la semana" : "Locales comerciales disponibles",
+      subject: type === "weekly_new_properties" ? "Nuevos locales comerciales disponibles" : "Locales comerciales destacados del mes",
+      introduction: type === "weekly_new_properties" ? "Descubre las mejores ubicaciones comerciales incorporadas recientemente." : "Una selección estratégica de locales comerciales disponibles para hacer crecer tu negocio.",
+      limit: type === "weekly_new_properties" ? 5 : 10,
+    };
+  }
+
+  if (isHub) {
+    return {
+      name: type === "weekly_new_properties" ? "Nuevos inmuebles industriales de la semana" : "Propiedades industriales disponibles",
+      subject: type === "weekly_new_properties" ? "Nuevas propiedades industriales disponibles" : "Almacenes y terrenos industriales destacados",
+      introduction: type === "weekly_new_properties" ? "Nuevas naves, almacenes y terrenos industriales incorporados recientemente." : "Inventario actualizado de naves, almacenes y terrenos industriales clave.",
+      limit: type === "weekly_new_properties" ? 5 : 10,
+    };
+  }
+
+  return {
+    name: type === "weekly_new_properties" ? "Nuevas oficinas de la semana" : "Oficinas disponibles",
+    subject: type === "weekly_new_properties" ? "Nuevas oficinas corporativas disponibles" : "Oficinas destacadas del mes",
+    introduction: type === "weekly_new_properties" ? "Descubre las oportunidades de oficinas incorporadas recientemente." : "Revisa la selección de oficinas corporativas disponibles este mes.",
+    limit: type === "weekly_new_properties" ? 5 : 10,
+  };
+}
 
 const interestForSlug = (slug: string) => (slug.includes("retail") ? "retail" : slug.includes("hub") ? "hub" : "prime");
 
@@ -51,7 +69,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const siteKey = String(site?.slug ?? "").replace(/^area-/, "");
     assertSiteRole(access, siteKey, ["site_admin", "approver"]);
 
-    const copy = automationCopy[row.type as AutomationType];
+    const copy = getAutomationCopy(site?.slug ?? "", row.type as AutomationType);
     const itemIds = await contentIdsForAutomation(db, row.site_id, row.type as AutomationType, copy.limit);
     const tokkoFilter = (site?.tokko_filter ?? {}) as Record<string, unknown>;
     const customMap = (tokkoFilter.automationRecipients ?? {}) as Record<string, string[]>;

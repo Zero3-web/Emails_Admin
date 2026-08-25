@@ -681,7 +681,7 @@ export async function syncWordPressPosts(siteId: string) {
   const { data: row, error: siteError } = await db
     .from("sites")
     .select("*")
-    .eq("slug", slugOf(siteId))
+    .or(`id.eq.${siteId},slug.eq.${siteId},slug.eq.${slugOf(siteId)}`)
     .single();
   if (siteError) throw siteError;
   const site = mapSite(row);

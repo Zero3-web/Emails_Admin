@@ -57,19 +57,25 @@ function propertyCard(site: Site, property: Property, preview: boolean, buttonTe
   const details = [property.location, property.area > 0 ? `${property.area.toLocaleString("es-PE")} m²` : ""].filter(Boolean).join(" · ");
   const price = property.price > 0 ? `${property.currency} ${property.price.toLocaleString("es-PE")}` : "Precio a consultar";
   const image = property.imageUrl
-    ? `<img class="email-card-image" src="${safeUrl(property.imageUrl)}" alt="" width="562"${previewAttributes(preview)} style="display:block;width:100%;height:240px;object-fit:cover;">`
+    ? `<img class="email-card-image" src="${safeUrl(property.imageUrl)}" alt="${escapeHtml(property.title)}" width="562" height="240"${previewAttributes(preview)} style="display:block;width:100%;max-width:100%;height:240px;object-fit:cover;border-top-left-radius:12px;border-top-right-radius:12px;background:#f1f5f9;">`
     : "";
 
   return `
-    <div class="email-card" style="overflow:hidden;margin:0 0 20px;border:1px solid #e2e8f0;border-radius:12px;background:#ffffff;box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+    <div class="email-card" style="overflow:hidden;margin:0 0 24px;border:1px solid #e2e8f0;border-radius:12px;background:#ffffff;box-shadow:0 2px 8px rgba(0,0,0,0.04);">
       ${image}
-      <div class="email-card-copy" style="padding:20px;">
+      <div class="email-card-copy" style="padding:20px 22px 22px;">
         <h2 style="margin:0 0 8px;color:#0f172a;font-size:18px;line-height:24px;font-weight:700;">${escapeHtml(property.title)}</h2>
-        <p style="margin:0 0 12px;color:#64748b;font-size:13px;line-height:18px;display:flex;align-items:center;gap:6px;">📍 ${escapeHtml(details)}</p>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:14px;border-top:1px solid #f1f5f9;">
-          <span style="color:#0f172a;font-size:16px;font-weight:800;">${escapeHtml(price)}</span>
-          <a href="${safeUrl(property.publicUrl)}" target="_blank" style="display:inline-block;padding:10px 18px;border-radius:8px;background:${color(site.primaryColor)};color:#ffffff;font-size:13px;font-weight:700;text-decoration:none;box-shadow:0 2px 6px rgba(0,0,0,0.1);">${buttonText} →</a>
-        </div>
+        ${details ? `<p style="margin:0 0 14px;color:#64748b;font-size:13px;line-height:18px;">📍 ${escapeHtml(details)}</p>` : ""}
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:14px;padding-top:14px;border-top:1px solid #f1f5f9;border-collapse:collapse;">
+          <tr>
+            <td align="left" valign="middle" style="padding:0;font-size:16px;font-weight:800;color:#0f172a;white-space:nowrap;">
+              ${escapeHtml(price)}
+            </td>
+            <td align="right" valign="middle" style="padding:0;">
+              <a href="${safeUrl(property.publicUrl)}" target="_blank" style="display:inline-block;padding:10px 18px;border-radius:8px;background:${color(site.primaryColor)};color:#ffffff;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.1);">${buttonText} →</a>
+            </td>
+          </tr>
+        </table>
       </div>
     </div>
   `;
@@ -77,16 +83,22 @@ function propertyCard(site: Site, property: Property, preview: boolean, buttonTe
 
 function postCard(site: Site, post: BlogPost, preview: boolean) {
   const image = post.imageUrl
-    ? `<img class="email-card-image" src="${safeUrl(post.imageUrl)}" alt="" width="562"${previewAttributes(preview)} style="display:block;width:100%;height:240px;object-fit:cover;">`
+    ? `<img class="email-card-image" src="${safeUrl(post.imageUrl)}" alt="${escapeHtml(post.title)}" width="562" height="240"${previewAttributes(preview)} style="display:block;width:100%;max-width:100%;height:240px;object-fit:cover;border-top-left-radius:12px;border-top-right-radius:12px;background:#f1f5f9;">`
     : "";
 
   return `
-    <div class="email-card" style="overflow:hidden;margin:0 0 20px;border:1px solid #e2e8f0;border-radius:12px;background:#ffffff;box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+    <div class="email-card" style="overflow:hidden;margin:0 0 24px;border:1px solid #e2e8f0;border-radius:12px;background:#ffffff;box-shadow:0 2px 8px rgba(0,0,0,0.04);">
       ${image}
-      <div class="email-card-copy" style="padding:20px;">
+      <div class="email-card-copy" style="padding:20px 22px 22px;">
         <h2 style="margin:0 0 8px;color:#0f172a;font-size:18px;line-height:24px;font-weight:700;">${escapeHtml(post.title)}</h2>
-        <p style="margin:0 0 14px;color:#64748b;font-size:13px;line-height:20px;">${escapeHtml(post.excerpt)}</p>
-        <a href="${safeUrl(post.publicUrl)}" target="_blank" style="color:${color(site.primaryColor)};font-size:13px;font-weight:700;text-decoration:none;">Leer artículo completo →</a>
+        <p style="margin:0 0 16px;color:#64748b;font-size:13px;line-height:20px;">${escapeHtml(post.excerpt)}</p>
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+          <tr>
+            <td align="right" valign="middle" style="padding:0;">
+              <a href="${safeUrl(post.publicUrl)}" target="_blank" style="display:inline-block;padding:10px 18px;border-radius:8px;background:${color(site.primaryColor)};color:#ffffff;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.1);">Leer artículo completo →</a>
+            </td>
+          </tr>
+        </table>
       </div>
     </div>
   `;

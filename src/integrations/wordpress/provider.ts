@@ -169,10 +169,12 @@ export class WordPressProvider implements BlogProvider {
           const media = post._embedded?.["wp:featuredmedia"]?.[0];
           const sizes = media?.media_details?.sizes;
           const imageUrl =
-            sizes?.medium_large?.source_url ??
-            sizes?.large?.source_url ??
-            sizes?.medium?.source_url ??
+            sizes?.full?.source_url ??
             media?.source_url ??
+            sizes?.["1536x1536"]?.source_url ??
+            sizes?.["2048x2048"]?.source_url ??
+            sizes?.large?.source_url ??
+            sizes?.medium_large?.source_url ??
             "";
           const title = cleanText(post.title?.rendered);
           const candidate =

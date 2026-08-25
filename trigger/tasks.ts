@@ -26,26 +26,44 @@ export function nextRun(row: { frequency: string; day_of_week: number | null; da
   return candidate;
 }
 
-const automationCopy: Record<AutomationType, { name: string; subject: string; introduction: string; limit: number }> = {
-  weekly_new_properties: {
-    name: "Nuevas oficinas de la semana",
-    subject: "Nuevas oficinas disponibles",
-    introduction: "Descubre las oportunidades incorporadas recientemente.",
-    limit: 5,
-  },
-  monthly_properties: {
-    name: "Oficinas disponibles",
-    subject: "Oficinas disponibles para tu empresa",
-    introduction: "Una selección mensual de oficinas para hacer crecer tu negocio.",
-    limit: 10,
-  },
-  monthly_blog: {
-    name: "Novedades del blog",
-    subject: "Novedades y artículos del mes",
-    introduction: "Últimos contenidos publicados.",
-    limit: 5,
-  },
-};
+function getAutomationCopy(slug: string, type: AutomationType) {
+  const isRetail = slug.toLowerCase().includes("retail");
+  const isHub = slug.toLowerCase().includes("hub");
+
+  if (type === "monthly_blog") {
+    return {
+      name: isRetail ? "Novedades del blog comercial" : isHub ? "Novedades del blog industrial" : "Novedades del blog empresarial",
+      subject: isRetail ? "Novedades y artículos del mes" : isHub ? "Novedades y análisis industrial del mes" : "Novedades y artículos del mes",
+      introduction: "Últimos contenidos y análisis publicados.",
+      limit: 5,
+    };
+  }
+
+  if (isRetail) {
+    return {
+      name: type === "weekly_new_properties" ? "Nuevos locales comerciales de la semana" : "Locales comerciales disponibles",
+      subject: type === "weekly_new_properties" ? "Nuevos locales comerciales disponibles" : "Locales comerciales destacados del mes",
+      introduction: type === "weekly_new_properties" ? "Descubre las mejores ubicaciones comerciales incorporadas recientemente." : "Una selección mensual de locales estratégicos para hacer crecer tu negocio.",
+      limit: type === "weekly_new_properties" ? 5 : 10,
+    };
+  }
+
+  if (isHub) {
+    return {
+      name: type === "weekly_new_properties" ? "Nuevos inmuebles industriales de la semana" : "Propiedades industriales disponibles",
+      subject: type === "weekly_new_properties" ? "Nuevas propiedades industriales disponibles" : "Propiedades industriales destacadas del mes",
+      introduction: type === "weekly_new_properties" ? "Nuevas naves, almacenes y terrenos industriales disponibles." : "Inventario actualizado de propiedades industriales clave.",
+      limit: type === "weekly_new_properties" ? 5 : 10,
+    };
+  }
+
+  return {
+    name: type === "weekly_new_properties" ? "Nuevas oficinas de la semana" : "Oficinas disponibles",
+    subject: type === "weekly_new_properties" ? "Nuevas oficinas disponibles" : "Oficinas disponibles para tu empresa",
+    introduction: type === "weekly_new_properties" ? "Descubre las oportunidades de oficinas incorporadas recientemente." : "Una selección mensual de oficinas para hacer crecer tu negocio.",
+    limit: type === "weekly_new_properties" ? 5 : 10,
+  };
+}
 
 function interestForSlug(slug: string): ContactInterest {
   const clean = slug.toLowerCase().replace(/^area-/, "").replace(/^area/, "");
@@ -84,11 +102,12 @@ export async function contentIdsForAutomation(
 
 async function recordAutomationFailure(
   db: NonNullable<ReturnType<typeof createSupabaseAdmin>>,
-  row: { id: string; site_id: string; type: AutomationType; requires_approval: boolean },
+  row: { id: string; site_id: string; type: AutomationType; requires_approval: boolean; sites?: any },
   scheduledFor: string,
   message: string,
 ) {
-  const copy = automationCopy[row.type];
+  const site = Array.isArray(row.sites) ? row.sites[0] : row.sites;
+  const copy = getAutomationCopy(site?.slug ?? "", row.type);
   const { error } = await db.from("campaigns").insert({
     site_id: row.site_id,
     automation_type: row.type,
@@ -127,7 +146,7 @@ export async function runDueAutomations(now = new Date()) {
     const site = Array.isArray(row.sites) ? row.sites[0] : row.sites;
     const scheduledFor = scheduled.toISOString();
     try {
-      const copy = automationCopy[row.type as AutomationType];
+      const copy = getAutomationCopy(site?.slug ?? "", row.type as AutomationType);
       const itemIds = await contentIdsForAutomation(db, row.site_id, row.type as AutomationType, copy.limit);
       const tokkoFilter = (site?.tokko_filter ?? {}) as Record<string, unknown>;
       const customMap = (tokkoFilter.automationRecipients ?? {}) as Record<string, string[]>;

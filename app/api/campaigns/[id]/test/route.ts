@@ -4,6 +4,7 @@ import { getCampaigns, getSites } from "@/src/database/repositories";
 import { apiErrorResponse, assertSameOrigin, HttpError, readJsonObject } from "@/src/security/http";
 import { renderCampaignEmail } from "@/src/services/email-renderer";
 import { sendResendEmail } from "@/src/integrations/resend/client";
+import { createUnsubscribeToken, publicAppUrl } from "@/src/security/unsubscribe";
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -30,9 +31,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const site = sites.find((s) => s.id === campaign.siteId);
     if (!site) throw new HttpError("No se encontró la marca asociada.", 404);
 
-    // Render HTML content
+    // Render HTML content with working unsubscribe URL
     const items = campaign.metadata?.items ?? [];
-    const html = await renderCampaignEmail(site, campaign.automationType, items as any[]);
+    const cleanTo = to.toLowerCase().trim();
+    const token = createUnsubscribeToken({ email: cleanTo, siteId: site.id });
+    const unsubscribeUrl = `${publicAppUrl()}/api/unsubscribe?token=${encodeURIComponent(token)}`;
+    const html = await renderCampaignEmail(site, campaign.automationType, items as any[], { unsubscribeUrl });
 
     // Send single test email
     const sender = `${site.senderName || site.name} <${site.senderEmail}>`;
