@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertCircle, CheckCircle2, Clock, FileText, Inbox, PauseCircle, Send } from "lucide-react";
+import { AlertCircle, CheckCircle2, Clock, FileText, Inbox, Loader2, PauseCircle, Send } from "lucide-react";
 export { Button } from "./ui/button";
 import type {
   CampaignStatus,
@@ -77,6 +77,7 @@ export function StatusBadge({
 }) {
   const labels: Record<string, string> = {
     sent: "Enviada",
+    sending: "Enviando",
     scheduled: "Programada",
     draft: "Borrador",
     failed: "Fallida",
@@ -90,6 +91,7 @@ export function StatusBadge({
   };
   const icons: Record<string, React.ReactNode> = {
     sent: <Send size={11} strokeWidth={2} />,
+    sending: <Loader2 size={11} className="spin" strokeWidth={2} />,
     scheduled: <Clock size={11} strokeWidth={2} />,
     draft: <FileText size={11} strokeWidth={2} />,
     failed: <AlertCircle size={11} strokeWidth={2} />,

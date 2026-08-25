@@ -65,7 +65,8 @@ export async function POST(request: Request) {
 
   const db = createSupabaseAdmin();
   if (db) {
-    await db.from("contacts").update({ status: "unsubscribed", unsubscribed_at: new Date().toISOString() }).eq("email_normalized", targetEmail.toLowerCase().trim());
+    const cleanEmail = targetEmail.toLowerCase().trim();
+    await db.from("contacts").update({ status: "unsubscribed", unsubscribed_at: new Date().toISOString() }).or(`email_normalized.eq.${cleanEmail},email.ilike.${cleanEmail}`);
   }
 
   return page(`Tu baja para <strong>${targetEmail.replace(/[&<>"]/g, "")}</strong> fue registrada exitosamente. No recibirás nuevos boletines ni promociones.`);

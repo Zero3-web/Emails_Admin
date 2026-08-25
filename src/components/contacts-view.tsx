@@ -467,7 +467,7 @@ export function ContactsView({ ready, initial, sites, canSuppress, initialSite =
                   {visibleContacts.map((contact, index) => {
                     const displayName = `${contact.firstName} ${contact.lastName}`.trim() || contact.email.split("@")[0];
                     const isSelected = selectedContactIds.includes(contact.id);
-                    const isNearBottom = visibleContacts.length > 2 && index >= visibleContacts.length - 2;
+                    const isNearBottom = visibleContacts.length <= 4 || index >= visibleContacts.length - 2;
                     return (
                       <tr key={contact.id} className={isSelected ? "selected-row" : ""}>
                         {canSuppress && (
@@ -858,12 +858,12 @@ export function ContactsView({ ready, initial, sites, canSuppress, initialSite =
       {/* Manual Contact Modal Dialog */}
       {addManualOpen && (
         <div className="contacts-modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && !saving && setAddManualOpen(false)}>
-          <section className="card contacts-import" role="dialog" aria-modal="true" aria-labelledby="manual-contact-title" style={{ maxWidth: "580px", padding: "28px", borderRadius: "18px" }}>
-            <header style={{ borderBottom: "1px solid #f1f5f9", paddingBottom: "16px", marginBottom: "20px" }}>
+          <section className="card contacts-manual-modal" role="dialog" aria-modal="true" aria-labelledby="manual-contact-title">
+            <header>
               <div>
                 <span style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", color: "#4f46e5", letterSpacing: "0.05em" }}>Audiencia</span>
-                <h2 id="manual-contact-title" style={{ fontSize: "19px", fontWeight: 700, margin: "2px 0 0", color: "#0f172a" }}>Añadir nuevo contacto</h2>
-                <p style={{ fontSize: "12px", margin: "4px 0 0", color: "#64748b" }}>Ingresa los datos del contacto para sumarlo inmediatamente a la lista activa.</p>
+                <h2 id="manual-contact-title">Añadir nuevo contacto</h2>
+                <p>Ingresa los datos del contacto para sumarlo inmediatamente a la lista activa.</p>
               </div>
               <button className="icon-btn" type="button" onClick={() => !saving && setAddManualOpen(false)} aria-label="Cerrar"><X size={18} /></button>
             </header>

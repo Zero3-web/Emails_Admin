@@ -9,10 +9,10 @@ export async function GET() {
   try {
     await requireApiAccess();
     const emails = await getOutboundEmails();
-
-    // Sync live status with Resend API for recent sent/pending emails
-    const pendingEmails = emails.filter((e) => ["sent", "queued", "delivery_delayed"].includes(e.status)).slice(0, 15);
     const db = createSupabaseAdmin();
+
+    // Sync live status with Resend API for recent sent/pending emails in DB
+    const pendingEmails = emails.filter((e) => ["sent", "queued", "delivery_delayed"].includes(e.status)).slice(0, 15);
 
     if (pendingEmails.length > 0 && db) {
       await Promise.all(

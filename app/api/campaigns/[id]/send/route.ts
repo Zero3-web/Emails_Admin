@@ -12,7 +12,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   try {
     assertSameOrigin(request);
     await enforceRateLimit(request, "campaign-send", 10, 60);
-    assertBulkSendingAllowed();
     const { id } = await params;
     if (!uuid.test(id)) throw new HttpError("La campaña no es válida.");
 

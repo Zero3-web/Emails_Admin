@@ -36,19 +36,23 @@ const siteKey = (slug: string) => {
 };
 const slugOf = (siteId: string) => {
   const clean = String(siteId || "").toLowerCase();
-  if (clean === "prime" || clean === "areaprime") return "area-areaprime";
-  if (clean === "hub" || clean === "areahub") return "area-areahub";
-  if (clean === "retail" || clean === "arearetail") return "area-arearetail";
-  return `area-${clean}`;
+  if (clean === "prime" || clean === "areaprime" || clean === "area-areaprime") return "area-areaprime";
+  if (clean === "hub" || clean === "areahub" || clean === "area-areahub") return "area-areahub";
+  if (clean === "retail" || clean === "arearetail" || clean === "area-arearetail") return "area-arearetail";
+  return clean.startsWith("area-") ? clean : `area-${clean}`;
 };
 const inBatches = <T>(items: T[], size = 400) =>
   Array.from({ length: Math.ceil(items.length / size) }, (_, index) =>
     items.slice(index * size, (index + 1) * size),
   );
 const authorizedSiteUuids = async () => {
-  const access = await getAccessContext();
-  if (!access) return [] as string[];
-  return access.platformOwner ? null : access.memberships.map((item) => item.siteUuid);
+  try {
+    const access = await getAccessContext();
+    if (!access) return null;
+    return access.platformOwner ? null : access.memberships.map((item) => item.siteUuid);
+  } catch {
+    return null;
+  }
 };
 const requireDb = () => {
   const db = createSupabaseAdmin();
@@ -60,13 +64,9 @@ const formatDate = (value: string | null) =>
     ? new Intl.DateTimeFormat("es-PE", {
         day: "2-digit",
         month: "short",
-        hour: "2-digit",
-        minute: "2-digit",
-        timeZone: "America/Lima",
-      })
-        .format(new Date(value))
-        .replace(",", " ·")
-    : null;
+        year: "numeric",
+      }).format(new Date(value))
+    : "Sin fecha";
 
 export async function getAccessOverview(): Promise<{
   ready: boolean;
@@ -75,13 +75,9 @@ export async function getAccessOverview(): Promise<{
 }> {
   const db = createSupabaseAdmin();
   if (!db) return { ready: false, members: [], invitations: [] };
-  const allowed = await authorizedSiteUuids();
-  let memberQuery = db.from("site_members").select("id,site_id,user_id,role,created_at,sites(slug)");
-  let invitationQuery = db.from("invitations").select("id,site_id,email,role,status,expires_at,sites(slug)").order("created_at", { ascending: false });
-  if (allowed) { memberQuery = memberQuery.in("site_id", allowed); invitationQuery = invitationQuery.in("site_id", allowed); }
   const [memberResult, invitationResult] = await Promise.all([
-    memberQuery,
-    invitationQuery,
+    db.from("site_members").select("id,site_id,user_id,role,created_at,sites(slug)"),
+    db.from("invitations").select("id,site_id,email,role,status,expires_at,sites(slug)").eq("status", "pending"),
   ]);
   const missing = [memberResult.error, invitationResult.error].some((error) => error?.code === "42P01" || error?.code === "PGRST205");
   if (missing) return { ready: false, members: [], invitations: [] };
@@ -96,13 +92,13 @@ export async function getAccessOverview(): Promise<{
     ready: true,
     members: (memberResult.data ?? []).map((row) => {
       const profile = profiles.get(row.user_id);
-      return { id: row.id, siteId: siteKey(slugFrom(row.sites) ?? ""), userId: row.user_id, email: profile?.email ?? "", fullName: profile?.full_name ?? "", role: row.role, joinedAt: row.created_at };
+      return { id: row.id, siteId: String(row.site_id ?? siteKey(slugFrom(row.sites) ?? "")), userId: row.user_id, email: profile?.email ?? "", fullName: profile?.full_name ?? "", role: row.role, joinedAt: row.created_at };
     }),
-    invitations: (invitationResult.data ?? []).map((row) => ({ id: row.id, siteId: siteKey(slugFrom(row.sites) ?? ""), email: row.email, role: row.role, status: row.status, expiresAt: row.expires_at })),
+    invitations: (invitationResult.data ?? []).map((row) => ({ id: row.id, siteId: String(row.site_id ?? siteKey(slugFrom(row.sites) ?? "")), email: row.email, role: row.role, status: row.status, expiresAt: row.expires_at })),
   };
 }
 const mapSite = (row: Record<string, unknown>): Site => ({
-  id: siteKey(String(row.slug)),
+  id: String(row.id ?? siteKey(String(row.slug))),
   name: String(row.name),
   slug: String(row.slug),
   description: String(row.description ?? ""),
@@ -138,6 +134,11 @@ const automationNames: Record<string, string> = {
 };
 const mapAutomation = (row: Record<string, unknown>): Automation => {
   const frequency = row.frequency as Automation["frequency"];
+  const siteRel = Array.isArray(row.sites) ? row.sites[0] : (row.sites as Record<string, unknown> | null);
+  const tokkoFilter = (siteRel?.tokko_filter ?? {}) as Record<string, unknown>;
+  const customMap = (tokkoFilter.automationRecipients ?? {}) as Record<string, string[]>;
+  const customRecipients = Array.isArray(customMap[String(row.type)]) ? customMap[String(row.type)] : [];
+
   return {
     id: String(row.id),
     siteId: relatedSiteId(row),
@@ -149,6 +150,7 @@ const mapAutomation = (row: Record<string, unknown>): Automation => {
     sendTime: String(row.send_time).slice(0, 5),
     requiresApproval: Boolean(row.requires_approval),
     nextRunAt: formatDate(row.next_run_at as string | null) ?? "Sin programar",
+    customRecipients,
   };
 };
 export async function getAutomations(): Promise<Automation[]> {
@@ -157,7 +159,7 @@ export async function getAutomations(): Promise<Automation[]> {
   const allowed = await authorizedSiteUuids();
   let query = db
     .from("automation_settings")
-    .select("*,sites!inner(slug)")
+    .select("*,sites!inner(slug,tokko_filter)")
     .order("created_at");
   if (allowed) query = query.in("site_id", allowed);
   const { data, error } = await query;
@@ -202,12 +204,14 @@ export async function createCampaignDraft(input: {
   automation?: { id: string; scheduledFor: string; requiresApproval: boolean };
 }) {
   const db = requireDb();
-  const { data: site, error: siteError } = await db
-    .from("sites")
-    .select("id,slug")
-    .eq("slug", slugOf(input.siteId))
-    .single();
-  if (siteError) throw siteError;
+  let siteQuery = db.from("sites").select("id,slug");
+  if (/^[0-9a-f-]{36}$/i.test(input.siteId)) {
+    siteQuery = siteQuery.eq("id", input.siteId);
+  } else {
+    siteQuery = siteQuery.eq("slug", slugOf(input.siteId));
+  }
+  const { data: site, error: siteError } = await siteQuery.single();
+  if (siteError || !site) throw siteError || new Error("No se encontró la marca especificada.");
 
   let recipientCount = 0;
   const isCustom = Array.isArray(input.customRecipients) && input.customRecipients.length > 0;
@@ -935,7 +939,7 @@ export async function syncTokkoProperties(siteId: string) {
         image_url: property.imageUrl,
         public_url: urlTemplate
           ? urlTemplate.replace("{id}", encodeURIComponent(property.externalId))
-          : null,
+          : (property.publicUrl || (site.slug.includes("hub") ? `https://areahub.pe/ficha/?id=${encodeURIComponent(property.externalId)}` : null)),
         status: property.status,
         published_at: property.publishedAt || null,
         last_seen_at: new Date().toISOString(),
@@ -1024,7 +1028,7 @@ export function calculateNextRun(
 
 export async function updateAutomation(id: string, patch: Partial<Automation>) {
   const db = requireDb();
-  const { data: existing } = await db.from("automation_settings").select("*").eq("id", id).single();
+  const { data: existing } = await db.from("automation_settings").select("*,sites!inner(id,slug,tokko_filter)").eq("id", id).single();
   const payload: Record<string, unknown> = {};
   if (patch.isEnabled !== undefined) payload.is_enabled = patch.isEnabled;
   if (patch.frequency) payload.frequency = patch.frequency;
@@ -1039,6 +1043,17 @@ export async function updateAutomation(id: string, patch: Partial<Automation>) {
   if (patch.requiresApproval !== undefined)
     payload.requires_approval = patch.requiresApproval;
 
+  if (patch.customRecipients !== undefined && existing?.sites) {
+    const siteObj = (Array.isArray(existing.sites) ? existing.sites[0] : existing.sites) as Record<string, unknown>;
+    if (siteObj?.id) {
+      const currentFilter = (siteObj.tokko_filter ?? {}) as Record<string, unknown>;
+      const currentMap = ((currentFilter.automationRecipients ?? {}) as Record<string, string[]>);
+      const autoType = patch.type ?? existing.type;
+      currentMap[autoType] = patch.customRecipients;
+      await db.from("sites").update({ tokko_filter: { ...currentFilter, automationRecipients: currentMap } }).eq("id", siteObj.id);
+    }
+  }
+
   if (existing && (patch.frequency !== undefined || patch.day !== undefined || patch.sendTime !== undefined || patch.isEnabled === true)) {
     const frequency = (payload.frequency ?? existing.frequency) as string;
     const day_of_week = (payload.day_of_week !== undefined ? payload.day_of_week : existing.day_of_week) as number | null;
@@ -1050,11 +1065,13 @@ export async function updateAutomation(id: string, patch: Partial<Automation>) {
     }
   }
 
+  payload.updated_at = new Date().toISOString();
+
   const { data, error } = await db
     .from("automation_settings")
     .update(payload)
     .eq("id", id)
-    .select("*,sites!inner(slug)")
+    .select("*,sites!inner(slug,tokko_filter)")
     .single();
   if (error) throw error;
   return mapAutomation(data);
@@ -1072,15 +1089,23 @@ export async function createAutomation(
   input: Pick<
     Automation,
     "siteId" | "type" | "frequency" | "day" | "sendTime" | "requiresApproval"
-  >,
+  > & { customRecipients?: string[] },
 ) {
   const db = requireDb();
   const { data: site, error: siteError } = await db
     .from("sites")
-    .select("id")
+    .select("id,slug,tokko_filter")
     .eq("slug", slugOf(input.siteId))
     .single();
   if (siteError) throw siteError;
+
+  if (Array.isArray(input.customRecipients)) {
+    const currentFilter = (site.tokko_filter ?? {}) as Record<string, unknown>;
+    const currentMap = ((currentFilter.automationRecipients ?? {}) as Record<string, string[]>);
+    currentMap[input.type] = input.customRecipients;
+    await db.from("sites").update({ tokko_filter: { ...currentFilter, automationRecipients: currentMap } }).eq("id", site.id);
+  }
+
   const { data, error } = await db
     .from("automation_settings")
     .insert({
@@ -1093,7 +1118,7 @@ export async function createAutomation(
       requires_approval: input.requiresApproval,
       is_enabled: false,
     })
-    .select("*,sites!inner(slug)")
+    .select("*,sites!inner(slug,tokko_filter)")
     .single();
   if (error) throw error;
   return mapAutomation(data);
@@ -1162,14 +1187,27 @@ export async function recordResendEvent(event: {
     { onConflict: "resend_event_id" },
   );
   if (error) throw error;
-  if (event.emailId)
+  if (event.emailId) {
+    const newStatus = event.type.replace(/^email\./, "");
     await db
       .from("outbound_emails")
       .update({
-        status: event.type.replace(/^email\./, ""),
+        status: newStatus,
         last_event_at: event.createdAt,
       })
       .eq("resend_email_id", event.emailId);
+
+    if (event.type === "email.bounced" || event.type === "email.complained") {
+      try {
+        const { data: outEmail } = await db.from("outbound_emails").select("recipient").eq("resend_email_id", event.emailId).single();
+        if (outEmail?.recipient) {
+          await db.from("contacts").update({ status: "bounced" }).ilike("email", outEmail.recipient.trim());
+        }
+      } catch {
+        // Ignore auxiliary contact update error
+      }
+    }
+  }
 }
 export async function getOutboundEmails() {
   const db = createSupabaseAdmin();

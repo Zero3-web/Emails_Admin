@@ -106,6 +106,7 @@ export interface Automation {
   sendTime: string;
   requiresApproval: boolean;
   nextRunAt: string;
+  customRecipients?: string[];
 }
 export interface Integration {
   id: string;

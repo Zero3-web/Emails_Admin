@@ -55,17 +55,23 @@ function interestForSlug(slug: string): ContactInterest {
   throw new Error(`La marca ${slug} no tiene un segmento de audiencia compatible.`);
 }
 
-async function contentIdsForAutomation(
+export async function contentIdsForAutomation(
   db: NonNullable<ReturnType<typeof createSupabaseAdmin>>,
-  siteId: string,
+  siteIdOrSlug: string,
   type: AutomationType,
   limit: number,
 ) {
+  let targetSiteUuid = siteIdOrSlug;
+  if (!/^[0-9a-f-]{36}$/i.test(siteIdOrSlug)) {
+    const slug = siteIdOrSlug.toLowerCase().includes("retail") ? "area-arearetail" : siteIdOrSlug.toLowerCase().includes("hub") ? "area-areahub" : "area-areaprime";
+    const { data: s } = await db.from("sites").select("id").eq("slug", slug).single();
+    if (s) targetSiteUuid = s.id;
+  }
   const table = type === "monthly_blog" ? "blog_posts" : "properties";
   const { data, error } = await db
     .from(table)
     .select("id")
-    .eq("site_id", siteId)
+    .eq("site_id", targetSiteUuid)
     .not("public_url", "is", null)
     .neq("public_url", "")
     .order("published_at", { ascending: false })
@@ -105,7 +111,7 @@ export async function runDueAutomations(now = new Date()) {
   const db = createSupabaseAdmin();
   if (!db) throw new Error("La base de datos no está configurada.");
   const { data, error } = await db.from("automation_settings")
-    .select("id,site_id,type,frequency,day_of_week,day_of_month,send_time,requires_approval,next_run_at,sites!inner(name,slug)")
+    .select("id,site_id,type,frequency,day_of_week,day_of_month,send_time,requires_approval,next_run_at,sites!inner(name,slug,tokko_filter)")
     .eq("is_enabled", true);
   if (error) throw error;
   let created = 0;
@@ -123,6 +129,10 @@ export async function runDueAutomations(now = new Date()) {
     try {
       const copy = automationCopy[row.type as AutomationType];
       const itemIds = await contentIdsForAutomation(db, row.site_id, row.type as AutomationType, copy.limit);
+      const tokkoFilter = (site?.tokko_filter ?? {}) as Record<string, unknown>;
+      const customMap = (tokkoFilter.automationRecipients ?? {}) as Record<string, string[]>;
+      const customRecipients = Array.isArray(customMap[String(row.type)]) ? customMap[String(row.type)] : [];
+
       const campaign = await createCampaignDraft({
         siteId: interestForSlug(site?.slug ?? ""),
         type: row.type as AutomationType,
@@ -130,6 +140,7 @@ export async function runDueAutomations(now = new Date()) {
         subject: `${copy.subject} · ${site?.name ?? "Area Mail"}`,
         introduction: copy.introduction,
         audienceInterest: interestForSlug(site?.slug ?? ""),
+        customRecipients: customRecipients.length > 0 ? customRecipients : undefined,
         itemIds,
         automation: { id: row.id, scheduledFor, requiresApproval: row.requires_approval },
       });

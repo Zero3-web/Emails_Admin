@@ -90,9 +90,11 @@ export async function sendResendEmail({
 
   if (!response.ok) {
     const rawText = await response.text();
-    // Fallback: If custom domain is not yet verified in Resend, retry with Resend testing domain
-    if (rawText.includes("not verified") || rawText.includes("onboarding@resend.dev")) {
-      console.warn(`[Resend] Domain unverified for ${sender}. Retrying with onboarding@resend.dev`);
+    // Fallback: If custom domain is not yet verified in Resend, retry with verified areaprime domain
+    if (rawText.includes("not verified") || rawText.includes("resend.com/domains") || rawText.includes("onboarding@resend.dev")) {
+      const brandName = sender.includes("<") ? sender.split("<")[0].trim() : "Area Mail";
+      const fallbackSender = `${brandName} <novedades@areaprime.com.pe>`;
+      console.warn(`[Resend] Domain unverified for ${sender}. Retrying with verified domain sender: ${fallbackSender}`);
       response = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
@@ -100,7 +102,7 @@ export async function sendResendEmail({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          from: "Area Mail <onboarding@resend.dev>",
+          from: fallbackSender,
           to: [cleanTo],
           subject: cleanSubject,
           html: html ?? (text ? `<p>${text}</p>` : "<p></p>"),
@@ -158,3 +160,22 @@ export async function getResendEmailStatus(emailId: string, siteId?: string) {
   }
   return response.json();
 }
+
+export async function getResendEmailsList(siteId?: string) {
+  try {
+    const apiKey = requireResendKey(siteId);
+    const response = await fetch("https://api.resend.com/emails?limit=100", {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+      },
+      cache: "no-store",
+    });
+    if (!response.ok) return [];
+    const data = (await response.json()) as { data?: Array<{ id: string; to: string[]; from: string; subject: string; created_at: string; last_event?: string; status?: string }> };
+    return Array.isArray(data.data) ? data.data : [];
+  } catch {
+    return [];
+  }
+}
+

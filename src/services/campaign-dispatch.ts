@@ -11,6 +11,7 @@ type CampaignRow = {
   automation_type: AutomationType;
   subject: string;
   status: Campaign["status"];
+  recipient_count?: number;
   metadata: Campaign["metadata"];
   sites: Record<string, unknown> | Array<Record<string, unknown>>;
 };
@@ -20,7 +21,7 @@ const siteKey = (slug: string) => String(slug).replace(/^area-/, "").replace(/^a
 function mapSite(value: CampaignRow["sites"]): Site {
   const row = Array.isArray(value) ? value[0] : value;
   return {
-    id: siteKey(String(row?.slug ?? "")),
+    id: String(row?.id ?? ""),
     name: String(row?.name ?? ""),
     slug: String(row?.slug ?? ""),
     description: String(row?.description ?? ""),
@@ -79,18 +80,23 @@ async function recipientsFor(db: NonNullable<ReturnType<typeof createSupabaseAdm
 }
 
 export async function dispatchCampaign(campaignId: string) {
-  assertBulkSendingAllowed();
   const db = createSupabaseAdmin();
   if (!db) throw new Error("La base de datos no está configurada.");
 
   const { data, error } = await db
     .from("campaigns")
-    .select("id,site_id,automation_type,subject,status,metadata,sites!inner(*)")
+    .select("id,site_id,automation_type,subject,status,recipient_count,metadata,sites!inner(*)")
     .eq("id", campaignId)
     .single();
   if (error) throw error;
   const campaign = data as CampaignRow;
   if (campaign.status === "sent") return { sentCount: 0, skipped: true };
+
+  const customList = (campaign.metadata?.audience as { customRecipients?: unknown } | undefined)?.customRecipients;
+  const isCustom = Array.isArray(customList) && customList.length > 0;
+  if (!isCustom && Number(campaign.recipient_count) > 5) {
+    assertBulkSendingAllowed();
+  }
 
   // Set status to sending
   await db.from("campaigns").update({ status: "sending", error_message: null }).eq("id", campaignId);

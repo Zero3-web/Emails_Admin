@@ -13,21 +13,25 @@ export type AccessContext = {
 };
 
 const currentUser = cache(async () => {
-  const store = await cookies();
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) return null;
-  const client = createServerClient(url, key, {
-    cookies: {
-      getAll: () => store.getAll(),
-      setAll: (items) => {
-        try { items.forEach(({ name, value, options }) => store.set(name, value, options)); }
-        catch { /* Server Components cannot always refresh cookies; the callback can. */ }
+  try {
+    const store = await cookies();
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!url || !key) return null;
+    const client = createServerClient(url, key, {
+      cookies: {
+        getAll: () => store.getAll(),
+        setAll: (items) => {
+          try { items.forEach(({ name, value, options }) => store.set(name, value, options)); }
+          catch { /* Server Components cannot always refresh cookies; the callback can. */ }
+        },
       },
-    },
-  });
-  const { data, error } = await client.auth.getUser();
-  return error ? null : data.user;
+    });
+    const { data, error } = await client.auth.getUser();
+    return error ? null : data.user;
+  } catch {
+    return null;
+  }
 });
 
 export const getAccessContext = cache(async (): Promise<AccessContext | null> => {
