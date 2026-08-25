@@ -81,7 +81,8 @@ export function assertPlatformOwner(access: AccessContext) {
 
 export function assertSiteRole(access: AccessContext, siteId: string, roles: SiteRole[]) {
   if (access.platformOwner) return;
-  const membership = access.memberships.find((item) => item.siteId === siteId);
+  const clean = siteId.toLowerCase().replace(/^area-/, "");
+  const membership = access.memberships.find((item) => item.siteId === clean || item.siteUuid === siteId || item.siteId === siteId);
   if (!membership || !roles.includes(membership.role)) throw new AuthError("No tienes permiso para realizar esta acción en esta marca.", 403);
 }
 

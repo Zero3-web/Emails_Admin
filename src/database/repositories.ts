@@ -1092,12 +1092,14 @@ export async function createAutomation(
   > & { customRecipients?: string[] },
 ) {
   const db = requireDb();
-  const { data: site, error: siteError } = await db
-    .from("sites")
-    .select("id,slug,tokko_filter")
-    .eq("slug", slugOf(input.siteId))
-    .single();
-  if (siteError) throw siteError;
+  let siteQuery = db.from("sites").select("id,slug,tokko_filter");
+  if (/^[0-9a-f-]{36}$/i.test(input.siteId)) {
+    siteQuery = siteQuery.eq("id", input.siteId);
+  } else {
+    siteQuery = siteQuery.eq("slug", slugOf(input.siteId));
+  }
+  const { data: site, error: siteError } = await siteQuery.single();
+  if (siteError || !site) throw siteError || new Error("No se encontró la marca especificada.");
 
   if (Array.isArray(input.customRecipients)) {
     const currentFilter = (site.tokko_filter ?? {}) as Record<string, unknown>;
