@@ -240,7 +240,11 @@ export function AutomationsView({ initial, sites, contacts = [] }: { initial: Au
           </header>
           <div className="automation-brand-list">
             {sites.map((site) => {
-              const siteItems = items.filter((item) => item.siteId === site.id);
+              const siteItems = items.filter((item) => {
+                const normSite = String(site.id || "").toLowerCase().replace(/^area-/, "");
+                const normItem = String(item.siteId || "").toLowerCase().replace(/^area-/, "");
+                return item.siteId === site.id || normItem === normSite || item.siteId === site.slug;
+              });
               if (!siteItems.length) return null;
               return (
                 <section key={site.id}>

@@ -98,7 +98,7 @@ export async function getAccessOverview(): Promise<{
   };
 }
 const mapSite = (row: Record<string, unknown>): Site => ({
-  id: String(row.id ?? siteKey(String(row.slug))),
+  id: siteKey(String(row.slug)),
   name: String(row.name),
   slug: String(row.slug),
   description: String(row.description ?? ""),
