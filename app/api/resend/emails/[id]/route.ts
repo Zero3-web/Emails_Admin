@@ -12,10 +12,17 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     const { id } = await params;
     if (!/^[a-zA-Z0-9_-]{1,200}$/.test(id)) throw new HttpError("El ID del correo no es válido.");
 
+    // Resolve authorization from our database before contacting Resend. This
+    // query is scoped to the caller's memberships, preventing access with a
+    // guessed Resend ID from another brand.
+    const records = await getOutboundEmails();
+    const match = records.find((record) => record.id === id);
+    if (!match) throw new HttpError("No se encontró el registro del correo.", 404);
+
     let emailData: any = null;
 
     try {
-      emailData = await getResendEmailStatus(id);
+      emailData = await getResendEmailStatus(id, match.siteId);
       if (emailData && (emailData.last_event || emailData.status)) {
         const liveStatus = emailData.last_event || emailData.status;
         const db = createSupabaseAdmin();
@@ -29,9 +36,6 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     } catch (resendErr) {
       console.warn("Resend API lookup failed, falling back to database record:", resendErr);
     }
-
-    const records = await getOutboundEmails();
-    const match = records.find((r) => r.id === id);
 
     if (!emailData && match) {
       emailData = {
@@ -61,9 +65,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       }
     }
 
-    if (!emailData) {
-      throw new HttpError("No se encontró el registro del correo.");
-    }
+    if (!emailData) throw new HttpError("No se encontró el registro del correo.", 404);
 
     return NextResponse.json({ ok: true, email: emailData });
   } catch (error) {

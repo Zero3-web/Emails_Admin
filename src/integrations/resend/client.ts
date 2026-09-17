@@ -44,6 +44,7 @@ export type SendEmailParams = {
   from?: string;
   siteId?: string;
   headers?: Record<string, string>;
+  idempotencyKey?: string;
 };
 
 export async function sendResendEmail({
@@ -54,6 +55,7 @@ export async function sendResendEmail({
   from,
   siteId,
   headers,
+  idempotencyKey,
 }: SendEmailParams) {
   const apiKey = requireResendKey(siteId).replace(/[\r\n\0]/g, "").trim();
   const rawSender = from && from.includes("@") && !from.includes("<>") ? from : getDefaultSenderForSite(siteId);
@@ -77,6 +79,7 @@ export async function sendResendEmail({
     headers: {
       "Authorization": `Bearer ${apiKey}`,
       "Content-Type": "application/json",
+      ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
     },
     body: JSON.stringify({
       from: sender,
@@ -86,6 +89,7 @@ export async function sendResendEmail({
       text,
       headers: payloadHeaders,
     }),
+    signal: AbortSignal.timeout(20_000),
   });
 
   if (!response.ok) {
@@ -100,6 +104,7 @@ export async function sendResendEmail({
         headers: {
           "Authorization": `Bearer ${apiKey}`,
           "Content-Type": "application/json",
+          ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
         },
         body: JSON.stringify({
           from: fallbackSender,
@@ -109,6 +114,7 @@ export async function sendResendEmail({
           text,
           headers: payloadHeaders,
         }),
+        signal: AbortSignal.timeout(20_000),
       });
 
       if (!response.ok) {
@@ -117,7 +123,6 @@ export async function sendResendEmail({
         try {
           const parsed = JSON.parse(retryErrText);
           if (parsed.message) errorMessage = parsed.message;
-          else if (parsed.name && parsed.message) errorMessage = `${parsed.name}: ${parsed.message}`;
           else if (parsed.error) errorMessage = typeof parsed.error === "string" ? parsed.error : JSON.stringify(parsed.error);
         } catch {
           // Ignore JSON parsing errors
@@ -130,7 +135,6 @@ export async function sendResendEmail({
       try {
         const parsed = JSON.parse(rawText);
         if (parsed.message) errorMessage = parsed.message;
-        else if (parsed.name && parsed.message) errorMessage = `${parsed.name}: ${parsed.message}`;
         else if (parsed.error) errorMessage = typeof parsed.error === "string" ? parsed.error : JSON.stringify(parsed.error);
       } catch {
         // Ignore JSON parsing errors
@@ -178,4 +182,3 @@ export async function getResendEmailsList(siteId?: string) {
     return [];
   }
 }
-

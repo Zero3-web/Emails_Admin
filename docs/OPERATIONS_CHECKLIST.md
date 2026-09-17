@@ -5,6 +5,7 @@ Esta lista complementa los controles incluidos en el código. No se debe habilit
 ## Antes de staging
 
 - [ ] Aplicar y registrar las migraciones de `supabase/migrations` en orden.
+- [ ] Aplicar `202609020001_reliable_dispatch.sql` antes de desplegar el código que usa los RPC `claim_campaign_dispatch` y `claim_automation_run`.
 - [ ] Confirmar que el correo de propietario existe y tiene `platform_owner`.
 - [ ] Probar con dos usuarios de marcas distintas que no puedan leer ni modificar información ajena.
 - [ ] Verificar una sincronización controlada de Tokko y WordPress para cada marca.
@@ -33,9 +34,11 @@ Esta lista complementa los controles incluidos en el código. No se debe habilit
 
 - [ ] Confirmar consentimiento y fuente antes de cada importación de contactos.
 - [ ] Configurar SPF, DKIM y DMARC del dominio remitente.
+- [ ] Publicar y verificar el CNAME de tracking `links` indicado por Resend antes de validar aperturas y clics.
 - [ ] Mantener un enlace de baja y el flujo de supresión antes de activar campañas masivas.
 - [ ] Mantener `ENABLE_BULK_SEND=false` hasta ejecutar una campaña piloto aprobada.
 - [ ] Desplegar Trigger.dev, verificar `send-campaign` y confirmar la tarea programada `automation-scheduler` en `America/Lima`.
+- [ ] Confirmar que `campaign-reconciler` corre cada diez minutos y alerta sobre campañas interrumpidas.
 
 ## Calidad recurrente
 

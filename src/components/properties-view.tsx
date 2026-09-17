@@ -1,8 +1,9 @@
 "use client";
 
 /* eslint-disable @next/next/no-img-element -- Property images are synchronized from external providers. */
-import { Building2, Check, ChevronLeft, ChevronRight, ExternalLink, MapPin, Search, X } from "lucide-react";
+import { Building2, Check, ChevronLeft, ChevronRight, ExternalLink, MapPin, RefreshCw, Search, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { Property, Site } from "@/src/domain/types";
 import { useDialogA11y } from "@/src/hooks/use-dialog-a11y";
 import { segmentLabel, type PropertySegment } from "@/src/services/property-classifier";
@@ -57,6 +58,32 @@ export function PropertiesView({ properties, sites, initialSiteId = "" }: { prop
   }, [properties, query, segment, siteId, type]);
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
+  const router = useRouter();
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<string | null>(null);
+
+  const handleSync = async () => {
+    setIsSyncing(true);
+    setSyncStatus(null);
+    try {
+      const response = await fetch("/api/tokko/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ siteId: "prime" }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error || "No se pudo sincronizar Tokko.");
+      }
+      setSyncStatus(`${data.received} recibidas (${data.created} nuevas)`);
+      router.refresh();
+    } catch (err) {
+      setSyncStatus(err instanceof Error ? err.message : "Error al sincronizar");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   const visible = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
   const resetPage = (action: () => void) => { action(); setPage(1); };
   const clearFilters = () => { setQuery(""); setSiteId(""); setType(""); setSegment(""); setPage(1); };
@@ -69,6 +96,28 @@ export function PropertiesView({ properties, sites, initialSiteId = "" }: { prop
         <article><span className="content-summary-icon"><Building2 size={16} /></span><div><strong>{properties.length.toLocaleString("es-PE")}</strong><span>propiedades sincronizadas</span></div></article>
         <article><span className="content-summary-icon positive"><ExternalLink size={16} /></span><div><strong>{linked.toLocaleString("es-PE")}</strong><span>con ficha pública</span></div></article>
         <article><span className="content-summary-icon"><Check size={16} /></span><div><strong>{sites.length}</strong><span>marcas disponibles</span></div></article>
+        <article style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px" }}>
+          <div>
+            <strong style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px" }}>
+              <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: isSyncing ? "#f59e0b" : "#10b981", display: "inline-block" }}></span>
+              Tokko Broker API
+            </strong>
+            <span style={{ fontSize: "11px", color: syncStatus ? "#059669" : "#64748b" }}>
+              {syncStatus || "Sincronización en vivo"}
+            </span>
+          </div>
+          <button
+            type="button"
+            className="btn"
+            disabled={isSyncing}
+            onClick={handleSync}
+            style={{ padding: "6px 12px", fontSize: "12px", gap: "6px", whiteSpace: "nowrap" }}
+            title="Consultar Tokko Broker y actualizar inventario en vivo"
+          >
+            <RefreshCw size={13} className={isSyncing ? "spin" : ""} />
+            {isSyncing ? "Sincronizando..." : "Sincronizar ahora"}
+          </button>
+        </article>
       </section>
 
       <section className="card content-library-panel">

@@ -1,29 +1,15 @@
 import { getBlogProvider, getPropertyProvider } from "@/src/integrations/factory";
-import { approveCampaign, createCampaignDraft, getBlogPosts, getProperties, getSites, addCampaigns } from "@/src/database/repositories";
+import { approveCampaign, createCampaignDraft, getBlogPosts, getProperties, getSites, addCampaigns, syncTokkoProperties } from "@/src/database/repositories";
 import { createCampaign } from "@/src/services/campaigns";
 import { renderCampaignEmail } from "@/src/services/email-renderer";
 import { createSupabaseAdmin } from "@/src/database/supabase/server";
-import { dispatchCampaign } from "@/src/services/campaign-dispatch";
 import type { AutomationType, ContactInterest } from "@/src/domain/types";
+import { calculateNextRunInZone } from "@/src/services/schedule";
 
 export const taskNames = ["sync-properties", "sync-blog-posts", "generate-weekly-properties", "generate-monthly-properties", "generate-monthly-blog", "run-due-automations"] as const;
 
 export function nextRun(row: { frequency: string; day_of_week: number | null; day_of_month: number | null; send_time: string }, after: Date) {
-  const [hour, minute] = row.send_time.slice(0, 5).split(":").map(Number);
-  const lima = new Date(after.getTime() - 5 * 60 * 60 * 1000);
-  const year = lima.getUTCFullYear();
-  const month = lima.getUTCMonth();
-  const date = lima.getUTCDate();
-  if (row.frequency === "weekly") {
-    const today = lima.getUTCDay() || 7;
-    const days = (Number(row.day_of_week) - today + 7) % 7;
-    let candidate = new Date(Date.UTC(year, month, date + days, hour + 5, minute));
-    if (candidate <= after) candidate = new Date(candidate.getTime() + 7 * 24 * 60 * 60 * 1000);
-    return candidate;
-  }
-  let candidate = new Date(Date.UTC(year, month, Number(row.day_of_month), hour + 5, minute));
-  if (candidate <= after) candidate = new Date(Date.UTC(year, month + 1, Number(row.day_of_month), hour + 5, minute));
-  return candidate;
+  return calculateNextRunInZone(row, after, "America/Lima");
 }
 
 function getAutomationCopy(slug: string, type: AutomationType) {
@@ -129,22 +115,36 @@ async function recordAutomationFailure(
 export async function runDueAutomations(now = new Date()) {
   const db = createSupabaseAdmin();
   if (!db) throw new Error("La base de datos no está configurada.");
-  const { data, error } = await db.from("automation_settings")
-    .select("id,site_id,type,frequency,day_of_week,day_of_month,send_time,requires_approval,next_run_at,sites!inner(name,slug,tokko_filter)")
+  let { data, error } = await db.from("automation_settings")
+    .select("id,site_id,type,frequency,day_of_week,day_of_month,send_time,requires_approval,next_run_at,user_id,sites!inner(name,slug,timezone,tokko_filter)")
     .eq("is_enabled", true);
+  if (error && (error.code === "42703" || error.message?.includes("user_id"))) {
+    const fallback = await db.from("automation_settings")
+      .select("id,site_id,type,frequency,day_of_week,day_of_month,send_time,requires_approval,next_run_at,sites!inner(name,slug,timezone,tokko_filter)")
+      .eq("is_enabled", true);
+    data = fallback.data as any;
+    error = fallback.error;
+  }
   if (error) throw error;
   let created = 0;
   let failed = 0;
   const autoSendCampaignIds: string[] = [];
   for (const row of data ?? []) {
     const scheduled = row.next_run_at ? new Date(row.next_run_at) : nextRun(row, new Date(now.getTime() - 10 * 60 * 1000));
-    const following = nextRun(row, now);
+    const site = Array.isArray(row.sites) ? row.sites[0] : row.sites;
+    const following = calculateNextRunInZone(row, now, site?.timezone ?? "America/Lima");
     if (scheduled > now) {
       if (!row.next_run_at) await db.from("automation_settings").update({ next_run_at: scheduled.toISOString() }).eq("id", row.id).is("next_run_at", null);
       continue;
     }
-    const site = Array.isArray(row.sites) ? row.sites[0] : row.sites;
     const scheduledFor = scheduled.toISOString();
+    const claimed = await db.rpc("claim_automation_run", {
+      p_automation_id: row.id,
+      p_expected_run: scheduledFor,
+      p_next_run: following.toISOString(),
+    });
+    if (claimed.error) throw claimed.error;
+    if (!claimed.data) continue;
     try {
       const copy = getAutomationCopy(site?.slug ?? "", row.type as AutomationType);
       const itemIds = await contentIdsForAutomation(db, row.site_id, row.type as AutomationType, copy.limit);
@@ -162,15 +162,11 @@ export async function runDueAutomations(now = new Date()) {
         customRecipients: customRecipients.length > 0 ? customRecipients : undefined,
         itemIds,
         automation: { id: row.id, scheduledFor, requiresApproval: row.requires_approval },
+        userId: (row as any).user_id || undefined,
       });
       created += 1;
       if (!row.requires_approval) {
         await approveCampaign(campaign.id, `automation:${row.id}`);
-        try {
-          await dispatchCampaign(campaign.id);
-        } catch (dispatchErr) {
-          console.error("Error al despachar campaña automática:", dispatchErr);
-        }
         autoSendCampaignIds.push(campaign.id);
       }
     } catch (cause) {
@@ -185,8 +181,6 @@ export async function runDueAutomations(now = new Date()) {
         );
       }
     }
-    const updated = await db.from("automation_settings").update({ last_run_at: now.toISOString(), next_run_at: following.toISOString() }).eq("id", row.id);
-    if (updated.error) throw updated.error;
   }
   return { created, failed, checked: data?.length ?? 0, autoSendCampaignIds };
 }
@@ -194,7 +188,7 @@ export async function runDueAutomations(now = new Date()) {
 export async function runTask(name: (typeof taskNames)[number]) {
   if (name === "run-due-automations") return runDueAutomations();
   const sites = await getSites(); if (!sites.length) throw new Error("No hay sitios persistidos.");
-  if (name === "sync-properties") return getPropertyProvider().getProperties();
+  if (name === "sync-properties") return syncTokkoProperties(sites[0]?.id || "prime");
   if (name === "sync-blog-posts") return Promise.all(sites.map((site) => getBlogProvider().getPosts(site)));
   const type = name === "generate-weekly-properties" ? "weekly_new_properties" : name === "generate-monthly-properties" ? "monthly_properties" : "monthly_blog";
   const generated = sites.map((site) => createCampaign(site, type));

@@ -54,6 +54,14 @@ const authorizedSiteUuids = async () => {
     return null;
   }
 };
+const currentUserId = async (): Promise<string | null> => {
+  try {
+    const access = await getAccessContext();
+    return access?.user?.id ?? null;
+  } catch {
+    return null;
+  }
+};
 const requireDb = () => {
   const db = createSupabaseAdmin();
   if (!db) throw new Error("La base de datos no está configurada.");
@@ -157,27 +165,68 @@ export async function getAutomations(): Promise<Automation[]> {
   const db = createSupabaseAdmin();
   if (!db) return [];
   const allowed = await authorizedSiteUuids();
+  const userId = await currentUserId();
   let query = db
     .from("automation_settings")
     .select("*,sites!inner(slug,tokko_filter)")
     .order("created_at");
   if (allowed) query = query.in("site_id", allowed);
+  if (userId) query = query.eq("user_id", userId);
   const { data, error } = await query;
-  if (error) throw error;
+  if (error) {
+    if (error.code === "42703" || error.message?.includes("user_id")) {
+      let fallbackQuery = db
+        .from("automation_settings")
+        .select("*,sites!inner(slug,tokko_filter)")
+        .order("created_at");
+      if (allowed) fallbackQuery = fallbackQuery.in("site_id", allowed);
+      const res = await fallbackQuery;
+      if (res.error) throw res.error;
+      return res.data.map(mapAutomation);
+    }
+    throw error;
+  }
   return data.map(mapAutomation);
 }
 export async function getCampaigns(): Promise<Campaign[]> {
   const db = createSupabaseAdmin();
   if (!db) return [];
   const allowed = await authorizedSiteUuids();
+  const userId = await currentUserId();
   let query = db
     .from("campaigns")
     .select("*,sites!inner(slug)")
     .order("created_at", { ascending: false });
   if (allowed) query = query.in("site_id", allowed);
+  if (userId) query = query.eq("user_id", userId);
   const { data, error } = await query;
-  if (error) throw error;
-  return data.map((row) => ({
+  if (error) {
+    if (error.code === "42703" || error.message?.includes("user_id")) {
+      let fallbackQuery = db
+        .from("campaigns")
+        .select("*,sites!inner(slug)")
+        .order("created_at", { ascending: false });
+      if (allowed) fallbackQuery = fallbackQuery.in("site_id", allowed);
+      const res = await fallbackQuery;
+      if (res.error) throw res.error;
+      const filtered = (res.data ?? []).filter((row) => !userId || !row.metadata?.user_id || row.metadata.user_id === userId);
+      return filtered.map((row) => ({
+        id: row.id,
+        siteId: relatedSiteId(row),
+        automationType: row.automation_type,
+        name: row.name,
+        subject: row.subject,
+        status: row.status,
+        recipientCount: row.recipient_count,
+        scheduledAt: formatDate(row.scheduled_at),
+        sentAt: formatDate(row.sent_at),
+        errorMessage: row.error_message ?? undefined,
+        metadata: row.metadata ?? {},
+      }));
+    }
+    throw error;
+  }
+  return (data ?? []).map((row) => ({
     id: row.id,
     siteId: relatedSiteId(row),
     automationType: row.automation_type,
@@ -202,6 +251,7 @@ export async function createCampaignDraft(input: {
   itemIds: string[];
   customRecipients?: string[];
   automation?: { id: string; scheduledFor: string; requiresApproval: boolean };
+  userId?: string;
 }) {
   const db = requireDb();
   let siteQuery = db.from("sites").select("id,slug");
@@ -219,12 +269,25 @@ export async function createCampaignDraft(input: {
   if (isCustom) {
     recipientCount = input.customRecipients!.length;
   } else {
-    const { count, error: audienceError } = await db
+    const userId = input.userId || (await currentUserId());
+    let audienceCountQuery = db
       .from("contact_subscriptions")
-      .select("contact_id,contacts!inner(status)", { count: "exact", head: true })
+      .select("contact_id,contacts!inner(status,user_id)", { count: "exact", head: true })
       .eq("site_id", site.id)
       .eq("interest", input.audienceInterest)
       .eq("contacts.status", "active");
+    if (userId) audienceCountQuery = audienceCountQuery.eq("contacts.user_id", userId);
+    let { count, error: audienceError } = await audienceCountQuery;
+    if (audienceError && (audienceError.code === "42703" || audienceError.message?.includes("user_id"))) {
+      const fallbackAudience = await db
+        .from("contact_subscriptions")
+        .select("contact_id,contacts!inner(status)", { count: "exact", head: true })
+        .eq("site_id", site.id)
+        .eq("interest", input.audienceInterest)
+        .eq("contacts.status", "active");
+      count = fallbackAudience.count;
+      audienceError = fallbackAudience.error;
+    }
     if (audienceError) throw audienceError;
     recipientCount = count || 0;
     if (!recipientCount)
@@ -278,30 +341,42 @@ export async function createCampaignDraft(input: {
           currency: record.currency ?? "USD",
         },
   );
-  const { data: campaign, error } = await db
-    .from("campaigns")
-    .insert({
-      site_id: site.id,
-      automation_type: input.type,
-      name: input.name.trim(),
-      subject: input.subject.trim(),
-      status: "draft",
-      recipient_count: recipientCount,
-      metadata: {
-        introduction: input.introduction.trim(),
-        frozenAt,
-        audience: {
-          interest: input.audienceInterest,
-          count: recipientCount,
-          capturedAt: frozenAt,
-          customRecipients: isCustom ? input.customRecipients : undefined,
-        },
-        items: snapshots,
+  const userId = input.userId || (await currentUserId());
+  const campaignRecord: Record<string, unknown> = {
+    site_id: site.id,
+    automation_type: input.type,
+    name: input.name.trim(),
+    subject: input.subject.trim(),
+    status: "draft",
+    recipient_count: recipientCount,
+    metadata: {
+      introduction: input.introduction.trim(),
+      frozenAt,
+      user_id: userId,
+      audience: {
+        interest: input.audienceInterest,
+        count: recipientCount,
+        capturedAt: frozenAt,
+        customRecipients: isCustom ? input.customRecipients : undefined,
       },
-    })
+      items: snapshots,
+    },
+  };
+  if (userId) campaignRecord.user_id = userId;
+
+  let { data: campaign, error } = await db
+    .from("campaigns")
+    .insert(campaignRecord)
     .select("id")
     .single();
-  if (error) throw error;
+
+  if (error && (error.code === "42703" || error.message?.includes("user_id"))) {
+    delete campaignRecord.user_id;
+    const retry = await db.from("campaigns").insert(campaignRecord).select("id").single();
+    campaign = retry.data;
+    error = retry.error;
+  }
+  if (error || !campaign) throw error || new Error("No se pudo crear el borrador.");
   const { error: itemsError } = await db.from("campaign_items").insert(
     ordered.map((record, position) => ({
       campaign_id: campaign.id,
@@ -407,18 +482,30 @@ export async function getContacts(): Promise<{
   const db = createSupabaseAdmin();
   if (!db) return { ready: false, contacts: [] };
   const allowed = await authorizedSiteUuids();
+  const userId = await currentUserId();
   let query = db
     .from("contacts")
     .select("*,contact_subscriptions!inner(site_id,interest,sites(slug))")
     .order("created_at", { ascending: false });
   if (allowed) query = query.in("contact_subscriptions.site_id", allowed);
-  const { data, error } = await query;
+  if (userId) query = query.eq("user_id", userId);
+  let { data, error } = await query;
+  if (error && (error.code === "42703" || error.message?.includes("user_id"))) {
+    let fallbackQuery = db
+      .from("contacts")
+      .select("*,contact_subscriptions!inner(site_id,interest,sites(slug))")
+      .order("created_at", { ascending: false });
+    if (allowed) fallbackQuery = fallbackQuery.in("contact_subscriptions.site_id", allowed);
+    const res = await fallbackQuery;
+    data = res.data;
+    error = res.error;
+  }
   if (error?.code === "42P01" || error?.code === "PGRST205")
     return { ready: false, contacts: [] };
   if (error) throw error;
   return {
     ready: true,
-    contacts: data.map((row) => {
+    contacts: (data ?? []).map((row) => {
       const subscriptions = (row.contact_subscriptions ?? []) as Array<{
         interest: ContactInterest;
         sites?: { slug?: string } | null;
@@ -449,31 +536,60 @@ export async function getContacts(): Promise<{
 
 export async function suppressContact(contactId: string) {
   const db = requireDb();
-  const { data, error } = await db
+  const userId = await currentUserId();
+  let query = db
     .from("contacts")
     .update({ status: "unsubscribed", unsubscribed_at: new Date().toISOString() })
-    .eq("id", contactId)
-    .select("id,email,status,unsubscribed_at")
-    .single();
+    .eq("id", contactId);
+  if (userId) query = query.eq("user_id", userId);
+  let { data, error } = await query.select("id,email,status,unsubscribed_at").single();
+  if (error && (error.code === "42703" || error.message?.includes("user_id"))) {
+    const fallback = await db
+      .from("contacts")
+      .update({ status: "unsubscribed", unsubscribed_at: new Date().toISOString() })
+      .eq("id", contactId)
+      .select("id,email,status,unsubscribed_at")
+      .single();
+    data = fallback.data;
+    error = fallback.error;
+  }
   if (error) throw error;
   return data;
 }
 
 export async function activateContact(contactId: string) {
   const db = requireDb();
-  const { data, error } = await db
+  const userId = await currentUserId();
+  let query = db
     .from("contacts")
     .update({ status: "active", unsubscribed_at: null })
-    .eq("id", contactId)
-    .select("id,email,status")
-    .single();
+    .eq("id", contactId);
+  if (userId) query = query.eq("user_id", userId);
+  let { data, error } = await query.select("id,email,status").single();
+  if (error && (error.code === "42703" || error.message?.includes("user_id"))) {
+    const fallback = await db
+      .from("contacts")
+      .update({ status: "active", unsubscribed_at: null })
+      .eq("id", contactId)
+      .select("id,email,status")
+      .single();
+    data = fallback.data;
+    error = fallback.error;
+  }
   if (error) throw error;
   return data;
 }
 
 export async function deleteContact(contactId: string) {
   const db = requireDb();
-  const { error } = await db.from("contacts").delete().eq("id", contactId);
+  const userId = await currentUserId();
+  let query = db.from("contacts").delete().eq("id", contactId);
+  if (userId) query = query.eq("user_id", userId);
+  let { error } = await query;
+  if (error && (error.code === "42703" || error.message?.includes("user_id"))) {
+    const fallback = await db.from("contacts").delete().eq("id", contactId);
+    error = fallback.error;
+  }
   if (error) throw error;
   return true;
 }
@@ -481,11 +597,22 @@ export async function deleteContact(contactId: string) {
 export async function suppressContactsBulk(contactIds: string[]) {
   if (!contactIds.length) return [];
   const db = requireDb();
-  const { data, error } = await db
+  const userId = await currentUserId();
+  let query = db
     .from("contacts")
     .update({ status: "unsubscribed", unsubscribed_at: new Date().toISOString() })
-    .in("id", contactIds)
-    .select("id,email,status,unsubscribed_at");
+    .in("id", contactIds);
+  if (userId) query = query.eq("user_id", userId);
+  let { data, error } = await query.select("id,email,status,unsubscribed_at");
+  if (error && (error.code === "42703" || error.message?.includes("user_id"))) {
+    const fallback = await db
+      .from("contacts")
+      .update({ status: "unsubscribed", unsubscribed_at: new Date().toISOString() })
+      .in("id", contactIds)
+      .select("id,email,status,unsubscribed_at");
+    data = fallback.data;
+    error = fallback.error;
+  }
   if (error) throw error;
   return data ?? [];
 }
@@ -493,7 +620,15 @@ export async function suppressContactsBulk(contactIds: string[]) {
 export async function deleteContactsBulk(contactIds: string[]) {
   if (!contactIds.length) return 0;
   const db = requireDb();
-  const { error, count } = await db.from("contacts").delete({ count: "exact" }).in("id", contactIds);
+  const userId = await currentUserId();
+  let query = db.from("contacts").delete({ count: "exact" }).in("id", contactIds);
+  if (userId) query = query.eq("user_id", userId);
+  let { error, count } = await query;
+  if (error && (error.code === "42703" || error.message?.includes("user_id"))) {
+    const fallback = await db.from("contacts").delete({ count: "exact" }).in("id", contactIds);
+    count = fallback.count;
+    error = fallback.error;
+  }
   if (error) throw error;
   return count ?? contactIds.length;
 }
@@ -544,6 +679,7 @@ export async function importContacts(input: {
   const existingByEmail = new Map(
     existing.map((row) => [row.email_normalized, row]),
   );
+  const userId = await currentUserId();
   const now = new Date().toISOString();
   const rows = [...valid.values()].map((row) => ({
     email: row.email,
@@ -554,29 +690,44 @@ export async function importContacts(input: {
     source: "csv",
     consent_at: now,
     consent_source: input.consentSource.trim(),
+    ...(userId ? { user_id: userId } : {}),
   }));
   const saved = [] as Array<{ id: string; email_normalized: string; status: string }>;
   for (const rowBatch of inBatches(rows)) {
-    const { data, error } = await db
+    const onConflict = userId ? "user_id,email_normalized" : "email_normalized";
+    let { data, error } = await db
       .from("contacts")
-      .upsert(rowBatch, { onConflict: "email_normalized", ignoreDuplicates: false })
+      .upsert(rowBatch, { onConflict, ignoreDuplicates: false })
       .select("id,email_normalized,status");
+    if (error && (error.code === "42703" || error.message?.includes("user_id") || error.message?.includes("constraint"))) {
+      const fallbackRows = rowBatch.map((r: any) => { const { user_id, ...rest } = r; return rest; });
+      const fallback = await db
+        .from("contacts")
+        .upsert(fallbackRows, { onConflict: "email_normalized", ignoreDuplicates: false })
+        .select("id,email_normalized,status");
+      data = fallback.data;
+      error = fallback.error;
+    }
     if (error) throw error;
     saved.push(...(data ?? []));
   }
   const eligible = saved.filter((row) => row.status === "active");
   if (eligible.length) {
     for (const eligibleBatch of inBatches(eligible)) {
-      const { error: subscriptionError } = await db
+      const subRows = eligibleBatch.map((row) => ({
+        contact_id: row.id,
+        site_id: site.id,
+        interest: input.interest,
+        ...(userId ? { user_id: userId } : {}),
+      }));
+      let { error: subscriptionError } = await db
         .from("contact_subscriptions")
-        .upsert(
-          eligibleBatch.map((row) => ({
-          contact_id: row.id,
-          site_id: site.id,
-          interest: input.interest,
-          })),
-          { onConflict: "contact_id,site_id,interest" },
-        );
+        .upsert(subRows, { onConflict: "contact_id,site_id,interest" });
+      if (subscriptionError && (subscriptionError.code === "42703" || subscriptionError.message?.includes("user_id"))) {
+        const fallbackSubs = subRows.map((s: any) => { const { user_id, ...rest } = s; return rest; });
+        const retry = await db.from("contact_subscriptions").upsert(fallbackSubs, { onConflict: "contact_id,site_id,interest" });
+        subscriptionError = retry.error;
+      }
       if (subscriptionError) throw subscriptionError;
     }
   }
@@ -1154,22 +1305,29 @@ export async function recordOutboundEmail(input: {
   subject: string;
   status?: string;
   html?: string;
+  userId?: string;
 }) {
   const db = createSupabaseAdmin();
   if (!db) return;
-  const { error } = await db.from("outbound_emails").upsert(
-    {
-      resend_email_id: input.resendId,
-      recipient: input.to,
-      sender: input.from,
-      subject: input.subject,
-      status: input.status ?? "sent",
-      sent_at: new Date().toISOString(),
-      metadata: input.html ? { html: input.html } : undefined,
+  const userId = input.userId || (await currentUserId());
+  const payload: Record<string, unknown> = {
+    resend_email_id: input.resendId,
+    recipient: input.to,
+    sender: input.from,
+    subject: input.subject,
+    status: input.status ?? "sent",
+    sent_at: new Date().toISOString(),
+    metadata: {
+      ...(input.html ? { html: input.html } : {}),
+      ...(userId ? { user_id: userId } : {}),
     },
-    { onConflict: "resend_email_id" },
-  );
-  if (error) throw error;
+  };
+  if (userId) payload.user_id = userId;
+  let { error } = await db.from("outbound_emails").upsert(payload, { onConflict: "resend_email_id" });
+  if (error && (error.code === "42703" || error.message?.includes("user_id"))) {
+    delete payload.user_id;
+    await db.from("outbound_emails").upsert(payload, { onConflict: "resend_email_id" });
+  }
 }
 export async function recordResendEvent(event: {
   id: string;
@@ -1216,14 +1374,28 @@ export async function getOutboundEmails() {
   const db = createSupabaseAdmin();
   if (!db) return [];
   const allowed = await authorizedSiteUuids();
+  const userId = await currentUserId();
   let query = db
     .from("outbound_emails")
     .select("*,sites(slug)")
     .order("sent_at", { ascending: false })
     .limit(250);
   if (allowed) query = query.in("site_id", allowed);
-  const { data, error } = await query;
-  if (error) throw error;
+  if (userId) query = query.eq("user_id", userId);
+  let { data, error } = await query;
+  if (error && (error.code === "42703" || error.message?.includes("user_id"))) {
+    let fallbackQuery = db
+      .from("outbound_emails")
+      .select("*,sites(slug)")
+      .order("sent_at", { ascending: false })
+      .limit(250);
+    if (allowed) fallbackQuery = fallbackQuery.in("site_id", allowed);
+    const res = await fallbackQuery;
+    if (res.error) throw res.error;
+    data = (res.data ?? []).filter((row) => !userId || !row.metadata?.user_id || row.metadata.user_id === userId);
+  } else if (error) {
+    throw error;
+  }
 
   const emailIds = (data ?? []).map((row) => row.resend_email_id).filter(Boolean);
   const eventsMap: Record<string, string[]> = {};
@@ -1290,11 +1462,21 @@ export async function getResendUsage(): Promise<{
   const now = new Date();
   const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  const userId = await currentUserId();
 
-  const [todayRes, monthRes] = await Promise.all([
-    db.from("outbound_emails").select("id", { count: "exact", head: true }).gte("sent_at", startOfDay),
-    db.from("outbound_emails").select("id", { count: "exact", head: true }).gte("sent_at", startOfMonth),
-  ]);
+  let todayQuery = db.from("outbound_emails").select("id", { count: "exact", head: true }).gte("sent_at", startOfDay);
+  let monthQuery = db.from("outbound_emails").select("id", { count: "exact", head: true }).gte("sent_at", startOfMonth);
+  if (userId) {
+    todayQuery = todayQuery.eq("user_id", userId);
+    monthQuery = monthQuery.eq("user_id", userId);
+  }
+  let [todayRes, monthRes] = await Promise.all([todayQuery, monthQuery]);
+  if (todayRes.error && (todayRes.error.code === "42703" || todayRes.error.message?.includes("user_id"))) {
+    [todayRes, monthRes] = await Promise.all([
+      db.from("outbound_emails").select("id", { count: "exact", head: true }).gte("sent_at", startOfDay),
+      db.from("outbound_emails").select("id", { count: "exact", head: true }).gte("sent_at", startOfMonth),
+    ]);
+  }
 
   return {
     todayCount: todayRes.count ?? 0,
@@ -1308,15 +1490,26 @@ export async function getEmailPerformanceList(): Promise<import("@/src/domain/ty
   const db = createSupabaseAdmin();
   if (!db) return [];
   const allowed = await authorizedSiteUuids();
+  const userId = await currentUserId();
   let query = db
     .from("outbound_emails")
     .select("id, campaign_id, site_id, resend_email_id, recipient, sender, subject, status, sent_at, last_event_at, metadata, sites(id, name, slug, primary_color)")
     .order("sent_at", { ascending: false })
     .limit(250);
   if (allowed) query = query.in("site_id", allowed);
+  if (userId) query = query.eq("user_id", userId);
 
-  const { data: emails, error } = await query;
-  if (error) {
+  let { data: emails, error } = await query;
+  if (error && (error.code === "42703" || error.message?.includes("user_id"))) {
+    let fallbackQuery = db
+      .from("outbound_emails")
+      .select("id, campaign_id, site_id, resend_email_id, recipient, sender, subject, status, sent_at, last_event_at, metadata, sites(id, name, slug, primary_color)")
+      .order("sent_at", { ascending: false })
+      .limit(250);
+    if (allowed) fallbackQuery = fallbackQuery.in("site_id", allowed);
+    const res = await fallbackQuery;
+    emails = (res.data ?? []).filter((row) => !userId || !row.metadata?.user_id || row.metadata.user_id === userId);
+  } else if (error) {
     console.error("Error al obtener correos salientes:", error);
     return [];
   }

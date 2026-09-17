@@ -120,9 +120,8 @@ export function apiErrorResponse(error: unknown, fallback: string) {
 
   const incidentId = crypto.randomUUID();
   console.error(`[${incidentId}] ${fallback}`, error);
-  const detail = error instanceof Error ? error.message : fallback;
   return NextResponse.json(
-    { ok: false, error: detail, incidentId },
+    { ok: false, error: fallback, incidentId },
     { status: 500 },
   );
 }

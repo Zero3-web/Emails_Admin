@@ -75,6 +75,8 @@ export interface Campaign {
       interest: ContactInterest;
       count: number;
       capturedAt: string;
+      recipients?: string[];
+      customRecipients?: string[];
     };
     approval?: {
       approvedAt: string;
@@ -170,6 +172,7 @@ export interface OutboundEmailRecord {
   campaignId: string | null;
   sentCount: number;
   clickRate: number;
+  openRate?: number;
   deliveredRate: number;
   unsubscribedRate: number;
   spamRate: number;

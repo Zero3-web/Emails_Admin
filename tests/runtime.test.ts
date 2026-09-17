@@ -29,5 +29,7 @@ test("los envíos masivos solo se habilitan explícitamente en producción", () 
     environment: "production",
     bulkSendingEnabled: true,
   });
+  delete process.env.ENABLE_BULK_SEND;
+  assert.equal(getRuntimeSafety().bulkSendingEnabled, false);
   restoreEnvironment();
 });

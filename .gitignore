@@ -51,3 +51,4 @@ yarn-error.log*
 *.log
 .trigger/
 *.tsbuildinfo
+supabase/.temp/

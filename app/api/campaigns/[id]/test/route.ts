@@ -5,6 +5,7 @@ import { apiErrorResponse, assertSameOrigin, HttpError, readJsonObject } from "@
 import { renderCampaignEmail } from "@/src/services/email-renderer";
 import { sendResendEmail } from "@/src/integrations/resend/client";
 import { createUnsubscribeToken, publicAppUrl } from "@/src/security/unsubscribe";
+import { createSupabaseAdmin } from "@/src/database/supabase/server";
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -47,6 +48,27 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       from: sender,
       siteId: site.id,
     });
+
+    const db = createSupabaseAdmin();
+    if (db && result.id) {
+      const testRecord: Record<string, unknown> = {
+        campaign_id: id,
+        site_id: site.id,
+        resend_email_id: result.id,
+        recipient: to,
+        sender: site.senderEmail || sender,
+        subject: `[PRUEBA] ${campaign.subject}`,
+        status: "sent",
+        sent_at: new Date().toISOString(),
+        metadata: { html, is_test: true, user_id: access.user.id },
+        user_id: access.user.id,
+      };
+      const saved = await db.from("outbound_emails").upsert(testRecord, { onConflict: "resend_email_id" });
+      if (saved.error && (saved.error.code === "42703" || saved.error.message?.includes("user_id"))) {
+        delete testRecord.user_id;
+        await db.from("outbound_emails").upsert(testRecord, { onConflict: "resend_email_id" });
+      }
+    }
 
     return NextResponse.json({ ok: true, id: result.id });
   } catch (error) {

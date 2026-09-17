@@ -1,6 +1,6 @@
 import { schedules, task, tasks } from "@trigger.dev/sdk";
 import { runDueAutomations, runTask, taskNames } from "./tasks";
-import { dispatchCampaign } from "@/src/services/campaign-dispatch";
+import { dispatchCampaign, reconcileStaleCampaigns } from "@/src/services/campaign-dispatch";
 
 export const areaMailTask = task({
   id: "area-mail-operation",
@@ -34,3 +34,24 @@ export const automationScheduler = schedules.task({
     return { ...result, queued: result.autoSendCampaignIds.length };
   },
 });
+
+export const campaignReconciler = schedules.task({
+  id: "campaign-reconciler",
+  cron: {
+    pattern: "*/10 * * * *",
+    timezone: "America/Lima",
+    environments: ["PRODUCTION"],
+  },
+  run: async () => reconcileStaleCampaigns(),
+});
+
+export const propertySyncScheduler = schedules.task({
+  id: "property-sync-scheduler",
+  cron: {
+    pattern: "*/5 * * * *",
+    timezone: "America/Lima",
+    environments: ["PRODUCTION"],
+  },
+  run: async () => runTask("sync-properties"),
+});
+

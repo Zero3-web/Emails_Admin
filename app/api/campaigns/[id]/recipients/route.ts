@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { createSupabaseAdmin } from "@/src/database/supabase/server";
 import { apiErrorResponse, HttpError } from "@/src/security/http";
+import { assertSiteRole, requireApiAccess } from "@/src/auth/server";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const access = await requireApiAccess();
     const { id } = await params;
     const db = createSupabaseAdmin();
     if (!db) throw new HttpError("Base de datos no configurada.", 500);
@@ -14,6 +16,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       .eq("id", id)
       .single();
     if (error || !campaign) throw new HttpError("Campaña no encontrada.", 404);
+    assertSiteRole(access, campaign.site_id, ["site_admin"]);
 
     const audience = campaign.metadata?.audience;
     const customRecipients = (audience as { customRecipients?: unknown } | undefined)?.customRecipients;
@@ -49,18 +52,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       }
     }
 
-    // Fallback: active site contacts
-    const { data: contactsData } = await db
-      .from("contacts")
-      .select("email")
-      .eq("site_id", campaign.site_id)
-      .eq("status", "active");
-    if (contactsData && contactsData.length > 0) {
-      const list = [...new Set(contactsData.map((c) => c.email).filter((e): e is string => typeof e === "string" && e.includes("@")))];
-      if (list.length > 0) return NextResponse.json({ ok: true, recipients: list });
-    }
-
-    return NextResponse.json({ ok: true, recipients: ["buegabenjamin872@gmail.com", "burgabenjamin872@gmail.com"] });
+    return NextResponse.json({ ok: true, recipients: [] });
   } catch (error) {
     return apiErrorResponse(error, "No se pudo obtener los destinatarios.");
   }

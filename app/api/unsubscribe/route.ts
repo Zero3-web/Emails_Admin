@@ -102,10 +102,8 @@ function page(title: string, message: string, brandName?: string, action?: strin
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const token = url.searchParams.get("token") ?? "";
-  const emailParam = url.searchParams.get("email") ?? "";
-
   const payload = verifyUnsubscribeToken(token);
-  const targetEmail = payload?.email || (emailParam.includes("@") ? emailParam : null);
+  const targetEmail = payload?.email ?? null;
 
   if (!targetEmail) {
     return page(
@@ -140,16 +138,14 @@ export async function POST(request: Request) {
   const url = new URL(request.url);
   const contentType = request.headers.get("content-type") ?? "";
   let token = url.searchParams.get("token") ?? "";
-  let email = url.searchParams.get("email") ?? "";
 
   if (contentType.includes("application/x-www-form-urlencoded") || contentType.includes("multipart/form-data")) {
     const formData = await request.formData();
     if (formData.get("token")) token = String(formData.get("token"));
-    if (formData.get("email")) email = String(formData.get("email"));
   }
 
   const payload = verifyUnsubscribeToken(token);
-  const targetEmail = payload?.email || (email.includes("@") ? email : null);
+  const targetEmail = payload?.email ?? null;
 
   if (!targetEmail) {
     return page("Error", "No se pudo identificar la dirección de correo a dar de baja.");
@@ -157,12 +153,23 @@ export async function POST(request: Request) {
 
   let brandName = "nuestra plataforma";
   const db = createSupabaseAdmin();
-  if (db) {
+  if (!db) return page("Error", "No se pudo procesar la baja en este momento.");
+  if (db && payload?.siteId) {
     const cleanEmail = targetEmail.toLowerCase().trim();
-    await db.from("contacts").update({ status: "unsubscribed", unsubscribed_at: new Date().toISOString() }).or(`email_normalized.eq.${cleanEmail},email.ilike.${cleanEmail}`);
-    if (payload?.siteId) {
-      const { data: s } = await db.from("sites").select("name").or(`id.eq.${payload.siteId},slug.eq.${payload.siteId}`).maybeSingle();
-      if (s?.name) brandName = s.name;
+    const { data: site, error: siteError } = await db.from("sites").select("id,name").or(`id.eq.${payload.siteId},slug.eq.${payload.siteId}`).maybeSingle();
+    if (siteError || !site) return page("Error", "No se pudo identificar la marca de este enlace.");
+    brandName = site.name;
+    const { data: contact, error: contactError } = await db.from("contacts").select("id").eq("email_normalized", cleanEmail).maybeSingle();
+    if (contactError) return page("Error", "No se pudo procesar la baja en este momento.");
+    if (contact) {
+      const removed = await db.from("contact_subscriptions").delete().eq("contact_id", contact.id).eq("site_id", site.id);
+      if (removed.error) return page("Error", "No se pudo procesar la baja en este momento.");
+      const remaining = await db.from("contact_subscriptions").select("contact_id", { count: "exact", head: true }).eq("contact_id", contact.id);
+      if (remaining.error) return page("Error", "No se pudo confirmar la baja en este momento.");
+      if ((remaining.count ?? 0) === 0) {
+        const updated = await db.from("contacts").update({ status: "unsubscribed", unsubscribed_at: new Date().toISOString() }).eq("id", contact.id);
+        if (updated.error) return page("Error", "No se pudo confirmar la baja en este momento.");
+      }
     }
   }
 

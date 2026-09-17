@@ -2,7 +2,7 @@ export type RuntimeEnvironment = "development" | "production";
 
 export function getRuntimeSafety() {
   const environment: RuntimeEnvironment = process.env.APP_ENV === "development" ? "development" : "production";
-  const bulkSendingEnabled = environment === "production" && process.env.ENABLE_BULK_SEND !== "false";
+  const bulkSendingEnabled = environment === "production" && process.env.ENABLE_BULK_SEND === "true";
   return { environment, bulkSendingEnabled };
 }
 

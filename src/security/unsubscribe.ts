@@ -3,9 +3,9 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 type UnsubscribePayload = { email: string; siteId: string };
 
 function secret() {
-  const value = process.env.UNSUBSCRIBE_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || "area-mail-default-secure-unsubscribe-secret-2026-fallback";
+  const value = process.env.UNSUBSCRIBE_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!value || value.length < 32) {
-    return "area-mail-default-secure-unsubscribe-secret-2026-fallback";
+    throw new Error("UNSUBSCRIBE_SECRET no está configurado de forma segura.");
   }
   return value;
 }
@@ -37,4 +37,3 @@ export function publicAppUrl() {
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL.replace(/[\r\n\0]/g, "").trim()}`;
   return "http://localhost:3000";
 }
-

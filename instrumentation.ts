@@ -1,10 +1,5 @@
 export async function register() {
-  if (process.env.NEXT_RUNTIME === "nodejs") {
-    try {
-      const { startAutomationScheduler } = await import("./src/services/automation-runner");
-      startAutomationScheduler();
-    } catch (err) {
-      console.error("[Instrumentation] No se pudo iniciar el programador:", err);
-    }
-  }
+  // Vercel functions are short-lived and may initialize once per request.
+  // Scheduling is owned exclusively by Trigger.dev (trigger/jobs.ts), which
+  // provides the durable schedule and idempotent job execution.
 }

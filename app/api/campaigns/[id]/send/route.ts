@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { assertSiteRole, requireApiAccess } from "@/src/auth/server";
 import { getCampaigns } from "@/src/database/repositories";
 import { apiErrorResponse, assertSameOrigin, HttpError } from "@/src/security/http";
-import { assertBulkSendingAllowed } from "@/src/config/runtime";
 import { enforceRateLimit } from "@/src/security/rate-limit";
 import { dispatchCampaign } from "@/src/services/campaign-dispatch";
 
@@ -22,7 +21,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     // Check permission (approver or admin can send)
     assertSiteRole(access, campaign.siteId, ["site_admin", "approver"]);
     
-    if (campaign.status !== "ready" && campaign.status !== "sending") {
+    if (campaign.status !== "ready") {
       throw new HttpError("La campaña debe estar aprobada (estado: Lista) antes de ser enviada.");
     }
 
