@@ -90,9 +90,27 @@ export async function dispatchCampaign(campaignId: string) {
   if (!recipients.length) throw new Error("La campaña no tiene destinatarios elegibles.");
   if (recipients.length > 5) assertBulkSendingAllowed();
 
-  const claim = await db.rpc("claim_campaign_dispatch", { p_campaign_id: campaignId });
-  if (claim.error) throw claim.error;
-  if (!claim.data) return { sentCount: 0, skipped: true };
+  let claimed = false;
+  try {
+    const claim = await db.rpc("claim_campaign_dispatch", { p_campaign_id: campaignId });
+    if (!claim.error && typeof claim.data === "boolean") {
+      claimed = claim.data;
+    }
+  } catch {}
+
+  if (!claimed) {
+    const update = await db
+      .from("campaigns")
+      .update({ status: "sending", error_message: null })
+      .eq("id", campaignId)
+      .eq("status", "ready")
+      .select("id");
+    if (!update.error && (update.data?.length ?? 0) > 0) {
+      claimed = true;
+    }
+  }
+
+  if (!claimed) return { sentCount: 0, skipped: true };
 
   let sentCount = 0;
 
@@ -166,12 +184,24 @@ export async function reconcileStaleCampaigns(now = new Date()) {
   const db = createSupabaseAdmin();
   if (!db) throw new Error("La base de datos no está configurada.");
   const cutoff = new Date(now.getTime() - 15 * 60 * 1000).toISOString();
-  const { data: stale, error } = await db
+  let stale: Array<{ id: string; recipient_count?: number }> | null = null;
+  const withSendingStarted = await db
     .from("campaigns")
     .select("id,recipient_count")
     .eq("status", "sending")
     .lt("sending_started_at", cutoff);
-  if (error) throw error;
+
+  if (!withSendingStarted.error) {
+    stale = withSendingStarted.data;
+  } else {
+    const withUpdatedAt = await db
+      .from("campaigns")
+      .select("id,recipient_count")
+      .eq("status", "sending")
+      .lt("updated_at", cutoff);
+    if (withUpdatedAt.error) throw withUpdatedAt.error;
+    stale = withUpdatedAt.data;
+  }
   let sent = 0;
   let failed = 0;
   for (const campaign of stale ?? []) {
