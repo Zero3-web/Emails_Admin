@@ -66,16 +66,20 @@ function propertyCard(site: Site, property: Property, preview: boolean, buttonTe
       <div class="email-card-copy" style="padding:20px 22px 22px;">
         <h2 style="margin:0 0 8px;color:#0f172a;font-size:18px;line-height:24px;font-weight:700;">${escapeHtml(property.title)}</h2>
         ${details ? `<p style="margin:0 0 14px;color:#64748b;font-size:13px;line-height:18px;">📍 ${escapeHtml(details)}</p>` : ""}
-        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:14px;padding-top:14px;border-top:1px solid #f1f5f9;border-collapse:collapse;">
-          <tr>
-            <td align="left" valign="middle" style="padding:0;font-size:16px;font-weight:800;color:#0f172a;white-space:nowrap;">
-              ${escapeHtml(price)}
-            </td>
-            <td align="right" valign="middle" style="padding:0;">
-              <a href="${safeUrl(property.publicUrl)}" target="_blank" style="display:inline-block;padding:10px 18px;border-radius:8px;background:${color(site.primaryColor)};color:#ffffff;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.1);">${buttonText} →</a>
-            </td>
-          </tr>
-        </table>
+        <div style="margin-top:16px;padding-top:14px;border-top:1px solid #f1f5f9;">
+          <div style="margin:0 0 12px 0;font-size:18px;font-weight:800;color:#0f172a;letter-spacing:-0.02em;line-height:22px;">
+            ${escapeHtml(price)}
+          </div>
+          <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+            <tr>
+              <td align="center" style="padding:0;">
+                <a class="email-btn" href="${safeUrl(property.publicUrl)}" target="_blank" style="display:block;width:100%;box-sizing:border-box;-webkit-box-sizing:border-box;padding:12px 18px;border-radius:8px;background:${color(site.primaryColor)};color:#ffffff;font-size:14px;font-weight:700;text-decoration:none;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,0.1);letter-spacing:0.01em;">
+                  ${buttonText} →
+                </a>
+              </td>
+            </tr>
+          </table>
+        </div>
       </div>
     </div>
   `;
@@ -92,13 +96,17 @@ function postCard(site: Site, post: BlogPost, preview: boolean) {
       <div class="email-card-copy" style="padding:20px 22px 22px;">
         <h2 style="margin:0 0 8px;color:#0f172a;font-size:18px;line-height:24px;font-weight:700;">${escapeHtml(post.title)}</h2>
         <p style="margin:0 0 16px;color:#64748b;font-size:13px;line-height:20px;">${escapeHtml(post.excerpt)}</p>
-        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
-          <tr>
-            <td align="right" valign="middle" style="padding:0;">
-              <a href="${safeUrl(post.publicUrl)}" target="_blank" style="display:inline-block;padding:10px 18px;border-radius:8px;background:${color(site.primaryColor)};color:#ffffff;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.1);">Leer artículo completo →</a>
-            </td>
-          </tr>
-        </table>
+        <div style="margin-top:16px;padding-top:14px;border-top:1px solid #f1f5f9;">
+          <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+            <tr>
+              <td align="center" style="padding:0;">
+                <a class="email-btn" href="${safeUrl(post.publicUrl)}" target="_blank" style="display:block;width:100%;box-sizing:border-box;-webkit-box-sizing:border-box;padding:12px 18px;border-radius:8px;background:${color(site.primaryColor)};color:#ffffff;font-size:14px;font-weight:700;text-decoration:none;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,0.1);letter-spacing:0.01em;">
+                  Leer artículo completo →
+                </a>
+              </td>
+            </tr>
+          </table>
+        </div>
       </div>
     </div>
   `;
@@ -114,21 +122,27 @@ function emailDocument(site: Site, kicker: string, title: string, introduction: 
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
+  <meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
   <title>${escapeHtml(title)}</title>
   <style>
     @media only screen and (max-width:620px){
-      .email-brand{padding:18px 20px!important;font-size:17px!important}
+      .email-container{width:100%!important;border-radius:0!important;border:none!important}
+      .email-brand{padding:16px 20px!important;font-size:17px!important}
       .email-hero{padding:24px 20px!important}
-      .email-hero h1{font-size:24px!important;line-height:30px!important}
-      .email-body{padding:20px 20px 6px!important}
-      .email-footer{padding:20px!important}
-      .email-card-image{height:190px!important}
+      .email-hero h1{font-size:22px!important;line-height:28px!important}
+      .email-body{padding:20px 16px 6px!important}
+      .email-footer{padding:20px 16px!important}
+      .email-card{margin:0 0 18px!important;border-radius:10px!important}
+      .email-card-image{height:180px!important}
       .email-card-copy{padding:16px!important}
+      .email-btn{padding:13px 16px!important;font-size:14px!important}
     }
   </style>
 </head>
 <body style="margin:0;padding:20px 0;background:#f1f5f9;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#0f172a;">
-  <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.06);border:1px solid #e2e8f0;">
+  <div class="email-container" style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.06);border:1px solid #e2e8f0;">
     <div class="email-brand" style="padding:20px 28px;background:#ffffff;border-bottom:1px solid #f1f5f9;font-size:18px;font-weight:800;color:#0f172a;letter-spacing:-0.02em;">
       ${escapeHtml(site.name)}
     </div>
