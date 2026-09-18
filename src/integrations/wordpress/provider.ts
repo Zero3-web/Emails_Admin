@@ -63,14 +63,14 @@ export class WordPressProvider implements BlogProvider {
       site.domain.includes("area-hub") ||
       site.wordpressUrl.includes("area-hub");
 
-    // Special handler for Area Hub (Vercel + Supabase Headless Blog)
+    // Special handler for Area Hub (Vercel + Supabase Headless Blog via site_config)
     if (isAreaHub) {
       const areaHubSupabaseUrl = process.env.AREAHUB_SUPABASE_URL ?? "https://vztirszogukjfcyfmpkk.supabase.co";
       const areaHubAnonKey = process.env.AREAHUB_SUPABASE_ANON_KEY ??
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6dGlyc3pvZ3VramZjeWZtcGtrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYwMDcwNjIsImV4cCI6MjA3MTU4MzA2Mn0.W_-U0Zi3XT1-BGhDYO4Gm6qLGEHLdaNL4fLM9-m9IJc";
 
       const res = await safeExternalFetch(
-        `${areaHubSupabaseUrl}/rest/v1/blogs?select=*&order=created_at.desc&limit=100`,
+        `${areaHubSupabaseUrl}/rest/v1/site_config?key=eq.blog_posts&select=*`,
         {
           headers: {
             apikey: areaHubAnonKey,
@@ -87,17 +87,25 @@ export class WordPressProvider implements BlogProvider {
       }
 
       const rows = await readLimitedJson<any[]>(res, 4 * 1024 * 1024);
-      if (!Array.isArray(rows)) return [];
+      let items: any[] = [];
+      if (Array.isArray(rows) && rows.length > 0 && rows[0]?.value) {
+        try {
+          items = typeof rows[0].value === "string" ? JSON.parse(rows[0].value) : rows[0].value;
+        } catch {
+          items = [];
+        }
+      }
 
-      return rows.map((item) => {
-        const title = item.title_es || item.title_en || item.title || "Artículo Area Hub";
-        const excerpt =
-          item.excerpt_es || item.excerpt_en || item.excerpt || `Conoce más sobre ${title}`;
+      if (!Array.isArray(items)) return [];
+
+      return items.map((item) => {
+        const title = item.title || item.title_es || "Artículo Area Hub";
+        const excerpt = item.excerpt || item.excerpt_es || `Conoce más sobre ${title}`;
         const slug = item.slug || item.id;
         const publicUrl = `https://www.area-hub.com/blog/${slug}`;
         const imageUrl =
-          item.image_url ||
           item.cover_image ||
+          item.image_url ||
           item.thumbnail_url ||
           "https://vztirszogukjfcyfmpkk.supabase.co/storage/v1/object/public/receipts/Logo.png";
 
@@ -109,7 +117,7 @@ export class WordPressProvider implements BlogProvider {
           excerpt: shortExcerpt(excerpt),
           imageUrl: publicHttpUrlOrEmpty(imageUrl),
           publicUrl: publicHttpUrlOrEmpty(publicUrl),
-          publishedAt: item.created_at || item.published_at || new Date().toISOString(),
+          publishedAt: item.date || item.created_at || item.published_at || new Date().toISOString(),
         };
       });
     }

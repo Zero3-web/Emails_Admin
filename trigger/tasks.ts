@@ -1,5 +1,5 @@
 import { getBlogProvider, getPropertyProvider } from "@/src/integrations/factory";
-import { approveCampaign, createCampaignDraft, getBlogPosts, getProperties, getSites, addCampaigns, syncTokkoProperties } from "@/src/database/repositories";
+import { approveCampaign, createCampaignDraft, getBlogPosts, getProperties, getSites, addCampaigns, syncTokkoProperties, syncWordPressPosts } from "@/src/database/repositories";
 import { createCampaign } from "@/src/services/campaigns";
 import { renderCampaignEmail } from "@/src/services/email-renderer";
 import { createSupabaseAdmin } from "@/src/database/supabase/server";
@@ -189,7 +189,7 @@ export async function runTask(name: (typeof taskNames)[number]) {
   if (name === "run-due-automations") return runDueAutomations();
   const sites = await getSites(); if (!sites.length) throw new Error("No hay sitios persistidos.");
   if (name === "sync-properties") return syncTokkoProperties(sites[0]?.id || "prime");
-  if (name === "sync-blog-posts") return Promise.all(sites.map((site) => getBlogProvider().getPosts(site)));
+  if (name === "sync-blog-posts") return Promise.all(sites.map((site) => syncWordPressPosts(site.id)));
   const type = name === "generate-weekly-properties" ? "weekly_new_properties" : name === "generate-monthly-properties" ? "monthly_properties" : "monthly_blog";
   const generated = sites.map((site) => createCampaign(site, type));
   const content = type === "monthly_blog" ? await getBlogPosts() : await getProperties();

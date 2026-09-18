@@ -829,11 +829,17 @@ export async function getBlogPosts(): Promise<
 
 export async function syncWordPressPosts(siteId: string) {
   const db = requireDb();
-  const { data: row, error: siteError } = await db
-    .from("sites")
-    .select("*")
-    .or(`id.eq.${siteId},slug.eq.${siteId},slug.eq.${slugOf(siteId)}`)
-    .single();
+  const isUuid =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      siteId,
+    );
+  const siteQuery = isUuid
+    ? db.from("sites").select("*").eq("id", siteId)
+    : db
+        .from("sites")
+        .select("*")
+        .or(`slug.eq.${siteId},slug.eq.${slugOf(siteId)}`);
+  const { data: row, error: siteError } = await siteQuery.single();
   if (siteError) throw siteError;
   const site = mapSite(row);
   const startedAt = new Date().toISOString();

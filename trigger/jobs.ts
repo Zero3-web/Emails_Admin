@@ -55,3 +55,14 @@ export const propertySyncScheduler = schedules.task({
   run: async () => runTask("sync-properties"),
 });
 
+export const blogSyncScheduler = schedules.task({
+  id: "blog-sync-scheduler",
+  cron: {
+    pattern: "0 * * * *",
+    timezone: "America/Lima",
+    environments: ["PRODUCTION"],
+  },
+  run: async () => runTask("sync-blog-posts"),
+});
+
+
