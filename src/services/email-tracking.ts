@@ -4,10 +4,27 @@
  * with click-redirect tracking endpoints to guarantee real-time delivery analytics.
  */
 
+const ALLOWED_TRACKING_HOSTS = [
+  "areaprime.com.pe",
+  "area-hub.com",
+  "area-retail.net",
+  "tokkobroker.com",
+  "tokko.com",
+  "ficha.info",
+  "vercel.app",
+];
+
+export function isAllowedDestinationHost(hostname: string): boolean {
+  const clean = hostname.toLowerCase().replace(/\.$/, "");
+  if (clean === "localhost" || clean === "127.0.0.1") return true;
+  return ALLOWED_TRACKING_HOSTS.some((domain) => clean === domain || clean.endsWith(`.${domain}`));
+}
+
 export function isValidTrackingUrl(targetUrl: string): boolean {
   try {
     const parsed = new URL(targetUrl);
-    return parsed.protocol === "http:" || parsed.protocol === "https:";
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return false;
+    return isAllowedDestinationHost(parsed.hostname);
   } catch {
     return false;
   }

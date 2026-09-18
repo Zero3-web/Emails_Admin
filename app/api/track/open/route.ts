@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseAdmin } from "@/src/database/supabase/server";
+import { enforceRateLimit } from "@/src/security/rate-limit";
 
 // 1x1 transparent GIF (43 bytes)
 const TRANSPARENT_GIF = Buffer.from(
@@ -17,10 +18,17 @@ const GIF_HEADERS = {
 
 export async function GET(request: Request) {
   try {
+    try {
+      await enforceRateLimit(request, "tracking-open", 120, 60);
+    } catch {
+      // If rate limited, return transparent GIF silently without DB writes
+      return new NextResponse(TRANSPARENT_GIF, { status: 200, headers: GIF_HEADERS });
+    }
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 
-    if (id && id.trim()) {
+    if (id && /^[a-zA-Z0-9_-]{1,100}$/.test(id.trim())) {
       const cleanId = id.trim();
       const db = createSupabaseAdmin();
 

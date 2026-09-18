@@ -2,11 +2,21 @@ import { NextResponse } from "next/server";
 import { createSupabaseAdmin } from "@/src/database/supabase/server";
 import { isValidTrackingUrl } from "@/src/services/email-tracking";
 import { publicAppUrl } from "@/src/security/unsubscribe";
+import { enforceRateLimit } from "@/src/security/rate-limit";
 
 export async function GET(request: Request) {
   let destinationUrl = "";
 
   try {
+    try {
+      await enforceRateLimit(request, "tracking-click", 120, 60);
+    } catch {
+      // If rate limited, proceed to redirect without writing to DB to prevent service interruption
+      const urlParam = new URL(request.url).searchParams.get("url");
+      const safe = urlParam && isValidTrackingUrl(urlParam) ? urlParam.trim() : publicAppUrl();
+      return NextResponse.redirect(safe, 302);
+    }
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
     const rawUrl = searchParams.get("url");
@@ -15,7 +25,7 @@ export async function GET(request: Request) {
       destinationUrl = rawUrl.trim();
     }
 
-    if (id && id.trim()) {
+    if (id && /^[a-zA-Z0-9_-]{1,100}$/.test(id.trim())) {
       const cleanId = id.trim();
       const db = createSupabaseAdmin();
 

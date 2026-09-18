@@ -121,10 +121,11 @@ export async function GET(request: Request) {
     }
   }
 
+  const safeBrandName = brandName.replace(/[&<>"]/g, "");
   return page(
     "Preferencias de correo",
-    `Confirma que deseas dar de baja a <strong>${targetEmail.replace(/[&<>"]/g, "")}</strong> de las comunicaciones de <strong>${brandName}</strong>.`,
-    brandName,
+    `Confirma que deseas dar de baja a <strong>${targetEmail.replace(/[&<>"]/g, "")}</strong> de las comunicaciones de <strong>${safeBrandName}</strong>.`,
+    safeBrandName,
     `<form method="post">
       <input type="hidden" name="email" value="${targetEmail.replace(/[&<>"]/g, "")}">
       <input type="hidden" name="token" value="${token.replace(/[&<>"]/g, "")}">
