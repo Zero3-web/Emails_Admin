@@ -1598,7 +1598,19 @@ html[data-theme="dark"] :root .ref-brand-menu[open] > summary {
   border-color: #4b5563 !important;
 }
 
-:root .ref-brand-avatar {
+:root img.ref-brand-avatar {
+  width: 24px !important;
+  height: 24px !important;
+  display: block !important;
+  border-radius: 6px !important;
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+  object-fit: contain !important;
+  padding: 2px !important;
+}
+
+:root span.ref-brand-avatar {
   width: 24px !important;
   height: 24px !important;
   display: grid !important;
@@ -1612,7 +1624,12 @@ html[data-theme="dark"] :root .ref-brand-menu[open] > summary {
   box-shadow: none !important;
 }
 
-html[data-theme="dark"] :root .ref-brand-avatar {
+html[data-theme="dark"] :root img.ref-brand-avatar {
+  background: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+html[data-theme="dark"] :root span.ref-brand-avatar {
   background: #374151 !important;
   color: #ffffff !important;
 }
@@ -1665,7 +1682,53 @@ html[data-theme="dark"] :root .ref-brand-popover {
 
 :root .ref-brand-popover > button.ref-brand-all-option {
   grid-template-columns: 1fr 14px !important;
-  padding-left: 12px !important;
+  padding: 8px 10px !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  margin-bottom: 4px !important;
+}
+
+:root .ref-brand-popover > button > .ref-brand-option-text,
+:root .ref-brand-popover > button > span:not(.ref-brand-option-mark) {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+  gap: 2px !important;
+  min-width: 0 !important;
+}
+
+:root .ref-brand-popover strong {
+  display: block !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  line-height: 1.25 !important;
+  color: #111827 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+:root .ref-brand-popover small {
+  display: block !important;
+  font-size: 11px !important;
+  font-weight: 400 !important;
+  line-height: 1.2 !important;
+  color: #64748b !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+html[data-theme="dark"] :root .ref-brand-popover > button.ref-brand-all-option {
+  border-bottom-color: #334155 !important;
+}
+
+html[data-theme="dark"] :root .ref-brand-popover strong {
+  color: #f9fafb !important;
+}
+
+html[data-theme="dark"] :root .ref-brand-popover small {
+  color: #94a3b8 !important;
 }
 
 :root .ref-brand-popover > button:hover,
@@ -1682,7 +1745,19 @@ html[data-theme="dark"] :root .ref-brand-popover > button[aria-selected="true"] 
   background: #2b323b !important;
 }
 
-:root .ref-brand-option-mark {
+:root img.ref-brand-option-mark {
+  width: 28px !important;
+  height: 28px !important;
+  display: block !important;
+  border-radius: 6px !important;
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+  object-fit: contain !important;
+  padding: 2px !important;
+}
+
+:root span.ref-brand-option-mark {
   width: 28px !important;
   height: 28px !important;
   display: grid !important;
@@ -1696,7 +1771,12 @@ html[data-theme="dark"] :root .ref-brand-popover > button[aria-selected="true"] 
   box-shadow: none !important;
 }
 
-html[data-theme="dark"] :root .ref-brand-option-mark {
+html[data-theme="dark"] :root img.ref-brand-option-mark {
+  background: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+html[data-theme="dark"] :root span.ref-brand-option-mark {
   background: #374151 !important;
   color: #ffffff !important;
 }
@@ -1706,7 +1786,7 @@ html[data-theme="dark"] :root .ref-brand-option-mark {
   height: 6px !important;
   border-radius: 50% !important;
   background: #111827 !important;
-  box-shadow: none !important;
+  justify-self: end !important;
 }
 
 html[data-theme="dark"] :root .ref-brand-popover i {

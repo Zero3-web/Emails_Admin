@@ -50,7 +50,27 @@ export function CampaignsView({
   const [sendingId, setSendingId] = useState<string | null>(null);
   const siteById = useMemo(() => new Map(sites.map((site) => [site.id, site])), [sites]);
 
-  const visibleSites = useMemo(() => (initialSite ? sites.filter((site) => site.id === initialSite) : sites), [sites, initialSite]);
+  const [currentSiteId, setCurrentSiteId] = useState(initialSite);
+
+  useEffect(() => {
+    setCurrentSiteId(initialSite);
+  }, [initialSite]);
+
+  useEffect(() => {
+    const onSiteChange = (e: Event) => {
+      const custom = e as CustomEvent<string>;
+      if (custom.detail !== undefined) {
+        setCurrentSiteId(custom.detail === "all" ? "" : custom.detail);
+      }
+    };
+    window.addEventListener("area-mail-site-change", onSiteChange);
+    return () => window.removeEventListener("area-mail-site-change", onSiteChange);
+  }, []);
+
+  const visibleSites = useMemo(
+    () => (currentSiteId ? sites.filter((site) => site.id === currentSiteId) : sites),
+    [sites, currentSiteId]
+  );
 
   // Recipients modal state
   const [showRecipientsModal, setShowRecipientsModal] = useState(false);

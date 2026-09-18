@@ -26,6 +26,17 @@ export function TemplatesView({ sites, initialSiteId }: { sites: Site[]; initial
     setSiteId(initialSiteId);
   }, [initialSiteId]);
 
+  useEffect(() => {
+    const onSiteChange = (e: Event) => {
+      const custom = e as CustomEvent<string>;
+      if (custom.detail && custom.detail !== "all" && sites.some((s) => s.id === custom.detail)) {
+        setSiteId(custom.detail);
+      }
+    };
+    window.addEventListener("area-mail-site-change", onSiteChange);
+    return () => window.removeEventListener("area-mail-site-change", onSiteChange);
+  }, [sites]);
+
   function selectType(nextType: TemplateType) { if (nextType !== type) { setPreview(null); setLoading(true); setType(nextType); } }
 
   useEffect(() => {

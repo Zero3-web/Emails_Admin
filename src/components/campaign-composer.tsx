@@ -70,6 +70,7 @@ export function CampaignComposer({
   contacts,
   contactsReady,
   initialOpen = false,
+  initialSiteId,
   onClose,
 }: {
   sites: Site[];
@@ -78,6 +79,7 @@ export function CampaignComposer({
   contacts: Contact[];
   contactsReady: boolean;
   initialOpen?: boolean;
+  initialSiteId?: string;
   onClose?: () => void;
 }) {
   const router = useRouter();
@@ -85,7 +87,23 @@ export function CampaignComposer({
   const [open, setOpen] = useState(initialOpen);
   const [step, setStep] = useState(1);
   const [contentQuery, setContentQuery] = useState("");
-  const [siteId, setSiteId] = useState(sites[0]?.id ?? "");
+
+  const resolveInitialSite = (requested?: string) => {
+    if (requested && requested !== "all" && sites.some((s) => s.id === requested)) {
+      return requested;
+    }
+    try {
+      const saved = typeof window !== "undefined" ? localStorage.getItem("area-mail-selected-site") : null;
+      if (saved && saved !== "all" && sites.some((s) => s.id === saved)) {
+        return saved;
+      }
+    } catch {
+      // ignore
+    }
+    return sites[0]?.id ?? "";
+  };
+
+  const [siteId, setSiteId] = useState<string>(() => resolveInitialSite(initialSiteId));
   const [type, setType] = useState<AutomationType>("weekly_new_properties");
 
   const currentSite = useMemo(() => sites.find((s) => s.id === siteId), [sites, siteId]);
@@ -110,6 +128,24 @@ export function CampaignComposer({
   const [batchSending, setBatchSending] = useState(false);
 
   useEffect(() => {
+    if (initialSiteId && initialSiteId !== "all" && sites.some((s) => s.id === initialSiteId)) {
+      setSiteId(initialSiteId);
+    }
+  }, [initialSiteId, sites]);
+
+  useEffect(() => {
+    const onSiteChange = (e: Event) => {
+      const custom = e as CustomEvent<string>;
+      if (custom.detail && custom.detail !== "all" && sites.some((s) => s.id === custom.detail)) {
+        setSiteId(custom.detail);
+        setSelected([]);
+      }
+    };
+    window.addEventListener("area-mail-site-change", onSiteChange);
+    return () => window.removeEventListener("area-mail-site-change", onSiteChange);
+  }, [sites]);
+
+  useEffect(() => {
     if (sites.length > 0) {
       const exists = sites.some((site) => site.id === siteId);
       if (!exists) {
@@ -126,49 +162,124 @@ export function CampaignComposer({
     }
   }, [siteId, type, siteSegment, currentSite]);
 
-  const config = options.find((item) => item.value === type)!;
-  const available = useMemo(() => {
-    if (type === "monthly_blog") {
-      const blogList = posts.filter((item) => item.siteId === siteId || item.siteId === currentSite?.id);
-      return blogList.length > 0 ? blogList : posts;
+  const handleSiteSelect = (nextSiteId: string) => {
+    if (nextSiteId !== siteId) {
+      setSiteId(nextSiteId);
+      setSelected([]);
     }
+  };
 
+  const dynamicOptions = useMemo(() => {
+    if (siteSegment === "hub") {
+      return [
+        {
+          value: "weekly_new_properties" as AutomationType,
+          label: "Nuevas naves e inmuebles industriales",
+          description: "Selección breve con almacenes e inmuebles industriales recientes.",
+          limit: 5,
+        },
+        {
+          value: "monthly_properties" as AutomationType,
+          label: "Inmuebles industriales disponibles",
+          description: "Catálogo mensual de bodegas, terrenos y naves logísticas.",
+          limit: 10,
+        },
+        {
+          value: "monthly_blog" as AutomationType,
+          label: "Novedades del blog",
+          description: `Artículos y tendencias del blog de ${currentSite?.name ?? "Area Hub"}.`,
+          limit: 5,
+        },
+      ];
+    }
+    if (siteSegment === "retail") {
+      return [
+        {
+          value: "weekly_new_properties" as AutomationType,
+          label: "Nuevos locales comerciales",
+          description: "Selección breve con locales y tiendas comerciales recientes.",
+          limit: 5,
+        },
+        {
+          value: "monthly_properties" as AutomationType,
+          label: "Locales comerciales disponibles",
+          description: "Catálogo mensual con locales en Lima y zonas comerciales.",
+          limit: 10,
+        },
+        {
+          value: "monthly_blog" as AutomationType,
+          label: "Novedades del blog",
+          description: `Artículos y tendencias del blog de ${currentSite?.name ?? "Area Retail"}.`,
+          limit: 5,
+        },
+      ];
+    }
+    return [
+      {
+        value: "weekly_new_properties" as AutomationType,
+        label: "Nuevas oficinas de la semana",
+        description: "Selección breve con las oficinas publicadas recientemente.",
+        limit: 5,
+      },
+      {
+        value: "monthly_properties" as AutomationType,
+        label: "Oficinas disponibles",
+        description: "Catálogo mensual con una selección amplia de oficinas.",
+        limit: 10,
+      },
+      {
+        value: "monthly_blog" as AutomationType,
+        label: "Novedades del blog",
+        description: `Artículos y tendencias del blog de ${currentSite?.name ?? "Areaprime"}.`,
+        limit: 5,
+      },
+    ];
+  }, [siteSegment, currentSite]);
+
+  const config = dynamicOptions.find((item) => item.value === type) ?? dynamicOptions[0];
+  const available = useMemo(() => {
     const cleanSite = (siteId || currentSite?.slug || "").toLowerCase();
     const isHub = cleanSite.includes("hub");
     const isRetail = cleanSite.includes("retail");
 
+    if (type === "monthly_blog") {
+      const targetBrand = isHub ? "hub" : isRetail ? "retail" : "prime";
+      const blogList = posts.filter((item) => {
+        const itemSite = (item.siteId || "").toLowerCase();
+        return itemSite === targetBrand || itemSite === cleanSite;
+      });
+      return blogList;
+    }
+
     const validProps = properties.filter((item) => Boolean(item.publicUrl));
 
     if (isHub) {
-      const hubProps = validProps.filter(
+      return validProps.filter(
         (item) =>
           item.segment === "hub" ||
           item.siteId === "hub" ||
           item.siteId === siteId ||
           /hub|industrial|nave|terreno|almacen|bodega|deposito|logistico/i.test(`${item.propertyType} ${item.title} ${item.location}`)
       );
-      return hubProps.length > 0 ? hubProps : validProps;
     }
 
     if (isRetail) {
-      const retailProps = validProps.filter(
+      return validProps.filter(
         (item) =>
           item.segment === "retail" ||
           item.siteId === "retail" ||
           item.siteId === siteId ||
           /retail|local|comercial/i.test(`${item.propertyType} ${item.title} ${item.location}`)
       );
-      return retailProps.length > 0 ? retailProps : validProps;
     }
 
-    const primeProps = validProps.filter(
+    return validProps.filter(
       (item) =>
         item.segment === "prime" ||
         item.siteId === "prime" ||
         item.siteId === siteId ||
         /oficina|prime|corporativ/i.test(`${item.propertyType} ${item.title} ${item.location}`)
     );
-    return primeProps.length > 0 ? primeProps : validProps;
   }, [type, siteId, currentSite, posts, properties]);
 
   const extractValidEmails = (rawText: string): string[] => {
@@ -449,13 +560,100 @@ export function CampaignComposer({
         })}
       </nav>
 
-      {/* STEP 1: PLANTILLA */}
+      {/* STEP 1: MARCA Y PLANTILLA */}
       {step === 1 && (
-        <div className="campaign-form-grid campaign-step-panel" key="campaign-step-1">
+        <div className="campaign-form-grid campaign-step-panel" key="campaign-step-1" style={{ gap: "16px" }}>
+          {sites.length > 1 && (
+            <fieldset className="campaign-brand-field" style={{ gridColumn: "1 / -1", border: "none", padding: 0, margin: 0 }}>
+              <legend style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px" }}>
+                Marca de la campaña
+              </legend>
+              <div style={{ display: "grid", gridTemplateColumns: `repeat(auto-fit, minmax(180px, 1fr))`, gap: "10px" }}>
+                {sites.map((site) => {
+                  const isSelected = siteId === site.id;
+                  return (
+                    <button
+                      key={site.id}
+                      type="button"
+                      aria-pressed={isSelected}
+                      onClick={() => handleSiteSelect(site.id)}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                        padding: "9px 12px",
+                        borderRadius: "10px",
+                        border: isSelected ? "2px solid #4f46e5" : "1px solid #e2e8f0",
+                        backgroundColor: isSelected ? "#f5f3ff" : "#ffffff",
+                        boxShadow: isSelected ? "0 0 0 1px #4f46e5" : "none",
+                        cursor: "pointer",
+                        textAlign: "left",
+                        transition: "all 0.15s ease",
+                      }}
+                    >
+                      {site.logoUrl ? (
+                        <img
+                          src={site.logoUrl}
+                          alt={site.name}
+                          style={{
+                            width: "26px",
+                            height: "26px",
+                            objectFit: "contain",
+                            borderRadius: "6px",
+                            background: "#ffffff",
+                            padding: "2px",
+                            border: "1px solid #e5e7eb",
+                          }}
+                        />
+                      ) : (
+                        <span
+                          style={{
+                            width: "26px",
+                            height: "26px",
+                            borderRadius: "6px",
+                            backgroundColor: site.primaryColor || "#4f46e5",
+                            color: "#fff",
+                            display: "grid",
+                            placeItems: "center",
+                            fontSize: "11px",
+                            fontWeight: 700,
+                          }}
+                        >
+                          {site.name[0]}
+                        </span>
+                      )}
+                      <div style={{ display: "flex", flexDirection: "column", minWidth: 0, flex: 1 }}>
+                        <strong style={{ fontSize: "13px", fontWeight: 600, color: isSelected ? "#312e81" : "#1e293b", lineHeight: 1.2 }}>{site.name}</strong>
+                        <small style={{ fontSize: "11px", color: isSelected ? "#6366f1" : "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {site.domain || "Marca activa"}
+                        </small>
+                      </div>
+                      <span
+                        style={{
+                          width: "16px",
+                          height: "16px",
+                          borderRadius: "50%",
+                          border: isSelected ? "2px solid #4f46e5" : "1.5px solid #cbd5e1",
+                          display: "grid",
+                          placeItems: "center",
+                          backgroundColor: isSelected ? "#4f46e5" : "transparent",
+                          color: "#fff",
+                          flexShrink: 0,
+                        }}
+                      >
+                        {isSelected && <Check size={10} strokeWidth={3} />}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+          )}
+
           <fieldset className="campaign-template-field" style={{ gridColumn: "1 / -1" }}>
             <legend>Plantilla</legend>
             <div className="campaign-template-options">
-              {options.map((item) => (
+              {dynamicOptions.map((item) => (
                 <button
                   key={item.value}
                   type="button"

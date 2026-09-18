@@ -45,7 +45,8 @@ export default async function Campaigns({
         description="Crea borradores con una copia inmutable del contenido que se enviará."
         action={
           <CampaignComposer
-            sites={visibleSites}
+            sites={sites}
+            initialSiteId={filters.site}
             properties={properties}
             posts={posts}
             contacts={contactResult.contacts}

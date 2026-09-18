@@ -52,6 +52,17 @@ export function SentEmailsHistory({ initialSite = "all" }: { initialSite?: strin
     setSiteFilter(initialSite);
   }, [initialSite]);
 
+  useEffect(() => {
+    const onSiteChange = (e: Event) => {
+      const custom = e as CustomEvent<string>;
+      if (custom.detail !== undefined) {
+        setSiteFilter(custom.detail);
+      }
+    };
+    window.addEventListener("area-mail-site-change", onSiteChange);
+    return () => window.removeEventListener("area-mail-site-change", onSiteChange);
+  }, []);
+
   // Detail Modal State
   const [selectedItem, setSelectedItem] = useState<SentEmailItem | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);

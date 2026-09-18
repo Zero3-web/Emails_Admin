@@ -121,7 +121,10 @@ export function Topbar({
               aria-selected={selectedSite === "all"}
               onClick={() => selectSite("all")}
             >
-              <span><strong>Todas las marcas</strong><small>Vista consolidada</small></span>
+              <span className="ref-brand-option-text">
+                <strong>Todas las marcas</strong>
+                <small>Vista consolidada</small>
+              </span>
               {selectedSite === "all" && <i aria-hidden="true" />}
             </button>
             {sites.map((site) => (
@@ -148,7 +151,10 @@ export function Topbar({
                     {getSiteInitials(site.name)}
                   </span>
                 )}
-                <span><strong>{site.name}</strong><small>{site.domain || "Marca configurada"}</small></span>
+                <span className="ref-brand-option-text">
+                  <strong>{site.name}</strong>
+                  <small>{site.domain || "Marca configurada"}</small>
+                </span>
                 {selectedSite === site.id && <i aria-hidden="true" />}
               </button>
             ))}

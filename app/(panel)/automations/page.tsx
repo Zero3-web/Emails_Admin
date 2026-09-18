@@ -19,10 +19,11 @@ export default async function Automations({ searchParams }: { searchParams: Prom
         title="Automatizaciones"
         description="Programa la preparación de contenido sin perder la aprobación antes del envío."
       />
-      {visibleSites.length ? (
+      {sites.length ? (
         <AutomationsView
-          initial={visibleAutomations}
-          sites={visibleSites}
+          initial={automations}
+          sites={sites}
+          initialSiteId={site}
           contacts={contactResult.contacts}
         />
       ) : (

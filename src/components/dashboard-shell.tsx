@@ -50,11 +50,16 @@ export function DashboardShell({ children, sites, user, usage }: DashboardShellP
       const savedSite = localStorage.getItem("area-mail-selected-site");
       if (!currentParam && savedSite && savedSite !== "all" && sites.some((s) => s.id === savedSite)) {
         setActiveSite(savedSite);
+        document.cookie = `area_mail_site=${encodeURIComponent(savedSite)}; path=/; max-age=31536000; SameSite=Lax`;
+        window.dispatchEvent(new CustomEvent("area-mail-site-change", { detail: savedSite }));
         const next = new URLSearchParams(params?.toString() ?? "");
         next.set("site", savedSite);
-        router.replace(`${pathname}?${next.toString()}`, { scroll: false });
+        const targetUrl = `${pathname}?${next.toString()}`;
+        window.history.replaceState(null, "", targetUrl);
+        router.replace(targetUrl, { scroll: false });
       } else if (currentParam) {
         localStorage.setItem("area-mail-selected-site", currentParam);
+        document.cookie = `area_mail_site=${encodeURIComponent(currentParam)}; path=/; max-age=31536000; SameSite=Lax`;
       }
     } catch {
       // Ignore storage errors
@@ -68,6 +73,7 @@ export function DashboardShell({ children, sites, user, usage }: DashboardShellP
 
       try {
         localStorage.setItem("area-mail-selected-site", activeSite);
+        document.cookie = `area_mail_site=${encodeURIComponent(activeSite)}; path=/; max-age=31536000; SameSite=Lax`;
       } catch {
         // Ignore storage errors
       }
@@ -91,9 +97,10 @@ export function DashboardShell({ children, sites, user, usage }: DashboardShellP
     // 1. Instant optimistic state update in 0ms
     setActiveSite(siteId);
 
-    // 2. Persist in localStorage
+    // 2. Persist in localStorage & cookie
     try {
       localStorage.setItem("area-mail-selected-site", siteId);
+      document.cookie = `area_mail_site=${encodeURIComponent(siteId)}; path=/; max-age=31536000; SameSite=Lax`;
     } catch {
       // Ignore storage errors
     }

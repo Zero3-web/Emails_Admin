@@ -86,6 +86,7 @@ export function DashboardView({
       {showComposer && (
         <CampaignComposer
           sites={sites}
+          initialSiteId={currentSiteId}
           properties={properties}
           posts={posts}
           contacts={contacts}

@@ -23,8 +23,53 @@ const formatTime12h = (timeStr: string) => {
   return `${hour12}:${String(m).padStart(2, "0")} ${period}`;
 };
 
-export function AutomationsView({ initial, sites, contacts = [] }: { initial: Automation[]; sites: Site[]; contacts?: Contact[] }) {
+export function AutomationsView({
+  initial,
+  sites,
+  initialSiteId = "all",
+  contacts = [],
+}: {
+  initial: Automation[];
+  sites: Site[];
+  initialSiteId?: string;
+  contacts?: Contact[];
+}) {
   const [items, setItems] = useState(initial);
+  const [selectedSiteId, setSelectedSiteId] = useState(initialSiteId || "all");
+
+  useEffect(() => {
+    if (initialSiteId) setSelectedSiteId(initialSiteId);
+  }, [initialSiteId]);
+
+  useEffect(() => {
+    const onSiteChange = (e: Event) => {
+      const custom = e as CustomEvent<string>;
+      if (custom.detail !== undefined) {
+        setSelectedSiteId(custom.detail);
+      }
+    };
+    window.addEventListener("area-mail-site-change", onSiteChange);
+    return () => window.removeEventListener("area-mail-site-change", onSiteChange);
+  }, []);
+
+  const visibleSites = useMemo(() => {
+    if (!selectedSiteId || selectedSiteId === "all") return sites;
+    const normSelected = selectedSiteId.toLowerCase().replace(/^area-/, "");
+    return sites.filter((site) => {
+      const normSite = String(site.id || "").toLowerCase().replace(/^area-/, "");
+      return site.id === selectedSiteId || normSite === normSelected;
+    });
+  }, [sites, selectedSiteId]);
+
+  const filteredItems = useMemo(() => {
+    if (!selectedSiteId || selectedSiteId === "all") return items;
+    const normSelected = selectedSiteId.toLowerCase().replace(/^area-/, "");
+    return items.filter((item) => {
+      const normItem = String(item.siteId || "").toLowerCase().replace(/^area-/, "");
+      return item.siteId === selectedSiteId || normItem === normSelected;
+    });
+  }, [items, selectedSiteId]);
+
   const [editingId, setEditingId] = useState<string | "new" | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null);
@@ -41,8 +86,8 @@ export function AutomationsView({ initial, sites, contacts = [] }: { initial: Au
   const modalRef = useDialogA11y<HTMLElement>(Boolean(editingId), closeAutomation);
   const deleteModalRef = useDialogA11y<HTMLElement>(Boolean(confirmDelete), () => setConfirmDelete(null));
   const existingTypes = useMemo(() => new Set(items.filter((item) => item.siteId === draft.siteId && item.id !== editingId).map((item) => item.type)), [items, draft.siteId, editingId]);
-  const enabled = items.filter((item) => item.isEnabled).length;
-  const protectedCount = items.filter((item) => item.requiresApproval).length;
+  const enabled = filteredItems.filter((item) => item.isEnabled).length;
+  const protectedCount = filteredItems.filter((item) => item.requiresApproval).length;
 
   useEffect(() => { if (!message) return; const timeout = window.setTimeout(() => setMessage(null), 3600); return () => window.clearTimeout(timeout); }, [message]);
 
@@ -200,7 +245,8 @@ export function AutomationsView({ initial, sites, contacts = [] }: { initial: Au
   }
 
   const openNew = () => {
-    setDraft(emptyDraft(sites[0]?.id ?? ""));
+    const targetSiteId = selectedSiteId !== "all" && visibleSites.length > 0 ? visibleSites[0].id : (sites[0]?.id ?? "");
+    setDraft(emptyDraft(targetSiteId));
     setAudienceSource("brand");
     setCustomEmails([]);
     setCustomEmailInput("");
@@ -228,19 +274,19 @@ export function AutomationsView({ initial, sites, contacts = [] }: { initial: Au
     <div className="automations-workspace refined">
       <section className="automation-overview" aria-label="Resumen de automatizaciones">
         <article><span className="automation-overview-icon positive"><CheckCircle2 size={16}/></span><div><strong>{enabled}</strong><small>flujos activos</small></div></article>
-        <article><span className="automation-overview-icon"><CalendarClock size={16}/></span><div><strong>{items.length - enabled}</strong><small>pendientes de activar</small></div></article>
+        <article><span className="automation-overview-icon"><CalendarClock size={16}/></span><div><strong>{filteredItems.length - enabled}</strong><small>pendientes de activar</small></div></article>
         <article><span className="automation-overview-icon positive"><ShieldCheck size={16}/></span><div><strong>{protectedCount}</strong><small>requieren aprobación</small></div></article>
         <button type="button" onClick={openNew}><Plus size={15}/><span><strong>Nueva automatización</strong><small>Crear un flujo programado</small></span></button>
       </section>
 
-      {items.length ? (
+      {filteredItems.length ? (
         <section className="card automation-panel">
           <header>
             <div><h2>Flujos programados</h2><p>Cada ejecución prepara contenido y respeta la aprobación configurada.</p></div>
-            <span>{enabled}/{items.length} activos</span>
+            <span>{enabled}/{filteredItems.length} activos</span>
           </header>
           <div className="automation-brand-list">
-            {sites.map((site) => {
+            {visibleSites.map((site) => {
               const siteItems = items.filter((item) => {
                 const normSite = String(site.id || "").toLowerCase().replace(/^area-/, "");
                 const normItem = String(item.siteId || "").toLowerCase().replace(/^area-/, "");
