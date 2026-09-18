@@ -21,9 +21,10 @@ async function handleSync(request: Request) {
 
     let isAuthorized = false;
 
-    // 1. Validate against CRON_SECRET (via Authorization header or ?key= param)
+    // 1. Validate against CRON_SECRET (via Authorization header Bearer or ?key= param)
     if (cronSecret) {
-      if (authHeader === `Bearer ${cronSecret}` || queryKey === cronSecret) {
+      const token = authHeader?.replace(/^Bearer\s+/i, "").trim();
+      if (token === cronSecret || queryKey?.trim() === cronSecret) {
         isAuthorized = true;
       }
     }
