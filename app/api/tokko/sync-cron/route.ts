@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { syncTokkoProperties } from "@/src/database/repositories";
+import { requireApiAccess } from "@/src/auth/server";
 
 export const dynamic = "force-dynamic";
 
@@ -14,15 +15,39 @@ export async function POST(request: Request) {
 async function handleSync(request: Request) {
   try {
     const authHeader = request.headers.get("authorization");
-    const cronSecret = process.env.CRON_SECRET;
+    const cronSecret = process.env.CRON_SECRET?.trim();
+    const url = new URL(request.url);
+    const queryKey = url.searchParams.get("key");
 
-    // If CRON_SECRET is configured, enforce authorization
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-      const url = new URL(request.url);
-      const queryKey = url.searchParams.get("key");
-      if (queryKey !== cronSecret) {
-        return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+    let isAuthorized = false;
+
+    // 1. Validate against CRON_SECRET (via Authorization header or ?key= param)
+    if (cronSecret) {
+      if (authHeader === `Bearer ${cronSecret}` || queryKey === cronSecret) {
+        isAuthorized = true;
       }
+    }
+
+    // 2. If not authorized via CRON_SECRET, fallback to authenticated admin session
+    if (!isAuthorized) {
+      try {
+        const access = await requireApiAccess();
+        if (access) {
+          isAuthorized = true;
+        }
+      } catch {
+        // Not an authenticated admin session
+      }
+    }
+
+    if (!isAuthorized) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "No autorizado. Se requiere cabecera 'Authorization: Bearer <CRON_SECRET>' o sesión activa de administrador.",
+        },
+        { status: 401 },
+      );
     }
 
     const result = await syncTokkoProperties("prime");

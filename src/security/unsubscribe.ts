@@ -33,7 +33,12 @@ export function verifyUnsubscribeToken(token: string): UnsubscribePayload | null
 
 export function publicAppUrl() {
   if (process.env.PUBLIC_APP_URL) return process.env.PUBLIC_APP_URL.replace(/[\r\n\0]/g, "").trim().replace(/\/$/, "");
+  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL.replace(/[\r\n\0]/g, "").trim().replace(/\/$/, "");
+  if (process.env.APP_URL) return process.env.APP_URL.replace(/[\r\n\0]/g, "").trim().replace(/\/$/, "");
   if (process.env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL.replace(/[\r\n\0]/g, "").trim()}`;
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL.replace(/[\r\n\0]/g, "").trim()}`;
+  if (process.env.APP_ENV === "production" || process.env.NODE_ENV === "production") {
+    return "https://area-mail-admin.vercel.app";
+  }
   return "http://localhost:3000";
 }

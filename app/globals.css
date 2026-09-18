@@ -2303,6 +2303,10 @@ html[data-theme="dark"] .tokko-error { color: #fda29b; background: #301c1b; }
 .skeleton-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
 .skeleton-grid .skeleton-card { height: 104px; }
 @keyframes skeleton-shimmer { to { transform: translateX(100%); } }
+@keyframes safe-image-pulse {
+  0%, 100% { opacity: 0.45; transform: scale(0.96); }
+  50% { opacity: 0.85; transform: scale(1.04); }
+}
 .integration-notice.ready { border-style: solid; background: linear-gradient(120deg, var(--ui-panel), #f4fbf7); }
 .integration-notice.ready .onboarding-icon { color: #17734a; background: #eaf7f0; }
 .site-onboarding { border-radius: 14px; box-shadow: 0 10px 28px rgba(20,20,20,.035); }

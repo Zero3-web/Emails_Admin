@@ -9,6 +9,7 @@ import { useDialogA11y } from "@/src/hooks/use-dialog-a11y";
 import { segmentLabel, type PropertySegment } from "@/src/services/property-classifier";
 import { FilterMenu } from "@/src/components/filter-menu";
 import { getSiteInitials } from "@/src/components/ui";
+import { SafeImage } from "@/src/components/safe-image";
 
 const PAGE_SIZE = 12;
 const propertyStatusLabel = (status: string) => {
@@ -137,7 +138,13 @@ export function PropertiesView({ properties, sites, initialSiteId = "" }: { prop
             const site = siteById.get(property.siteId);
             return <article className="library-property-card" key={property.id}>
               <button className="library-property-media" type="button" onClick={() => setPreview(property)} aria-label={`Vista previa de ${property.title}`}>
-                {property.imageUrl ? <img src={property.imageUrl} alt="" loading="lazy" decoding="async" sizes="(max-width: 720px) 100vw, (max-width: 1100px) 50vw, 25vw" /> : <span><Building2 size={24} /></span>}<i>{propertyStatusLabel(property.status)}</i>
+                <SafeImage
+                  src={property.imageUrl}
+                  alt=""
+                  fallbackType="property"
+                  iconSize={26}
+                />
+                <i>{propertyStatusLabel(property.status)}</i>
               </button>
               <div className="library-property-body">
                 <div className="library-property-brand">{site?.logoUrl ? <img src={site.logoUrl} alt={site.name} style={{ width: "16px", height: "16px", borderRadius: "50%", objectFit: "cover", marginRight: "6px", background: "#ffffff", display: "inline-block", verticalAlign: "middle" }} /> : <span style={{ background: site?.primaryColor || "#4f46e5" }}>{getSiteInitials(site?.name || segmentLabel(property.segment))}</span>}<small>{site?.name ?? segmentLabel(property.segment)}</small></div>
@@ -155,7 +162,14 @@ export function PropertiesView({ properties, sites, initialSiteId = "" }: { prop
       {preview && <div className="content-preview-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setPreview(null); }}>
         <section ref={previewRef} className="content-preview-modal" role="dialog" aria-modal="true" aria-labelledby="property-preview-title" tabIndex={-1}>
           <button className="content-preview-close" type="button" aria-label="Cerrar vista previa" onClick={() => setPreview(null)}><X size={17} /></button>
-          <div className="content-preview-image">{preview.imageUrl ? <img src={preview.imageUrl} alt={`Imagen de ${preview.title}`} /> : <Building2 size={34} />}</div>
+          <div className="content-preview-image">
+            <SafeImage
+              src={preview.imageUrl}
+              alt={`Imagen de ${preview.title}`}
+              fallbackType="property"
+              iconSize={36}
+            />
+          </div>
           <div className="content-preview-copy"><span className="eyebrow">Vista previa de propiedad</span><h2 id="property-preview-title">{preview.title}</h2><p className="content-preview-location"><MapPin size={13} />{preview.location || preview.address || "Ubicación no informada"}</p>
             <div className="content-preview-facts"><div><span>Marca</span><strong>{siteById.get(preview.siteId)?.name ?? segmentLabel(preview.segment)}</strong></div><div><span>Tipo</span><strong>{preview.propertyType || "Sin tipo"}</strong></div><div><span>Área</span><strong>{preview.area > 0 ? `${preview.area.toLocaleString("es-PE")} m²` : "No informada"}</strong></div><div><span>Precio</span><strong>{preview.price > 0 ? `${preview.currency} ${preview.price.toLocaleString("es-PE")}` : "No publicado"}</strong></div></div>
             {preview.description && <div className="content-preview-description"><strong>Descripción</strong><p>{formatDescription(preview.description)}</p></div>}

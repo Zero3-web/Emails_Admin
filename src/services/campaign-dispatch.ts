@@ -96,7 +96,9 @@ export async function dispatchCampaign(campaignId: string) {
     if (!claim.error && typeof claim.data === "boolean") {
       claimed = claim.data;
     }
-  } catch {}
+  } catch {
+    // RPC may not exist in all environments; fallback below handles row level claim
+  }
 
   if (!claimed) {
     const update = await db

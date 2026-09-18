@@ -1329,7 +1329,7 @@ export async function recordOutboundEmail(input: {
     },
   };
   if (userId) payload.user_id = userId;
-  let { error } = await db.from("outbound_emails").upsert(payload, { onConflict: "resend_email_id" });
+  const { error } = await db.from("outbound_emails").upsert(payload, { onConflict: "resend_email_id" });
   if (error && (error.code === "42703" || error.message?.includes("user_id"))) {
     delete payload.user_id;
     await db.from("outbound_emails").upsert(payload, { onConflict: "resend_email_id" });
@@ -1388,7 +1388,8 @@ export async function getOutboundEmails() {
     .limit(250);
   if (allowed) query = query.in("site_id", allowed);
   if (userId) query = query.eq("user_id", userId);
-  let { data, error } = await query;
+  const { data: rawData, error } = await query;
+  let data = rawData;
   if (error && (error.code === "42703" || error.message?.includes("user_id"))) {
     let fallbackQuery = db
       .from("outbound_emails")
@@ -1505,7 +1506,8 @@ export async function getEmailPerformanceList(): Promise<import("@/src/domain/ty
   if (allowed) query = query.in("site_id", allowed);
   if (userId) query = query.eq("user_id", userId);
 
-  let { data: emails, error } = await query;
+  const { data: rawEmails, error } = await query;
+  let emails = rawEmails;
   if (error && (error.code === "42703" || error.message?.includes("user_id"))) {
     let fallbackQuery = db
       .from("outbound_emails")

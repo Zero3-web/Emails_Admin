@@ -4,6 +4,7 @@ import { Check, ChevronLeft, ChevronRight, ExternalLink, Eye, FileText, Info, Lo
 import { useMemo, useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useDialogA11y } from "@/src/hooks/use-dialog-a11y";
+import { SafeImage } from "@/src/components/safe-image";
 import * as XLSX from "xlsx";
 import type {
   AutomationType,
@@ -555,7 +556,12 @@ export function CampaignComposer({
                     onClick={() => setPreviewId(item.id)}
                     aria-label={`Ver vista previa de ${item.title}`}
                   >
-                    {item.imageUrl ? <img src={item.imageUrl} alt={item.title} /> : <FileText size={24} />}
+                    <SafeImage
+                      src={item.imageUrl}
+                      alt={item.title}
+                      fallbackType={"location" in item ? "property" : "blog"}
+                      iconSize={22}
+                    />
                     <span><Eye size={10} /> Ver</span>
                   </button>
                   <button className="campaign-pick-body" type="button" onClick={() => toggle(item.id)}>
@@ -989,7 +995,14 @@ export function CampaignComposer({
         <div className="campaign-preview-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && setPreviewId(null)}>
           <section ref={previewRef} className="campaign-item-preview" role="dialog" aria-modal="true" aria-label={`Vista previa de ${previewItem.title}`} tabIndex={-1}>
             <header><div><span>Vista previa</span><strong>{previewItem.title}</strong></div><button type="button" className="icon-btn" onClick={() => setPreviewId(null)} aria-label="Cerrar vista previa"><X size={18} /></button></header>
-            <div className="campaign-item-preview-media">{previewItem.imageUrl ? <img src={previewItem.imageUrl} alt={previewItem.title} /> : <FileText size={32} />}</div>
+            <div className="campaign-item-preview-media">
+              <SafeImage
+                src={previewItem.imageUrl}
+                alt={previewItem.title}
+                fallbackType={"location" in previewItem ? "property" : "blog"}
+                iconSize={36}
+              />
+            </div>
             <div className="campaign-item-preview-copy" style={{ display: "flex", justifyContent: "flex-end", padding: "14px 16px", background: "#ffffff" }}>
               <a href={previewItem.publicUrl} target="_blank" rel="noreferrer" className="btn primary" style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "13px" }}>
                 <ExternalLink size={14} /> Abrir publicación

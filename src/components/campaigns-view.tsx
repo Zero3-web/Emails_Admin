@@ -9,6 +9,7 @@ import { CampaignApproval } from "@/src/components/campaign-approval";
 import { CampaignFilters } from "@/src/components/campaign-filters";
 import { PrepareAudienceButton } from "@/src/components/prepare-audience-button";
 import { EmptyState, SiteMark, StatusBadge } from "@/src/components/ui";
+import { SafeImage } from "@/src/components/safe-image";
 import type { Campaign, Site } from "@/src/domain/types";
 import { campaignStages, getCampaignProgress } from "@/src/services/campaign-state";
 
@@ -483,11 +484,12 @@ export function CampaignsView({
                             boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
                           }}>
                             <div style={{ height: "110px", width: "100%", overflow: "hidden", background: "#f8fafc", position: "relative" }}>
-                              {item.imageUrl ? (
-                                <img src={String(item.imageUrl || "")} alt={String(item.title || "")} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                              ) : (
-                                <div style={{ width: "100%", height: "100%", display: "grid", placeItems: "center", color: "#94a3b8", fontSize: "11px" }}>Sin imagen</div>
-                              )}
+                              <SafeImage
+                                src={item.imageUrl}
+                                alt={String(item.title || "")}
+                                fallbackType={item.itemType === "property" ? "property" : "blog"}
+                                iconSize={26}
+                              />
                             </div>
                             <div style={{ padding: "12px", display: "flex", flexDirection: "column", flex: 1, gap: "6px" }}>
                               <span style={{ fontSize: "10px", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.04em", color: "#4f46e5", display: "block" }}>
