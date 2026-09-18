@@ -2,6 +2,7 @@ import { createSupabaseAdmin } from "@/src/database/supabase/server";
 import { assertBulkSendingAllowed } from "@/src/config/runtime";
 import { getDefaultSenderForSite, sendResendEmail } from "@/src/integrations/resend/client";
 import { renderCampaignEmail } from "@/src/services/email-renderer";
+import { injectEmailTracking } from "@/src/services/email-tracking";
 import type { AutomationType, BlogPost, Campaign, Property, Site } from "@/src/domain/types";
 import { createUnsubscribeToken, publicAppUrl } from "@/src/security/unsubscribe";
 import { createHash } from "node:crypto";
@@ -125,16 +126,21 @@ export async function dispatchCampaign(campaignId: string) {
     const validSenderEmail = site.senderEmail && site.senderEmail.includes("@") ? site.senderEmail.replace(/[\r\n\0]/g, "").trim() : undefined;
     const cleanSenderName = (site.senderName || site.name).replace(/[\r\n\0]/g, "").trim();
     const sender = validSenderEmail ? `${cleanSenderName} <${validSenderEmail}>` : getDefaultSenderForSite(site.id);
+    const baseUrl = publicAppUrl();
     for (const to of targetRecipients) {
       const cleanTo = to.replace(/[\r\n\0]/g, "").trim();
       const token = createUnsubscribeToken({ email: cleanTo, siteId: campaign.site_id });
-      const rawUrl = `${publicAppUrl()}/api/unsubscribe?token=${encodeURIComponent(token)}`;
+      const rawUrl = `${baseUrl}/api/unsubscribe?token=${encodeURIComponent(token)}`;
       const unsubscribeUrl = rawUrl.replace(/[\r\n\0]/g, "").trim();
-      const html = await renderCampaignEmail(site, campaign.automation_type, items, { unsubscribeUrl });
+      const rawHtml = await renderCampaignEmail(site, campaign.automation_type, items, { unsubscribeUrl });
+      
+      const outboundId = crypto.randomUUID();
+      const trackedHtml = injectEmailTracking(rawHtml, outboundId, baseUrl);
+
       const result = await sendResendEmail({
         to: cleanTo,
         subject: cleanSubject,
-        html,
+        html: trackedHtml,
         from: sender,
         siteId: site.id,
         headers: { "List-Unsubscribe": `<${unsubscribeUrl}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" },
@@ -144,6 +150,7 @@ export async function dispatchCampaign(campaignId: string) {
       // Save to outbound_emails table for Activity history with user isolation
       const campaignUserId = (campaign as any).user_id || (campaign.metadata as Record<string, unknown> | undefined)?.user_id || null;
       const outboundPayload: Record<string, unknown> = {
+        id: outboundId,
         campaign_id: campaignId,
         site_id: campaign.site_id,
         resend_email_id: result.id,
@@ -152,7 +159,7 @@ export async function dispatchCampaign(campaignId: string) {
         subject: campaign.subject,
         status: "sent",
         sent_at: new Date().toISOString(),
-        metadata: { html, ...(campaignUserId ? { user_id: campaignUserId } : {}) },
+        metadata: { html: trackedHtml, ...(campaignUserId ? { user_id: campaignUserId } : {}) },
       };
       if (campaignUserId) outboundPayload.user_id = campaignUserId;
       let persisted = await db.from("outbound_emails").upsert(outboundPayload, { onConflict: "resend_email_id" });

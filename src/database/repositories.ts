@@ -1404,7 +1404,10 @@ export async function getOutboundEmails() {
     throw error;
   }
 
-  const emailIds = (data ?? []).map((row) => row.resend_email_id).filter(Boolean);
+  const emailIds = Array.from(new Set([
+    ...(data ?? []).map((row) => row.resend_email_id).filter(Boolean),
+    ...(data ?? []).map((row) => row.id).filter(Boolean),
+  ]));
   const eventsMap: Record<string, string[]> = {};
   if (emailIds.length > 0) {
     const { data: eventsData } = await db
@@ -1422,10 +1425,16 @@ export async function getOutboundEmails() {
   }
 
   return (data ?? []).map((row) => {
-    const recordedEvents = eventsMap[row.resend_email_id] ?? [];
+    const recordedEvents = [
+      ...(row.resend_email_id ? (eventsMap[row.resend_email_id] ?? []) : []),
+      ...(row.id ? (eventsMap[row.id] ?? []) : []),
+    ];
     const statusEv = row.status ? `email.${row.status}` : undefined;
     const defaultEvs = row.status === "delivered" || row.status === "sent" ? ["email.delivered"] : [];
     const allEvents = Array.from(new Set([...recordedEvents, ...(statusEv ? [statusEv] : []), ...defaultEvs]));
+    if (allEvents.includes("email.clicked") && !allEvents.includes("email.opened")) {
+      allEvents.push("email.opened");
+    }
 
     const slug = Array.isArray(row.sites) ? row.sites[0]?.slug : (row.sites as { slug?: string } | null)?.slug;
     let resolvedSiteId = slug ? siteKey(slug) : undefined;
@@ -1524,7 +1533,10 @@ export async function getEmailPerformanceList(): Promise<import("@/src/domain/ty
 
   if (!emails || emails.length === 0) return [];
 
-  const resendIds = emails.map((e) => e.resend_email_id).filter(Boolean);
+  const resendIds = Array.from(new Set([
+    ...emails.map((e) => e.resend_email_id).filter(Boolean),
+    ...emails.map((e) => e.id).filter(Boolean),
+  ]));
   const { data: events } = resendIds.length
     ? await db.from("email_events").select("resend_email_id, event_type").in("resend_email_id", resendIds)
     : { data: [] };
@@ -1538,10 +1550,14 @@ export async function getEmailPerformanceList(): Promise<import("@/src/domain/ty
   }
 
   return emails.map((row) => {
-    const evList = eventsByEmailId.get(row.resend_email_id) || [];
+    const evList = [
+      ...(row.resend_email_id ? (eventsByEmailId.get(row.resend_email_id) || []) : []),
+      ...(row.id ? (eventsByEmailId.get(row.id) || []) : []),
+    ];
     const isDelivered = row.status === "delivered" || row.status === "sent" || evList.includes("email.delivered");
     const isBounced = row.status === "bounced" || evList.includes("email.bounced");
-    const isClicked = evList.includes("email.clicked") || evList.includes("email.opened");
+    const isClicked = evList.includes("email.clicked") || row.status === "clicked";
+    const isOpened = isClicked || evList.includes("email.opened") || row.status === "opened";
     const isUnsubscribed = evList.includes("email.unsubscribed");
     const isSpam = evList.includes("email.complained");
 
@@ -1558,6 +1574,7 @@ export async function getEmailPerformanceList(): Promise<import("@/src/domain/ty
       siteId: row.site_id,
       campaignId: row.campaign_id,
       sentCount: 1,
+      openRate: isOpened ? 100 : 0,
       clickRate: isClicked ? 100 : 0,
       deliveredRate: isBounced ? 0 : isDelivered ? 100 : 95,
       unsubscribedRate: isUnsubscribed ? 100 : 0,
