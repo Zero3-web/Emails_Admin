@@ -83,29 +83,70 @@ export function Topbar({
           <summary aria-label="Cambiar marca" aria-haspopup="listbox">
             {currentSite ? (
               currentSite.logoUrl ? (
-                <img key={selectedSite} src={currentSite.logoUrl} alt={currentSite.name} className="ref-brand-avatar" style={{ objectFit: "cover", background: "#ffffff", animation: "ref-avatar-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards" }} />
+                <img
+                  key={selectedSite}
+                  src={currentSite.logoUrl}
+                  alt={currentSite.name}
+                  className="ref-brand-avatar"
+                  style={{
+                    objectFit: "contain",
+                    padding: "2px",
+                    background: "#ffffff",
+                    animation: "ref-avatar-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards",
+                  }}
+                />
               ) : (
-                <span key={selectedSite} className="ref-brand-avatar" aria-hidden="true" style={{ backgroundColor: currentSite.primaryColor, animation: "ref-avatar-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards" }}>{getSiteInitials(currentSite.name)}</span>
+                <span
+                  key={selectedSite}
+                  className="ref-brand-avatar"
+                  aria-hidden="true"
+                  style={{
+                    backgroundColor: currentSite.primaryColor,
+                    animation: "ref-avatar-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards",
+                  }}
+                >
+                  {getSiteInitials(currentSite.name)}
+                </span>
               )
-            ) : (
-              <span key={selectedSite} className="ref-brand-avatar" aria-hidden="true" style={{ animation: "ref-avatar-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards" }}>{userInitial}</span>
-            )}
+            ) : null}
             <span className="ref-brand-current">{currentSite?.name ?? "Todas las marcas"}</span>
             <ChevronDown size={14} aria-hidden="true" />
           </summary>
           <div className="ref-brand-popover" role="listbox" aria-label="Marcas disponibles">
             <p>Marca activa</p>
-            <button type="button" role="option" aria-selected={selectedSite === "all"} onClick={() => selectSite("all")}>
-              <span className="ref-brand-option-mark">AM</span>
+            <button
+              type="button"
+              role="option"
+              className="ref-brand-all-option"
+              aria-selected={selectedSite === "all"}
+              onClick={() => selectSite("all")}
+            >
               <span><strong>Todas las marcas</strong><small>Vista consolidada</small></span>
               {selectedSite === "all" && <i aria-hidden="true" />}
             </button>
             {sites.map((site) => (
-              <button key={site.id} type="button" role="option" aria-selected={selectedSite === site.id} onClick={() => selectSite(site.id)}>
+              <button
+                key={site.id}
+                type="button"
+                role="option"
+                aria-selected={selectedSite === site.id}
+                onClick={() => selectSite(site.id)}
+              >
                 {site.logoUrl ? (
-                  <img src={site.logoUrl} alt={site.name} className="ref-brand-option-mark" style={{ objectFit: "cover", background: "#ffffff" }} />
+                  <img
+                    src={site.logoUrl}
+                    alt={site.name}
+                    className="ref-brand-option-mark"
+                    style={{
+                      objectFit: "contain",
+                      padding: "2px",
+                      background: "#ffffff",
+                    }}
+                  />
                 ) : (
-                  <span className="ref-brand-option-mark" style={{ backgroundColor: site.primaryColor }}>{getSiteInitials(site.name)}</span>
+                  <span className="ref-brand-option-mark" style={{ backgroundColor: site.primaryColor }}>
+                    {getSiteInitials(site.name)}
+                  </span>
                 )}
                 <span><strong>{site.name}</strong><small>{site.domain || "Marca configurada"}</small></span>
                 {selectedSite === site.id && <i aria-hidden="true" />}

@@ -52,6 +52,17 @@ export function ContactsView({ ready, initial, sites, canSuppress, initialSite =
     setSiteFilter(initialSite);
   }, [initialSite]);
 
+  useEffect(() => {
+    const onSiteChange = (e: Event) => {
+      const custom = e as CustomEvent<string>;
+      if (custom.detail !== undefined) {
+        setSiteFilter(custom.detail);
+      }
+    };
+    window.addEventListener("area-mail-site-change", onSiteChange);
+    return () => window.removeEventListener("area-mail-site-change", onSiteChange);
+  }, []);
+
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [suppressTarget, setSuppressTarget] = useState<Contact | null>(null);
   const [singleDeleteTarget, setSingleDeleteTarget] = useState<Contact | null>(null);

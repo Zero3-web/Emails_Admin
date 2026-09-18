@@ -43,6 +43,18 @@ export function PropertiesView({ properties, sites, initialSiteId = "" }: { prop
     setSiteId(initialSiteId);
   }, [initialSiteId]);
 
+  useEffect(() => {
+    const onSiteChange = (e: Event) => {
+      const custom = e as CustomEvent<string>;
+      if (custom.detail !== undefined) {
+        setSiteId(custom.detail === "all" ? "" : custom.detail);
+        setPage(1);
+      }
+    };
+    window.addEventListener("area-mail-site-change", onSiteChange);
+    return () => window.removeEventListener("area-mail-site-change", onSiteChange);
+  }, []);
+
   const [type, setType] = useState("");
   const [segment, setSegment] = useState("");
   const [page, setPage] = useState(1);

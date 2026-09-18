@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Send, Zap, Activity } from "lucide-react";
 import type { BlogPost, Contact, Property, Site } from "@/src/domain/types";
 import { CampaignComposer } from "@/src/components/campaign-composer";
@@ -24,10 +24,26 @@ export function DashboardView({
   contactsReady,
 }: DashboardViewProps) {
   const [showComposer, setShowComposer] = useState(false);
-  const isSingleBrand = sites.length === 1;
-  const greetingName = isSingleBrand ? sites[0].name : "Todas las marcas";
+  const [currentSiteId, setCurrentSiteId] = useState(selectedSiteId);
 
-  const siteQueryOnly = selectedSiteId ? `?site=${selectedSiteId}` : "";
+  useEffect(() => {
+    setCurrentSiteId(selectedSiteId);
+  }, [selectedSiteId]);
+
+  useEffect(() => {
+    const onSiteChange = (e: Event) => {
+      const custom = e as CustomEvent<string>;
+      if (custom.detail !== undefined) {
+        setCurrentSiteId(custom.detail === "all" ? undefined : custom.detail);
+      }
+    };
+    window.addEventListener("area-mail-site-change", onSiteChange);
+    return () => window.removeEventListener("area-mail-site-change", onSiteChange);
+  }, []);
+
+  const activeSite = sites.find((s) => s.id === currentSiteId);
+  const greetingName = activeSite ? activeSite.name : "Todas las marcas";
+  const siteQueryOnly = currentSiteId ? `?site=${currentSiteId}` : "";
 
   return (
     <div className="up-dashboard dashboard-workspace">

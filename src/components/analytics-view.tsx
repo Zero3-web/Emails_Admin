@@ -26,6 +26,17 @@ export function AnalyticsView({ sites, contacts, outboundEmails, usage, initialS
     setSiteId(initialSiteId);
   }, [initialSiteId]);
 
+  useEffect(() => {
+    const onSiteChange = (e: Event) => {
+      const custom = e as CustomEvent<string>;
+      if (custom.detail !== undefined) {
+        setSiteId(custom.detail);
+      }
+    };
+    window.addEventListener("area-mail-site-change", onSiteChange);
+    return () => window.removeEventListener("area-mail-site-change", onSiteChange);
+  }, []);
+
   const handleSiteChange = (newSite: string) => {
     setSiteId(newSite);
     try {
@@ -33,10 +44,13 @@ export function AnalyticsView({ sites, contacts, outboundEmails, usage, initialS
     } catch {
       // Ignore storage errors
     }
+    window.dispatchEvent(new CustomEvent("area-mail-site-change", { detail: newSite }));
     const next = new URLSearchParams(params?.toString() ?? "");
     if (newSite === "all") next.delete("site");
     else next.set("site", newSite);
-    router.push(`${pathname}${next.toString() ? `?${next}` : ""}`);
+    const targetUrl = `${pathname}${next.size ? `?${next}` : ""}`;
+    window.history.replaceState(null, "", targetUrl);
+    router.replace(targetUrl, { scroll: false });
   };
 
   const filtered = useMemo(() => {

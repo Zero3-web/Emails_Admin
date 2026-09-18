@@ -1663,6 +1663,11 @@ html[data-theme="dark"] :root .ref-brand-popover {
   transition: background-color 120ms ease !important;
 }
 
+:root .ref-brand-popover > button.ref-brand-all-option {
+  grid-template-columns: 1fr 14px !important;
+  padding-left: 12px !important;
+}
+
 :root .ref-brand-popover > button:hover,
 :root .ref-brand-popover > button[aria-selected="true"] {
   background: #f3f4f6 !important;

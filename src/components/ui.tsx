@@ -57,7 +57,7 @@ export function SiteMark({
         src={site.logoUrl}
         alt={site.name}
         className={small ? "mini-logo" : "site-logo"}
-        style={{ objectFit: "cover", background: "#ffffff" }}
+        style={{ objectFit: "contain", padding: "1px", background: "#ffffff" }}
       />
     );
   }

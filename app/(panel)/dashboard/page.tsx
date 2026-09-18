@@ -19,7 +19,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
 
   return (
     <DashboardView
-      sites={visibleSites}
+      sites={sites}
       selectedSiteId={site}
       properties={properties}
       posts={posts}

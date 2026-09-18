@@ -216,6 +216,7 @@ a:hover,
 .ref-brand-popover { position:absolute; z-index:260; top:calc(100% + 8px); right:0; width:292px; padding:8px; border:1px solid #e1e6ea; border-radius:12px; background:#fff; box-shadow:0 16px 38px rgba(15,23,42,.14); animation:ref-fade-slide-in 150ms ease; }
 .ref-brand-popover > p { margin:3px 8px 7px; color:#8a94a0; font-size:10px; font-weight:650; letter-spacing:.04em; text-transform:uppercase; }
 .ref-brand-popover > button { width:100%; min-height:54px; display:grid; grid-template-columns:34px minmax(0,1fr) 12px; align-items:center; gap:10px; padding:7px 9px; border:0; border-radius:8px; color:#26313d; background:transparent; text-align:left; cursor:pointer; }
+.ref-brand-popover > button.ref-brand-all-option { grid-template-columns:minmax(0,1fr) 12px; padding-left:12px; }
 .ref-brand-popover > button:hover,.ref-brand-popover > button[aria-selected="true"] { background:#f8fafc; }
 .ref-brand-popover > button > span:nth-child(2) { display:grid; gap:2px; min-width:0; }
 .ref-brand-popover strong,.ref-brand-popover small { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
